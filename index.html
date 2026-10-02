@@ -3,117 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#111">
 <title>AD Brand Market</title>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
 body{background:#f5f5f5;color:#222}
-button{cursor:pointer;border:0}
+button{border:0;cursor:pointer}
 .hidden{display:none!important}
 
-/* INTRO */
 #intro{
-position:fixed;inset:0;background:#111;color:#fff;z-index:9999;
-display:flex;align-items:center;justify-content:center;
-text-align:center;animation:introOut .8s ease 3.2s forwards
+position:fixed;inset:0;background:#111;color:#fff;z-index:99999;
+display:flex;align-items:center;justify-content:center;text-align:center;
+animation:hideIntro 1s ease 3.5s forwards
 }
 .introLogo{
 font-size:48px;font-weight:900;letter-spacing:5px;
-animation:logoIn 2.2s ease forwards
+animation:logo 2.5s ease
 }
-.introSub{margin-top:12px;font-size:16px;opacity:0;animation:subIn 1s ease 1.5s forwards}
-@keyframes logoIn{
+.introText{
+margin-top:12px;opacity:0;
+animation:textIn 1s ease 1.5s forwards
+}
+@keyframes logo{
 0%{transform:rotate(-360deg) scale(.1);opacity:0}
-60%{transform:rotate(15deg) scale(1.15);opacity:1}
+60%{transform:scale(1.15);opacity:1}
 100%{transform:rotate(0) scale(1)}
 }
-@keyframes subIn{to{opacity:1}}
-@keyframes introOut{to{opacity:0;visibility:hidden}}
+@keyframes textIn{to{opacity:1}}
+@keyframes hideIntro{to{opacity:0;visibility:hidden}}
 
-/* HEADER */
 header{
-background:#111;color:white;padding:18px 15px;
+background:#111;color:#fff;padding:16px;
 display:flex;align-items:center;justify-content:space-between;
-position:sticky;top:0;z-index:50
+position:sticky;top:0;z-index:100
 }
-.logo{font-size:24px;font-weight:900;letter-spacing:2px}
+.logo{font-size:23px;font-weight:900;letter-spacing:2px}
 .headerBtns{display:flex;gap:7px}
-.smallBtn{
-background:#fff;color:#111;padding:9px 12px;border-radius:8px;font-weight:bold
+.whiteBtn{background:#fff;color:#111;padding:9px 12px;border-radius:8px;font-weight:bold}
+
+.search{background:#fff;padding:14px}
+.search input{
+width:100%;padding:14px;border:1px solid #ccc;border-radius:10px;font-size:16px
 }
 
-/* SEARCH */
-.search{background:#fff;padding:14px}
-.search input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font-size:16px}
-
-/* MAIN */
 .container{max-width:1100px;margin:auto;padding:15px}
-h2{margin:20px 0 13px}
+h2{margin:20px 0 14px}
 .grid{display:grid;gap:12px}
 .categories{grid-template-columns:repeat(2,1fr)}
-.card{
-background:white;padding:17px;border-radius:13px;
+.products{grid-template-columns:1fr}
+
+.card,.panel{
+background:#fff;padding:18px;border-radius:13px;
 box-shadow:0 2px 8px rgba(0,0,0,.08)
 }
-.category{text-align:center;font-weight:bold;font-size:16px}
-.products{grid-template-columns:1fr}
-.product h3{margin-bottom:6px}
+.category{text-align:center;font-weight:bold}
+.product h3{margin-bottom:7px}
 .shop{color:#777;font-size:14px}
-.price{font-size:21px;font-weight:bold;margin:10px 0}
+.price{font-size:22px;font-weight:bold;margin:10px 0}
 .btn{
-background:#111;color:white;padding:11px 15px;border-radius:8px;
+background:#111;color:#fff;padding:11px 15px;border-radius:8px;
 font-weight:bold
 }
-.btn2{background:#eee;color:#111}
-.products .card{position:relative}
+.gray{background:#eee;color:#111}
 
-/* CART */
-.cartBox{
-background:#111;color:white;padding:20px;border-radius:14px;margin-top:20px
+.cart{
+background:#111;color:#fff;padding:20px;border-radius:14px;margin-top:20px
 }
-.cartBox .btn{background:white;color:#111;margin-top:10px}
+.cart .btn{background:#fff;color:#111;margin-top:10px}
 
-/* FORMS */
-.panel{
-background:white;padding:20px;border-radius:14px;margin-top:20px;
-box-shadow:0 2px 8px rgba(0,0,0,.08)
-}
 label{display:block;font-weight:bold;margin:12px 0 6px}
 input,textarea,select{
 width:100%;padding:12px;border:1px solid #ccc;
 border-radius:8px;font-size:15px
 }
-textarea{min-height:80px}
-.message{margin-top:12px;font-weight:bold}
+textarea{min-height:85px}
 
-/* STATUS */
+.message{font-weight:bold;margin-top:12px}
 .status{
-display:inline-block;padding:8px 11px;background:#eee;border-radius:8px;
-margin-top:8px;font-weight:bold
+display:inline-block;background:#eee;padding:8px 11px;
+border-radius:8px;margin-top:10px;font-weight:bold
 }
-.steps{display:grid;gap:8px;margin-top:12px}
-.step{padding:10px;border-radius:8px;background:#eee}
-.active{background:#111;color:white}
+.steps{display:grid;gap:8px;margin-top:14px}
+.step{background:#eee;padding:11px;border-radius:8px}
+.step.active{background:#111;color:#fff}
 
-/* DASHBOARD */
-.dashboard{display:grid;grid-template-columns:1fr;gap:12px}
-.stat{padding:18px;background:white;border-radius:12px;box-shadow:0 2px 7px rgba(0,0,0,.07)}
-.stat b{font-size:23px}
+.dashboard{
+display:grid;grid-template-columns:1fr;gap:12px
+}
+.stat{
+background:#fff;padding:17px;border-radius:12px;
+box-shadow:0 2px 7px rgba(0,0,0,.07)
+}
+.stat b{font-size:22px}
 
-/* LOGIN */
 .modal{
-position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;
-display:flex;align-items:center;justify-content:center;padding:15px
+position:fixed;inset:0;background:rgba(0,0,0,.7);
+z-index:1000;display:flex;align-items:center;
+justify-content:center;padding:15px
 }
 .modalBox{
-background:white;width:100%;max-width:420px;border-radius:15px;padding:22px
+background:#fff;width:100%;max-width:430px;
+padding:22px;border-radius:15px
 }
-.close{float:right;background:#eee;border-radius:50%;padding:7px 11px}
+.close{
+float:right;background:#eee;padding:7px 10px;
+border-radius:50%
+}
 
-/* FOOTER */
+.notice{
+background:#fff;padding:15px;border-radius:12px;
+margin-top:15px;border-left:5px solid #111
+}
+
 footer{
-margin-top:30px;background:#111;color:white;text-align:center;padding:25px
+margin-top:30px;background:#111;color:#fff;
+text-align:center;padding:25px
 }
 
 @media(min-width:700px){
@@ -126,69 +131,86 @@ margin-top:30px;background:#111;color:white;text-align:center;padding:25px
 
 <body>
 
-<!-- OPENING ANIMATION -->
+<!-- INTRO -->
 <div id="intro">
-  <div>
-    <div class="introLogo">AD BRAND</div>
-    <div class="introSub">Your Local Marketplace</div>
-  </div>
+<div>
+<div class="introLogo">AD BRAND</div>
+<div class="introText">Your Local Marketplace</div>
+</div>
 </div>
 
 <header>
-  <div class="logo">AD BRAND</div>
-  <div class="headerBtns">
-    <button class="smallBtn" onclick="openLogin()">Login</button>
-    <button class="smallBtn" onclick="openSignup()">Sign Up</button>
-  </div>
+<div class="logo">AD BRAND</div>
+<div class="headerBtns">
+<button class="whiteBtn" onclick="openLogin()">Login</button>
+<button class="whiteBtn" onclick="openSignup()">Sign Up</button>
+</div>
 </header>
 
 <div class="search">
-  <input id="searchBox" type="text"
-  placeholder="🔍 सामान या दुकान खोजें..." oninput="searchProducts()">
+<input id="search" placeholder="🔍 सामान या दुकान खोजें..."
+oninput="searchProducts()">
 </div>
 
 <main class="container">
 
-<h2>Categories</h2>
+<h2>🛍️ Categories</h2>
 
 <div class="grid categories">
-  <div class="card category">👕 कपड़े</div>
-  <div class="card category">👟 जूते</div>
-  <div class="card category">🩴 चप्पल</div>
-  <div class="card category">🍔 खाना</div>
-  <div class="card category">☕ चाय</div>
-  <div class="card category">🍟 Snacks</div>
-  <div class="card category">👨 Men's</div>
-  <div class="card category">👩 Women's</div>
+<div class="card category">👕 कपड़े</div>
+<div class="card category">👟 जूते</div>
+<div class="card category">🩴 चप्पल</div>
+<div class="card category">🍔 खाना</div>
+<div class="card category">☕ चाय</div>
+<div class="card category">🍟 Snacks</div>
+<div class="card category">👨 Men's</div>
+<div class="card category">👩 Women's</div>
 </div>
 
 <h2>🔥 Popular Products</h2>
 
 <div class="grid products" id="products">
 
-<div class="card product">
+<div class="card product" data-category="clothes">
 <h3>Men's T-Shirt</h3>
 <p class="shop">Local Fashion Store</p>
+<p>👕 कपड़े</p>
 <p class="price">₹499</p>
-<button class="btn" onclick="addToCart('Men\\'s T-Shirt',499)">
+<button class="btn"
+onclick="addToCart('Men\\'s T-Shirt',499,'clothes')">
 Cart में डालें
 </button>
 </div>
 
-<div class="card product">
+<div class="card product" data-category="footwear">
 <h3>Casual Chappal</h3>
 <p class="shop">Local Footwear</p>
+<p>🩴 चप्पल</p>
 <p class="price">₹299</p>
-<button class="btn" onclick="addToCart('Casual Chappal',299)">
+<button class="btn"
+onclick="addToCart('Casual Chappal',299,'footwear')">
 Cart में डालें
 </button>
 </div>
 
-<div class="card product">
+<div class="card product" data-category="food">
 <h3>Momos</h3>
 <p class="shop">AD Food Corner</p>
+<p>🍔 खाना</p>
 <p class="price">₹120</p>
-<button class="btn" onclick="addToCart('Momos',120)">
+<button class="btn"
+onclick="addToCart('Momos',120,'food')">
+Cart में डालें
+</button>
+</div>
+
+<div class="card product" data-category="food">
+<h3>Tea & Snacks</h3>
+<p class="shop">Local Tea Corner</p>
+<p>☕ चाय और Snacks</p>
+<p class="price">₹80</p>
+<button class="btn"
+onclick="addToCart('Tea & Snacks',80,'food')">
 Cart में डालें
 </button>
 </div>
@@ -196,52 +218,54 @@ Cart में डालें
 </div>
 
 <!-- CART -->
-<section class="cartBox">
+<section class="cart">
 <h2>🛒 आपका Cart</h2>
 <p>Items: <b id="cartItems">0</b></p>
 <p style="font-size:22px;margin-top:8px">
 Total: ₹<b id="cartTotal">0</b>
 </p>
-<button class="btn" onclick="showCheckout()">Checkout करें</button>
+<button class="btn" onclick="checkout()">Checkout करें</button>
 </section>
 
-<!-- CUSTOMER ACCOUNT -->
+<!-- ACCOUNT -->
 <section class="panel">
 <h2>👤 Customer Account</h2>
-<p id="accountText">अभी Guest Customer हैं।</p>
+<p id="account">
+Guest Customer — Sign Up करके अपना account बनाएं।
+</p>
 <br>
-<button class="btn" onclick="openSignup()">Customer Sign Up</button>
+<button class="btn" onclick="openSignup()">Sign Up करें</button>
 </section>
 
 <!-- CHECKOUT -->
-<section class="panel hidden" id="checkout">
+<section class="panel hidden" id="checkoutPanel">
 
-<h2>📦 Order Details</h2>
+<h2>📦 Checkout</h2>
 
 <label>नाम</label>
 <input id="customerName" placeholder="पूरा नाम">
 
 <label>मोबाइल नंबर</label>
-<input id="customerPhone" type="tel" maxlength="10"
+<input id="customerPhone" maxlength="10"
 placeholder="10 अंकों का मोबाइल नंबर">
 
 <label>Delivery Address</label>
-<textarea id="customerAddress"
-placeholder="पूरा पता लिखें"></textarea>
+<textarea id="address"
+placeholder="पूरा पता"></textarea>
 
 <label>Payment Method</label>
-<select id="paymentMethod">
+<select id="payment">
 <option value="COD">Cash on Delivery</option>
 <option value="ONLINE">Online Payment</option>
 </select>
 
-<div class="card" style="margin-top:15px">
-<h3>💳 Secure Payment</h3>
-<p style="margin-top:8px">
-Online Payment gateway बाद में सुरक्षित तरीके से जोड़ा जाएगा।
+<div class="notice">
+<strong>💳 Payment</strong>
+<p style="margin-top:7px">
+Online payment और UPI QR को बाद में सुरक्षित payment gateway से जोड़ा जाएगा।
 </p>
-<p style="margin-top:8px">
-📱 UPI / QR Scanner भी payment gateway के साथ जोड़ा जाएगा।
+<p style="margin-top:7px">
+अभी कोई असली payment नहीं हो रही है।
 </p>
 </div>
 
@@ -252,92 +276,170 @@ onclick="placeOrder()">Order Confirm करें</button>
 
 </section>
 
+<!-- PICKUP RULE -->
+<section class="panel">
+<h2>📍 Pickup Rule</h2>
+<p>
+<strong>👕 कपड़ों वाले Orders:</strong>
+Pickup option उपलब्ध हो सकता है।
+</p>
+<p style="margin-top:8px">
+<strong>🍔 खाने वाले Orders:</strong>
+Customer pickup option नहीं दिखाया जाएगा।
+</p>
+<p style="margin-top:8px">
+खाने का Order केवल Delivery flow में जाएगा।
+</p>
+</section>
+
 <!-- ORDER STATUS -->
 <section class="panel">
+
 <h2>🚚 Order Status</h2>
-<p id="orderStatus">अभी कोई Order नहीं किया गया।</p>
+
+<p id="orderStatus">
+अभी कोई Order नहीं किया गया।
+</p>
 
 <div class="steps">
-<div class="step active" id="s1">1️⃣ Order Placed</div>
-<div class="step" id="s2">2️⃣ Seller Confirmed</div>
-<div class="step" id="s3">3️⃣ Pickup</div>
-<div class="step" id="s4">4️⃣ Out for Delivery</div>
-<div class="step" id="s5">5️⃣ Delivered</div>
+<div class="step active" id="step1">1️⃣ Order Placed</div>
+<div class="step" id="step2">2️⃣ Seller Confirmed</div>
+<div class="step" id="step3">3️⃣ Pickup</div>
+<div class="step" id="step4">4️⃣ Out for Delivery</div>
+<div class="step" id="step5">5️⃣ Delivered</div>
 </div>
+
 </section>
 
 <!-- SELLER -->
 <section class="panel">
+
 <h2>🏪 Seller / दुकानदार</h2>
 
 <div class="dashboard">
+
 <div class="stat">
 <p>Total Sales</p>
-<b>₹<span id="sellerSales">0</span></b>
+<b>₹<span id="sales">0</span></b>
 </div>
 
 <div class="stat">
 <p>AD Brand Fee</p>
-<b>₹<span id="commission">0</span></b>
+<b>₹<span id="fee">0</span></b>
 </div>
 
 <div class="stat">
 <p>Seller Payable</p>
-<b>₹<span id="sellerPayable">0</span></b>
+<b>₹<span id="payable">0</span></b>
 </div>
 
 <div class="stat">
 <p>Settlement</p>
 <b>Weekly</b>
 </div>
+
 </div>
 
-<p style="margin-top:15px">
-<strong>Payment Cycle:</strong> Weekly Settlement
+<div class="notice">
+<p><strong>Payment Cycle:</strong> Weekly Settlement</p>
+<p style="margin-top:7px">
+<strong>Settlement Status:</strong> Pending
 </p>
-<p style="margin-top:8px">
-<strong>Status:</strong> Pending
+<p style="margin-top:7px">
+<strong>Next Settlement:</strong> Weekly Payment Cycle
 </p>
+</div>
+
+<br>
+
+<button class="btn"
+onclick="alert('Seller Product Management backend जुड़ने पर live होगा।')">
+➕ Product Add करें
+</button>
+
+<button class="btn gray"
+onclick="alert('Seller Orders backend जुड़ने पर live होंगे।')">
+📦 Orders देखें
+</button>
+
 </section>
 
 <!-- DELIVERY -->
 <section class="panel">
+
 <h2>🛵 Delivery Partner</h2>
-<p>Delivery Partner Login करके available orders देखेगा।</p>
-<p style="margin-top:8px">📦 Pickup → 🚚 Delivery → ✅ Delivered</p>
-<p style="margin-top:8px">💰 Delivery earning और COD हिसाब रिकॉर्ड होगा।</p>
+
+<p>Delivery Partner अपना account बनाकर available orders देखेगा।</p>
+
+<div class="notice">
+<p>📦 Order Assigned</p>
+<p>🏪 Seller से Pickup</p>
+<p>🚚 Customer को Delivery</p>
+<p>✅ Delivered</p>
+<p>💰 Delivery Earnings / COD Settlement</p>
+</div>
+
 <br>
-<button class="btn" onclick="alert('Delivery Partner registration system backend जुड़ने के बाद live होगा।')">
+
+<button class="btn"
+onclick="alert('Delivery Partner registration backend जुड़ने पर live होगा।')">
 Delivery Partner Registration
 </button>
+
 </section>
 
 <!-- ADMIN -->
 <section class="panel">
+
 <h2>🔐 AD Brand Admin</h2>
 
 <div class="dashboard">
-<div class="stat"><p>Customers</p><b id="adminCustomers">0</b></div>
-<div class="stat"><p>Orders</p><b id="adminOrders">0</b></div>
-<div class="stat"><p>Sales</p><b>₹<span id="adminSales">0</span></b></div>
-<div class="stat"><p>Delivery</p><b>Active</b></div>
+
+<div class="stat">
+<p>Customers</p>
+<b id="customers">0</b>
 </div>
 
-<p style="margin-top:15px">
-Admin panel बाद में password + 2FA के साथ secure backend पर चलेगा।
-</p>
+<div class="stat">
+<p>Orders</p>
+<b id="orders">0</b>
+</div>
+
+<div class="stat">
+<p>Total Sales</p>
+<b>₹<span id="adminSales">0</span></b>
+</div>
+
+<div class="stat">
+<p>System</p>
+<b>Demo</b>
+</div>
+
+</div>
+
+<div class="notice">
+<p>Admin में आगे Customers, Sellers, Delivery Partners, Orders, Payments, COD, Refunds, Complaints और Settlements का पूरा control जोड़ा जाएगा।</p>
+</div>
+
 </section>
 
 <!-- INSTALL -->
 <section class="panel">
-<h2>📲 AD Brand मोबाइल में रखें</h2>
+
+<h2>📲 Mobile में AD Brand</h2>
+
 <p>
-अगर आपका browser Install/Add to Home Screen दिखाता है,
-तो उससे AD Brand को मोबाइल की Home Screen पर जोड़ा जा सकता है।
+AD Brand को मोबाइल की Home Screen पर App जैसा रखा जा सकता है।
 </p>
+
 <br>
-<button class="btn" onclick="installApp()">📲 Install / Add to Home Screen</button>
+
+<button class="btn" onclick="installApp()">
+📲 Install / Add to Home Screen
+</button>
+
 <p class="message" id="installMessage"></p>
+
 </section>
 
 </main>
@@ -348,7 +450,7 @@ Admin panel बाद में password + 2FA के साथ secure backend �
 <p style="margin-top:7px">© 2026 AD Brand</p>
 </footer>
 
-<!-- LOGIN / SIGNUP MODAL -->
+<!-- AUTH MODAL -->
 <div class="modal hidden" id="authModal">
 
 <div class="modalBox">
@@ -361,16 +463,22 @@ Admin panel बाद में password + 2FA के साथ secure backend �
 <input id="authName" placeholder="आपका नाम">
 
 <label>Mobile</label>
-<input id="authPhone" maxlength="10" placeholder="10 अंकों का मोबाइल">
+<input id="authPhone" maxlength="10"
+placeholder="10 अंकों का मोबाइल">
 
 <label>Email</label>
-<input id="authEmail" type="email" placeholder="Email">
+<input id="authEmail" type="email"
+placeholder="Email">
 
 <label>Password</label>
-<input id="authPassword" type="password" placeholder="Password">
+<input id="authPassword" type="password"
+placeholder="Password">
 
-<button class="btn" style="margin-top:16px;width:100%"
-onclick="submitAuth()">Continue</button>
+<button class="btn"
+style="width:100%;margin-top:15px"
+onclick="submitAuth()">
+Continue
+</button>
 
 <p class="message" id="authMessage"></p>
 
@@ -379,32 +487,40 @@ onclick="submitAuth()">Continue</button>
 
 <script>
 
-let cartItems=0;
-let cartTotal=0;
-let sellerSales=0;
-let adminOrders=0;
-let installPrompt=null;
+let cart=[];
+let total=0;
+let sales=0;
+let orders=0;
+let installEvent=null;
 
 /* CART */
-function addToCart(name,price){
-cartItems++;
-cartTotal+=price;
+function addToCart(name,price,category){
 
-document.getElementById("cartItems").textContent=cartItems;
-document.getElementById("cartTotal").textContent=cartTotal;
+cart.push({name,price,category});
+total+=price;
+
+updateCart();
 
 alert(name+" Cart में डाल दिया गया।");
 }
 
-function showCheckout(){
+function updateCart(){
 
-if(cartItems===0){
-alert("पहले कोई Product Cart में डालें।");
+document.getElementById("cartItems").textContent=cart.length;
+document.getElementById("cartTotal").textContent=total;
+}
+
+function checkout(){
+
+if(cart.length===0){
+alert("पहले Product Cart में डालें।");
 return;
 }
 
-document.getElementById("checkout").classList.remove("hidden");
-document.getElementById("checkout").scrollIntoView({behavior:"smooth"});
+document.getElementById("checkoutPanel").classList.remove("hidden");
+
+document.getElementById("checkoutPanel")
+.scrollIntoView({behavior:"smooth"});
 }
 
 /* ORDER */
@@ -412,124 +528,156 @@ function placeOrder(){
 
 let name=document.getElementById("customerName").value.trim();
 let phone=document.getElementById("customerPhone").value.trim();
-let address=document.getElementById("customerAddress").value.trim();
-let payment=document.getElementById("paymentMethod").value;
-
-let msg=document.getElementById("orderMessage");
+let address=document.getElementById("address").value.trim();
+let payment=document.getElementById("payment").value;
+let message=document.getElementById("orderMessage");
 
 if(!name||!phone||!address){
-msg.textContent="कृपया नाम, मोबाइल और पूरा पता भरें।";
+message.textContent="कृपया नाम, मोबाइल और पता भरें।";
 return;
 }
 
 if(!/^[0-9]{10}$/.test(phone)){
-msg.textContent="कृपया सही 10 अंकों का मोबाइल नंबर डालें।";
+message.textContent="सही 10 अंकों का मोबाइल नंबर डालें।";
 return;
 }
 
-sellerSales+=cartTotal;
-adminOrders++;
+sales+=total;
+orders++;
 
-let commission=Math.round(sellerSales*0.05);
-let payable=sellerSales-commission;
+let fee=Math.round(sales*0.05);
+let payable=sales-fee;
 
-document.getElementById("sellerSales").textContent=sellerSales;
-document.getElementById("commission").textContent=commission;
-document.getElementById("sellerPayable").textContent=payable;
+document.getElementById("sales").textContent=sales;
+document.getElementById("fee").textContent=fee;
+document.getElementById("payable").textContent=payable;
 
-document.getElementById("adminOrders").textContent=adminOrders;
-document.getElementById("adminSales").textContent=sellerSales;
+document.getElementById("orders").textContent=orders;
+document.getElementById("adminSales").textContent=sales;
+
+let orderId="AD"+Date.now();
 
 document.getElementById("orderStatus").textContent=
-"Order Confirmed! Order ID: AD"+Date.now();
+"Order Confirmed • Order ID: "+orderId;
 
-document.getElementById("s2").classList.add("active");
+document.getElementById("step2").classList.add("active");
 
-msg.textContent=
-"Order successfully placed. Payment: "+
+/* FOOD = DELIVERY ONLY
+   CLOTHES = PICKUP POSSIBILITY */
+let hasFood=cart.some(item=>item.category==="food");
+let hasClothes=cart.some(item=>item.category==="clothes");
+
+if(hasFood){
+document.getElementById("step3").textContent="3️⃣ Seller → Delivery Partner";
+}else if(hasClothes){
+document.getElementById("step3").textContent="3️⃣ Pickup / Delivery";
+}
+
+message.textContent=
+"Order successfully placed • "+
 (payment==="COD"?"Cash on Delivery":"Online Payment Demo");
 
-alert("🎉 आपका Order Confirm हो गया!");
+alert("🎉 Order Confirmed!");
 
-cartItems=0;
-cartTotal=0;
-
-document.getElementById("cartItems").textContent=0;
-document.getElementById("cartTotal").textContent=0;
+cart=[];
+total=0;
+updateCart();
 }
 
 /* SEARCH */
 function searchProducts(){
 
-let q=document.getElementById("searchBox").value.toLowerCase();
-let products=document.querySelectorAll(".product");
+let query=document.getElementById("search")
+.value.toLowerCase();
 
-products.forEach(p=>{
-p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";
+document.querySelectorAll(".product").forEach(product=>{
+
+let text=product.innerText.toLowerCase();
+
+product.style.display=
+text.includes(query)?"block":"none";
+
 });
 }
 
-/* LOGIN */
+/* AUTH */
 function openLogin(){
-document.getElementById("authTitle").textContent="Customer Login";
-document.getElementById("authModal").classList.remove("hidden");
+
+document.getElementById("authTitle").textContent=
+"Customer Login";
+
+document.getElementById("authModal")
+.classList.remove("hidden");
 }
 
 function openSignup(){
-document.getElementById("authTitle").textContent="Customer Sign Up";
-document.getElementById("authModal").classList.remove("hidden");
+
+document.getElementById("authTitle").textContent=
+"Customer Sign Up";
+
+document.getElementById("authModal")
+.classList.remove("hidden");
 }
 
 function closeAuth(){
-document.getElementById("authModal").classList.add("hidden");
+document.getElementById("authModal")
+.classList.add("hidden");
 }
 
 function submitAuth(){
 
-let name=document.getElementById("authName").value.trim();
-let phone=document.getElementById("authPhone").value.trim();
+let name=document.getElementById("authName")
+.value.trim();
+
+let phone=document.getElementById("authPhone")
+.value.trim();
+
+let message=document.getElementById("authMessage");
 
 if(!name||!phone){
-document.getElementById("authMessage").textContent=
-"नाम और मोबाइल नंबर भरें।";
+message.textContent="नाम और मोबाइल नंबर भरें।";
 return;
 }
 
 if(!/^[0-9]{10}$/.test(phone)){
-document.getElementById("authMessage").textContent=
-"सही 10 अंकों का मोबाइल नंबर डालें।";
+message.textContent="सही 10 अंकों का मोबाइल नंबर डालें।";
 return;
 }
 
-document.getElementById("accountText").textContent=
-"Welcome, "+name+" 👋 आपका Customer Account demo में तैयार है।";
+document.getElementById("account").textContent=
+"Welcome "+name+" 👋 • Customer Account तैयार है।";
 
-document.getElementById("adminCustomers").textContent=1;
+document.getElementById("customers").textContent=1;
 
-document.getElementById("authMessage").textContent=
-"Account successfully created.";
+message.textContent="Account successfully created.";
 
-setTimeout(closeAuth,800);
+setTimeout(closeAuth,900);
 }
 
 /* INSTALL */
 function installApp(){
 
-if(installPrompt){
-installPrompt.prompt();
+if(installEvent){
 
-installPrompt.userChoice.then(()=>{
-installPrompt=null;
+installEvent.prompt();
+
+installEvent.userChoice.then(function(){
+installEvent=null;
 });
+
 }else{
-document.getElementById("installMessage").textContent=
-"Browser के ⋮ menu में जाकर 'Add to Home screen' / 'Install app' चुनें।";
+
+document.getElementById("installMessage")
+.textContent=
+"Browser के ⋮ menu में जाकर Add to Home Screen / Install App चुनें।";
 }
 }
 
-window.addEventListener("beforeinstallprompt",e=>{
+window.addEventListener("beforeinstallprompt",function(e){
+
 e.preventDefault();
-installPrompt=e;
+installEvent=e;
+
 });
 
 </script>
