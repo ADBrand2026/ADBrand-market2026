@@ -1,435 +1,538 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AD Brand Market</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111111">
+<title>AD Brand Market</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f5f5f5;color:#222}
+button{cursor:pointer;border:0}
+.hidden{display:none!important}
 
-    body {
-      background: #f5f5f5;
-      color: #222;
-    }
+/* INTRO */
+#intro{
+position:fixed;inset:0;background:#111;color:#fff;z-index:9999;
+display:flex;align-items:center;justify-content:center;
+text-align:center;animation:introOut .8s ease 3.2s forwards
+}
+.introLogo{
+font-size:48px;font-weight:900;letter-spacing:5px;
+animation:logoIn 2.2s ease forwards
+}
+.introSub{margin-top:12px;font-size:16px;opacity:0;animation:subIn 1s ease 1.5s forwards}
+@keyframes logoIn{
+0%{transform:rotate(-360deg) scale(.1);opacity:0}
+60%{transform:rotate(15deg) scale(1.15);opacity:1}
+100%{transform:rotate(0) scale(1)}
+}
+@keyframes subIn{to{opacity:1}}
+@keyframes introOut{to{opacity:0;visibility:hidden}}
 
-    header {
-      background: #111;
-      color: white;
-      text-align: center;
-      padding: 22px 15px;
-    }
+/* HEADER */
+header{
+background:#111;color:white;padding:18px 15px;
+display:flex;align-items:center;justify-content:space-between;
+position:sticky;top:0;z-index:50
+}
+.logo{font-size:24px;font-weight:900;letter-spacing:2px}
+.headerBtns{display:flex;gap:7px}
+.smallBtn{
+background:#fff;color:#111;padding:9px 12px;border-radius:8px;font-weight:bold
+}
 
-    header h1 {
-      font-size: 30px;
-    }
+/* SEARCH */
+.search{background:#fff;padding:14px}
+.search input{width:100%;padding:13px;border:1px solid #ccc;border-radius:10px;font-size:16px}
 
-    header p {
-      margin-top: 7px;
-    }
+/* MAIN */
+.container{max-width:1100px;margin:auto;padding:15px}
+h2{margin:20px 0 13px}
+.grid{display:grid;gap:12px}
+.categories{grid-template-columns:repeat(2,1fr)}
+.card{
+background:white;padding:17px;border-radius:13px;
+box-shadow:0 2px 8px rgba(0,0,0,.08)
+}
+.category{text-align:center;font-weight:bold;font-size:16px}
+.products{grid-template-columns:1fr}
+.product h3{margin-bottom:6px}
+.shop{color:#777;font-size:14px}
+.price{font-size:21px;font-weight:bold;margin:10px 0}
+.btn{
+background:#111;color:white;padding:11px 15px;border-radius:8px;
+font-weight:bold
+}
+.btn2{background:#eee;color:#111}
+.products .card{position:relative}
 
-    .search {
-      background: white;
-      padding: 15px;
-    }
+/* CART */
+.cartBox{
+background:#111;color:white;padding:20px;border-radius:14px;margin-top:20px
+}
+.cartBox .btn{background:white;color:#111;margin-top:10px}
 
-    .search input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 16px;
-    }
+/* FORMS */
+.panel{
+background:white;padding:20px;border-radius:14px;margin-top:20px;
+box-shadow:0 2px 8px rgba(0,0,0,.08)
+}
+label{display:block;font-weight:bold;margin:12px 0 6px}
+input,textarea,select{
+width:100%;padding:12px;border:1px solid #ccc;
+border-radius:8px;font-size:15px
+}
+textarea{min-height:80px}
+.message{margin-top:12px;font-weight:bold}
 
-    .container {
-      max-width: 1100px;
-      margin: auto;
-      padding: 20px 15px;
-    }
+/* STATUS */
+.status{
+display:inline-block;padding:8px 11px;background:#eee;border-radius:8px;
+margin-top:8px;font-weight:bold
+}
+.steps{display:grid;gap:8px;margin-top:12px}
+.step{padding:10px;border-radius:8px;background:#eee}
+.active{background:#111;color:white}
 
-    h2 {
-      margin: 20px 0 14px;
-    }
+/* DASHBOARD */
+.dashboard{display:grid;grid-template-columns:1fr;gap:12px}
+.stat{padding:18px;background:white;border-radius:12px;box-shadow:0 2px 7px rgba(0,0,0,.07)}
+.stat b{font-size:23px}
 
-    .categories,
-    .products,
-    .info-grid {
-      display: grid;
-      gap: 12px;
-    }
+/* LOGIN */
+.modal{
+position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:100;
+display:flex;align-items:center;justify-content:center;padding:15px
+}
+.modalBox{
+background:white;width:100%;max-width:420px;border-radius:15px;padding:22px
+}
+.close{float:right;background:#eee;border-radius:50%;padding:7px 11px}
 
-    .categories {
-      grid-template-columns: repeat(2, 1fr);
-    }
+/* FOOTER */
+footer{
+margin-top:30px;background:#111;color:white;text-align:center;padding:25px
+}
 
-    .category,
-    .product,
-    .box,
-    .seller {
-      background: white;
-      padding: 18px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .category {
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .products {
-      grid-template-columns: 1fr;
-    }
-
-    .product h3 {
-      margin-bottom: 7px;
-    }
-
-    .shop {
-      color: #666;
-      margin-bottom: 8px;
-    }
-
-    .price {
-      font-size: 21px;
-      font-weight: bold;
-      margin: 10px 0;
-    }
-
-    button {
-      background: #111;
-      color: white;
-      border: none;
-      padding: 11px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .cart,
-    .checkout {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    .cart p,
-    .seller p {
-      margin: 9px 0;
-    }
-
-    .total {
-      font-size: 21px;
-      font-weight: bold;
-      margin: 15px 0;
-    }
-
-    label {
-      display: block;
-      margin-top: 12px;
-      margin-bottom: 6px;
-      font-weight: bold;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 15px;
-    }
-
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
-
-    .payment {
-      margin: 15px 0;
-      padding: 14px;
-      background: #f5f5f5;
-      border-radius: 8px;
-    }
-
-    .message {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 7px 10px;
-      background: #eee;
-      border-radius: 7px;
-      margin-top: 8px;
-    }
-
-    .info-grid {
-      grid-template-columns: 1fr;
-    }
-
-    footer {
-      margin-top: 30px;
-      background: #111;
-      color: white;
-      text-align: center;
-      padding: 20px;
-    }
-
-    @media (min-width: 700px) {
-      .categories {
-        grid-template-columns: repeat(4, 1fr);
-      }
-
-      .products {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .info-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-  </style>
+@media(min-width:700px){
+.categories{grid-template-columns:repeat(4,1fr)}
+.products{grid-template-columns:repeat(3,1fr)}
+.dashboard{grid-template-columns:repeat(4,1fr)}
+}
+</style>
 </head>
 
 <body>
 
-  <header>
-    <h1>AD Brand Market</h1>
-    <p>आपका अपना Local Marketplace</p>
-  </header>
-
-  <div class="search">
-    <input type="text" placeholder="सामान या दुकान खोजें...">
+<!-- OPENING ANIMATION -->
+<div id="intro">
+  <div>
+    <div class="introLogo">AD BRAND</div>
+    <div class="introSub">Your Local Marketplace</div>
   </div>
+</div>
 
-  <main class="container">
+<header>
+  <div class="logo">AD BRAND</div>
+  <div class="headerBtns">
+    <button class="smallBtn" onclick="openLogin()">Login</button>
+    <button class="smallBtn" onclick="openSignup()">Sign Up</button>
+  </div>
+</header>
 
-    <h2>Categories</h2>
+<div class="search">
+  <input id="searchBox" type="text"
+  placeholder="🔍 सामान या दुकान खोजें..." oninput="searchProducts()">
+</div>
 
-    <div class="categories">
-      <div class="category">👕 कपड़े</div>
-      <div class="category">👟 जूते और चप्पल</div>
-      <div class="category">🍔 खाना</div>
-      <div class="category">☕ चाय और Snacks</div>
-    </div>
+<main class="container">
 
-    <h2>Popular Products</h2>
+<h2>Categories</h2>
 
-    <div class="products">
+<div class="grid categories">
+  <div class="card category">👕 कपड़े</div>
+  <div class="card category">👟 जूते</div>
+  <div class="card category">🩴 चप्पल</div>
+  <div class="card category">🍔 खाना</div>
+  <div class="card category">☕ चाय</div>
+  <div class="card category">🍟 Snacks</div>
+  <div class="card category">👨 Men's</div>
+  <div class="card category">👩 Women's</div>
+</div>
 
-      <div class="product">
-        <h3>Men's T-Shirt</h3>
-        <p class="shop">Local Fashion Store</p>
-        <p class="price">₹499</p>
-        <button onclick="addToCart('Men\\'s T-Shirt', 499)">
-          Cart में डालें
-        </button>
-      </div>
+<h2>🔥 Popular Products</h2>
 
-      <div class="product">
-        <h3>Casual Chappal</h3>
-        <p class="shop">Local Footwear</p>
-        <p class="price">₹299</p>
-        <button onclick="addToCart('Casual Chappal', 299)">
-          Cart में डालें
-        </button>
-      </div>
+<div class="grid products" id="products">
 
-      <div class="product">
-        <h3>Momos</h3>
-        <p class="shop">AD Food Corner</p>
-        <p class="price">₹120</p>
-        <button onclick="addToCart('Momos', 120)">
-          Cart में डालें
-        </button>
-      </div>
+<div class="card product">
+<h3>Men's T-Shirt</h3>
+<p class="shop">Local Fashion Store</p>
+<p class="price">₹499</p>
+<button class="btn" onclick="addToCart('Men\\'s T-Shirt',499)">
+Cart में डालें
+</button>
+</div>
 
-    </div>
+<div class="card product">
+<h3>Casual Chappal</h3>
+<p class="shop">Local Footwear</p>
+<p class="price">₹299</p>
+<button class="btn" onclick="addToCart('Casual Chappal',299)">
+Cart में डालें
+</button>
+</div>
 
-    <section class="cart">
-      <h2>🛒 आपका Cart</h2>
-      <p>Items: <strong id="cartItems">0</strong></p>
-      <p class="total">Total: ₹<span id="cartTotal">0</span></p>
-      <button onclick="showCheckout()">Checkout करें</button>
-    </section>
+<div class="card product">
+<h3>Momos</h3>
+<p class="shop">AD Food Corner</p>
+<p class="price">₹120</p>
+<button class="btn" onclick="addToCart('Momos',120)">
+Cart में डालें
+</button>
+</div>
 
-    <section class="checkout" id="checkout" style="display:none;">
+</div>
 
-      <h2>📦 Order Details</h2>
+<!-- CART -->
+<section class="cartBox">
+<h2>🛒 आपका Cart</h2>
+<p>Items: <b id="cartItems">0</b></p>
+<p style="font-size:22px;margin-top:8px">
+Total: ₹<b id="cartTotal">0</b>
+</p>
+<button class="btn" onclick="showCheckout()">Checkout करें</button>
+</section>
 
-      <label>आपका नाम</label>
-      <input id="customerName" type="text" placeholder="पूरा नाम">
+<!-- CUSTOMER ACCOUNT -->
+<section class="panel">
+<h2>👤 Customer Account</h2>
+<p id="accountText">अभी Guest Customer हैं।</p>
+<br>
+<button class="btn" onclick="openSignup()">Customer Sign Up</button>
+</section>
 
-      <label>मोबाइल नंबर</label>
-      <input id="customerPhone" type="tel" placeholder="10 अंकों का मोबाइल नंबर">
+<!-- CHECKOUT -->
+<section class="panel hidden" id="checkout">
 
-      <label>Delivery Address</label>
-      <textarea id="customerAddress" placeholder="पूरा पता लिखें"></textarea>
+<h2>📦 Order Details</h2>
 
-      <label>Payment Method</label>
+<label>नाम</label>
+<input id="customerName" placeholder="पूरा नाम">
 
-      <div class="payment">
-        <select id="paymentMethod">
-          <option value="COD">Cash on Delivery</option>
-          <option value="ONLINE">Online Payment</option>
-        </select>
-      </div>
+<label>मोबाइल नंबर</label>
+<input id="customerPhone" type="tel" maxlength="10"
+placeholder="10 अंकों का मोबाइल नंबर">
 
-      <button onclick="placeOrder()">Order Confirm करें</button>
+<label>Delivery Address</label>
+<textarea id="customerAddress"
+placeholder="पूरा पता लिखें"></textarea>
 
-      <p class="message" id="orderMessage"></p>
+<label>Payment Method</label>
+<select id="paymentMethod">
+<option value="COD">Cash on Delivery</option>
+<option value="ONLINE">Online Payment</option>
+</select>
 
-    </section>
+<div class="card" style="margin-top:15px">
+<h3>💳 Secure Payment</h3>
+<p style="margin-top:8px">
+Online Payment gateway बाद में सुरक्षित तरीके से जोड़ा जाएगा।
+</p>
+<p style="margin-top:8px">
+📱 UPI / QR Scanner भी payment gateway के साथ जोड़ा जाएगा।
+</p>
+</div>
 
-    <h2>🚚 Order Status</h2>
+<button class="btn" style="margin-top:15px"
+onclick="placeOrder()">Order Confirm करें</button>
 
-    <div class="box">
-      <p id="orderStatus">
-        अभी कोई Order नहीं किया गया।
-      </p>
-      <span class="status">Waiting for Order</span>
-    </div>
+<p class="message" id="orderMessage"></p>
 
-    <h2>🏪 Seller / दुकानदार</h2>
+</section>
 
-    <div class="seller">
+<!-- ORDER STATUS -->
+<section class="panel">
+<h2>🚚 Order Status</h2>
+<p id="orderStatus">अभी कोई Order नहीं किया गया।</p>
 
-      <h3>Weekly Settlement</h3>
+<div class="steps">
+<div class="step active" id="s1">1️⃣ Order Placed</div>
+<div class="step" id="s2">2️⃣ Seller Confirmed</div>
+<div class="step" id="s3">3️⃣ Pickup</div>
+<div class="step" id="s4">4️⃣ Out for Delivery</div>
+<div class="step" id="s5">5️⃣ Delivered</div>
+</div>
+</section>
 
-      <p>
-        हर Order की बिक्री Seller के हिसाब में रिकॉर्ड होगी।
-      </p>
+<!-- SELLER -->
+<section class="panel">
+<h2>🏪 Seller / दुकानदार</h2>
 
-      <p>
-        <strong>Total Sales:</strong>
-        ₹<span id="sellerSales">0</span>
-      </p>
+<div class="dashboard">
+<div class="stat">
+<p>Total Sales</p>
+<b>₹<span id="sellerSales">0</span></b>
+</div>
 
-      <p>
-        <strong>AD Brand Commission:</strong>
-        ₹<span id="commission">0</span>
-      </p>
+<div class="stat">
+<p>AD Brand Fee</p>
+<b>₹<span id="commission">0</span></b>
+</div>
 
-      <p>
-        <strong>Seller Payable:</strong>
-        ₹<span id="sellerPayable">0</span>
-      </p>
+<div class="stat">
+<p>Seller Payable</p>
+<b>₹<span id="sellerPayable">0</span></b>
+</div>
 
-      <p>
-        <strong>Payment Cycle:</strong>
-        Weekly Settlement
-      </p>
+<div class="stat">
+<p>Settlement</p>
+<b>Weekly</b>
+</div>
+</div>
 
-      <p>
-        <strong>Settlement Status:</strong>
-        Pending
-      </p>
+<p style="margin-top:15px">
+<strong>Payment Cycle:</strong> Weekly Settlement
+</p>
+<p style="margin-top:8px">
+<strong>Status:</strong> Pending
+</p>
+</section>
 
-      <p>
-        <strong>Next Settlement:</strong>
-        Weekly Payment Cycle
-      </p>
+<!-- DELIVERY -->
+<section class="panel">
+<h2>🛵 Delivery Partner</h2>
+<p>Delivery Partner Login करके available orders देखेगा।</p>
+<p style="margin-top:8px">📦 Pickup → 🚚 Delivery → ✅ Delivered</p>
+<p style="margin-top:8px">💰 Delivery earning और COD हिसाब रिकॉर्ड होगा।</p>
+<br>
+<button class="btn" onclick="alert('Delivery Partner registration system backend जुड़ने के बाद live होगा।')">
+Delivery Partner Registration
+</button>
+</section>
 
-    </div>
+<!-- ADMIN -->
+<section class="panel">
+<h2>🔐 AD Brand Admin</h2>
 
-    <h2>🔐 System</h2>
+<div class="dashboard">
+<div class="stat"><p>Customers</p><b id="adminCustomers">0</b></div>
+<div class="stat"><p>Orders</p><b id="adminOrders">0</b></div>
+<div class="stat"><p>Sales</p><b>₹<span id="adminSales">0</span></b></div>
+<div class="stat"><p>Delivery</p><b>Active</b></div>
+</div>
 
-    <div class="info-grid">
+<p style="margin-top:15px">
+Admin panel बाद में password + 2FA के साथ secure backend पर चलेगा।
+</p>
+</section>
 
-      <div class="box">
-        <h3>Customer</h3>
-        <p>Product, Cart और Order.</p>
-      </div>
+<!-- INSTALL -->
+<section class="panel">
+<h2>📲 AD Brand मोबाइल में रखें</h2>
+<p>
+अगर आपका browser Install/Add to Home Screen दिखाता है,
+तो उससे AD Brand को मोबाइल की Home Screen पर जोड़ा जा सकता है।
+</p>
+<br>
+<button class="btn" onclick="installApp()">📲 Install / Add to Home Screen</button>
+<p class="message" id="installMessage"></p>
+</section>
 
-      <div class="box">
-        <h3>Seller</h3>
-        <p>Sales और Weekly Settlement.</p>
-      </div>
+</main>
 
-      <div class="box">
-        <h3>Delivery Partner</h3>
-        <p>Order Pickup और Delivery Status.</p>
-      </div>
+<footer>
+<p><strong>AD BRAND MARKET</strong></p>
+<p style="margin-top:7px">Local Shops • Customers • Delivery</p>
+<p style="margin-top:7px">© 2026 AD Brand</p>
+</footer>
 
-    </div>
+<!-- LOGIN / SIGNUP MODAL -->
+<div class="modal hidden" id="authModal">
 
-  </main>
+<div class="modalBox">
 
-  <footer>
-    <p>© 2026 AD Brand Market</p>
-    <p>Local Shops • Customers • Delivery</p>
-  </footer>
+<button class="close" onclick="closeAuth()">✕</button>
 
-  <script>
-    let cartItems = 0;
-    let cartTotal = 0;
-    let sellerSales = 0;
+<h2 id="authTitle">Customer Sign Up</h2>
 
-    function addToCart(productName, price) {
-      cartItems++;
-      cartTotal += price;
+<label>Name</label>
+<input id="authName" placeholder="आपका नाम">
 
-      document.getElementById("cartItems").textContent = cartItems;
-      document.getElementById("cartTotal").textContent = cartTotal;
-    }
+<label>Mobile</label>
+<input id="authPhone" maxlength="10" placeholder="10 अंकों का मोबाइल">
 
-    function showCheckout() {
-      if (cartItems === 0) {
-        alert("पहले कोई Product Cart में डालें।");
-        return;
-      }
+<label>Email</label>
+<input id="authEmail" type="email" placeholder="Email">
 
-      document.getElementById("checkout").style.display = "block";
-      document.getElementById("checkout").scrollIntoView({
-        behavior: "smooth"
-      });
-    }
+<label>Password</label>
+<input id="authPassword" type="password" placeholder="Password">
 
-    function placeOrder() {
-      const name = document.getElementById("customerName").value.trim();
-      const phone = document.getElementById("customerPhone").value.trim();
-      const address = document.getElementById("customerAddress").value.trim();
-      const payment = document.getElementById("paymentMethod").value;
+<button class="btn" style="margin-top:16px;width:100%"
+onclick="submitAuth()">Continue</button>
 
-      if (name === "" || phone === "" || address === "") {
-        document.getElementById("orderMessage").textContent =
-          "कृपया नाम, मोबाइल नंबर और पूरा पता भरें।";
-        return;
-      }
+<p class="message" id="authMessage"></p>
 
-      if (phone.length !== 10) {
-        document.getElementById("orderMessage").textContent =
-          "कृपया सही 10 अंकों का मोबाइल नंबर डालें।";
-        return;
-      }
+</div>
+</div>
 
-      sellerSales += cartTotal;
+<script>
 
-      const commission = Math.round(sellerSales * 0.05);
-      const sellerPayable = sellerSales - commission;
+let cartItems=0;
+let cartTotal=0;
+let sellerSales=0;
+let adminOrders=0;
+let installPrompt=null;
 
-      document.getElementById("sellerSales").textContent = sellerSales;
-      document.getElementById("commission").textContent = commission;
-      document.getElementById("sellerPayable").textContent = sellerPayable;
+/* CART */
+function addToCart(name,price){
+cartItems++;
+cartTotal+=price;
 
-      document.getElementById("orderStatus").textContent =
-        "Order Confirmed! Delivery Partner को assign किया जाएगा।";
+document.getElementById("cartItems").textContent=cartItems;
+document.getElementById("cartTotal").textContent=cartTotal;
 
-      document.getElementById("orderMessage").textContent =
-        "Order successfully placed. Payment: " +
-        (payment === "COD" ? "Cash on Delivery" : "Online Payment");
-    }
-  </script>
+alert(name+" Cart में डाल दिया गया।");
+}
+
+function showCheckout(){
+
+if(cartItems===0){
+alert("पहले कोई Product Cart में डालें।");
+return;
+}
+
+document.getElementById("checkout").classList.remove("hidden");
+document.getElementById("checkout").scrollIntoView({behavior:"smooth"});
+}
+
+/* ORDER */
+function placeOrder(){
+
+let name=document.getElementById("customerName").value.trim();
+let phone=document.getElementById("customerPhone").value.trim();
+let address=document.getElementById("customerAddress").value.trim();
+let payment=document.getElementById("paymentMethod").value;
+
+let msg=document.getElementById("orderMessage");
+
+if(!name||!phone||!address){
+msg.textContent="कृपया नाम, मोबाइल और पूरा पता भरें।";
+return;
+}
+
+if(!/^[0-9]{10}$/.test(phone)){
+msg.textContent="कृपया सही 10 अंकों का मोबाइल नंबर डालें।";
+return;
+}
+
+sellerSales+=cartTotal;
+adminOrders++;
+
+let commission=Math.round(sellerSales*0.05);
+let payable=sellerSales-commission;
+
+document.getElementById("sellerSales").textContent=sellerSales;
+document.getElementById("commission").textContent=commission;
+document.getElementById("sellerPayable").textContent=payable;
+
+document.getElementById("adminOrders").textContent=adminOrders;
+document.getElementById("adminSales").textContent=sellerSales;
+
+document.getElementById("orderStatus").textContent=
+"Order Confirmed! Order ID: AD"+Date.now();
+
+document.getElementById("s2").classList.add("active");
+
+msg.textContent=
+"Order successfully placed. Payment: "+
+(payment==="COD"?"Cash on Delivery":"Online Payment Demo");
+
+alert("🎉 आपका Order Confirm हो गया!");
+
+cartItems=0;
+cartTotal=0;
+
+document.getElementById("cartItems").textContent=0;
+document.getElementById("cartTotal").textContent=0;
+}
+
+/* SEARCH */
+function searchProducts(){
+
+let q=document.getElementById("searchBox").value.toLowerCase();
+let products=document.querySelectorAll(".product");
+
+products.forEach(p=>{
+p.style.display=p.innerText.toLowerCase().includes(q)?"block":"none";
+});
+}
+
+/* LOGIN */
+function openLogin(){
+document.getElementById("authTitle").textContent="Customer Login";
+document.getElementById("authModal").classList.remove("hidden");
+}
+
+function openSignup(){
+document.getElementById("authTitle").textContent="Customer Sign Up";
+document.getElementById("authModal").classList.remove("hidden");
+}
+
+function closeAuth(){
+document.getElementById("authModal").classList.add("hidden");
+}
+
+function submitAuth(){
+
+let name=document.getElementById("authName").value.trim();
+let phone=document.getElementById("authPhone").value.trim();
+
+if(!name||!phone){
+document.getElementById("authMessage").textContent=
+"नाम और मोबाइल नंबर भरें।";
+return;
+}
+
+if(!/^[0-9]{10}$/.test(phone)){
+document.getElementById("authMessage").textContent=
+"सही 10 अंकों का मोबाइल नंबर डालें।";
+return;
+}
+
+document.getElementById("accountText").textContent=
+"Welcome, "+name+" 👋 आपका Customer Account demo में तैयार है।";
+
+document.getElementById("adminCustomers").textContent=1;
+
+document.getElementById("authMessage").textContent=
+"Account successfully created.";
+
+setTimeout(closeAuth,800);
+}
+
+/* INSTALL */
+function installApp(){
+
+if(installPrompt){
+installPrompt.prompt();
+
+installPrompt.userChoice.then(()=>{
+installPrompt=null;
+});
+}else{
+document.getElementById("installMessage").textContent=
+"Browser के ⋮ menu में जाकर 'Add to Home screen' / 'Install app' चुनें।";
+}
+}
+
+window.addEventListener("beforeinstallprompt",e=>{
+e.preventDefault();
+installPrompt=e;
+});
+
+</script>
 
 </body>
 </html>
