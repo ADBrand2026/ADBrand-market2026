@@ -822,14 +822,7 @@ Orders
 
 <br><br>
 
-<button
- onclick="adminLogin()"
- style="background:#171717;color:white;border:1px solid #555;padding:9px 14px;border-radius:10px"
->
-🔒 Admin Login
-</button>
 
-</footer>
 
 
 <script>
@@ -923,26 +916,45 @@ function goHome(){
    ADMIN LOGIN
 ========================= */
 
-function adminLogin(){
+async function adminLogin(){
+  const email = prompt("Admin Email डालें:");
+  if(!email){ return; }
+  const password = prompt("Admin Password डालें:");
+  if(!password){ return; }
+  try{
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email: email.trim(),
+      password: password
+    });
+    if(error){
+      alert("Admin Login Failed: " + error.message);
+      return;
+    }
+    if(!data.user){
+      alert("Login failed.");
+      return;
+    }
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("profiles")
+      .select("id,user_id,role,full_name,is_active")
+      .eq("user_id", data.user.id)
+      .maybeSingle();
 
- let password = prompt(
-   "AD Brand Admin Password डालें:"
- );
+    if(profileError || !profile || profile.role !== "admin" || profile.is_active !== true){
+      await supabaseClient.auth.signOut();
+      alert("Access denied. Admin account required.");
+      return;
+    }
+    alert("Secure Admin Login Successful");
+    openPanel("admin");
+    renderAdmin();
+  }catch(error){
+    console.error("Admin Login Error:", error);
+    alert("Admin login में technical error आया।");
+  }
+}
 
- if(password === null){
-   return;
- }
 
- if(password === "AD@2026"){
-
-   openPanel("admin");
-   renderAdmin();
-
- }else{
-
-   alert("गलत Admin Password");
-
- }
 
 }
 
