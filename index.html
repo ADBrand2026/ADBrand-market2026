@@ -2387,25 +2387,25 @@ function safe(value){
 updateDeliveryRule();
 
 
-/*
- Admin direct link:
- your-site-url/#admin
 
- Password:
- AD@2026
-*/
-
-if(location.hash==="#admin"){
-
- setTimeout(function(){
-
-   adminLogin();
-
- },500);
-
-}
 
 </script>
+<!-- SUPABASE CONNECTION START -->
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+const SUPABASE_URL = "jwvawjztfwfpmlnocwiw";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
+
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+);
+
+console.log("AD Brand Market - Supabase Connected");
+</script>
+
+<!-- SUPABASE CONNECTION END -->
 </body>
 </html>
