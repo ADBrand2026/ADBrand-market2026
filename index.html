@@ -3,82 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#111936">
+<meta name="description" content="AD Brand Market - Shopping, Food and Local Delivery">
 <title>AD Brand Market</title>
 
 <style>
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{
  margin:0;
  font-family:Arial,Helvetica,sans-serif;
- background:#080d24;
- color:white
+ background:#070b1d;
+ color:#fff;
+ overflow-x:hidden
+}
+body:before{
+ content:"";
+ position:fixed;
+ inset:0;
+ pointer-events:none;
+ z-index:-1;
+ background:
+ radial-gradient(circle at 10% 10%,#ff2f9a22,transparent 28%),
+ radial-gradient(circle at 90% 20%,#285dff22,transparent 30%),
+ radial-gradient(circle at 50% 90%,#00d08416,transparent 28%)
 }
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+
 .top{
+ position:sticky;
+ top:0;
+ z-index:100;
  text-align:center;
- padding:22px 12px;
- background:linear-gradient(110deg,#1237a6,#7622a8,#e51b67)
+ padding:17px 12px;
+ background:linear-gradient(110deg,#1237a6,#7622a8,#e51b67);
+ box-shadow:0 8px 30px #0006;
+ backdrop-filter:blur(12px);
+ animation:topIn .7s ease
 }
-.top h1{margin:0;font-size:30px}
-.top p{margin:8px 0 0}
-.wrap{max-width:1100px;margin:auto;padding:18px}
+.top h1{
+ margin:0;
+ font-size:30px;
+ text-shadow:0 4px 15px #0007
+}
+.top p{margin:7px 0 0;font-size:14px}
+
+.wrap{max-width:1150px;margin:auto;padding:18px}
 
 .home{
- min-height:calc(100vh - 100px);
+ min-height:calc(100vh - 90px);
  text-align:center;
- padding:45px 15px;
+ padding:48px 15px 80px;
+ position:relative;
+ overflow:hidden;
  background:
- radial-gradient(circle at 20% 20%,#d62c89 0,transparent 30%),
- radial-gradient(circle at 80% 20%,#254bd0 0,transparent 30%),
+ radial-gradient(circle at 20% 20%,#d62c8950 0,transparent 30%),
+ radial-gradient(circle at 80% 20%,#254bd050 0,transparent 30%),
  linear-gradient(135deg,#130c3b,#07142e)
 }
-.home h2{font-size:38px;margin:10px 0}
-.home p{font-size:17px}
+.home:before,
+.home:after{
+ content:"";
+ position:absolute;
+ width:230px;
+ height:230px;
+ border-radius:50%;
+ filter:blur(4px);
+ opacity:.35;
+ animation:float 7s ease-in-out infinite
+}
+.home:before{
+ background:#e52c8a;
+ left:-80px;
+ top:180px
+}
+.home:after{
+ background:#00aeea;
+ right:-80px;
+ top:350px;
+ animation-delay:1.5s
+}
+
+.heroIcon{
+ font-size:65px;
+ animation:bounce 2.2s infinite
+}
+.home h2{
+ font-size:clamp(30px,6vw,48px);
+ margin:10px 0;
+ animation:fadeUp .8s ease
+}
+.home p{font-size:17px;animation:fadeUp 1s ease}
 
 .roles{
  display:grid;
  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
  gap:18px;
- margin-top:30px
+ margin:35px auto 0;
+ max-width:850px;
+ position:relative;
+ z-index:2
 }
 .role{
  border:0;
- min-height:155px;
- border-radius:25px;
- color:white;
+ min-height:170px;
+ border-radius:26px;
+ color:#fff;
  font-size:21px;
  font-weight:bold;
- box-shadow:0 12px 35px #0008;
- transition:.2s
+ box-shadow:0 18px 45px #0007;
+ transition:.3s;
+ position:relative;
+ overflow:hidden
 }
-.role:hover{transform:translateY(-5px)}
+.role:before{
+ content:"";
+ position:absolute;
+ top:-100%;
+ left:-30%;
+ width:40%;
+ height:300%;
+ background:#fff3;
+ transform:rotate(25deg);
+ transition:.7s
+}
+.role:hover:before{left:120%}
+.role:hover{
+ transform:translateY(-9px) scale(1.025);
+ box-shadow:0 25px 60px #0009
+}
+.role:active{transform:scale(.97)}
 .customer{background:linear-gradient(135deg,#e52c8a,#7045d8)}
 .seller{background:linear-gradient(135deg,#079447,#36b44d)}
 .delivery{background:linear-gradient(135deg,#008bd0,#00b7ca)}
-.admin{background:linear-gradient(135deg,#111827,#7025a6)}
+.role small{font-size:13px;opacity:.9}
 
-.panel{display:none;min-height:calc(100vh - 100px)}
+.panel{
+ display:none;
+ min-height:calc(100vh - 90px);
+ animation:panelIn .35s ease
+}
 .panel.active{display:block}
-
 .customerPanel{
  background:
  radial-gradient(circle at 20% 10%,#ed328d33,transparent 30%),
  linear-gradient(135deg,#fff0f8,#f4efff)
 }
-.sellerPanel{background:#eafff0}
-.deliveryPanel{background:#e8f8ff}
-.adminPanel{background:#111323}
+.sellerPanel{background:linear-gradient(135deg,#eafff0,#effff6)}
+.deliveryPanel{background:linear-gradient(135deg,#e8f8ff,#effcff)}
+.adminPanel{background:linear-gradient(135deg,#090b18,#171a30)}
 
 .card{
- background:white;
+ background:#fff;
  color:#222;
  border-radius:20px;
  padding:18px;
  margin:16px 0;
- box-shadow:0 8px 25px #0002
+ box-shadow:0 8px 25px #0002;
+ animation:cardIn .45s ease both;
+ transition:.25s
 }
-.adminPanel .card{background:#20233a;color:white}
+.card:hover{
+ box-shadow:0 15px 35px #0002;
+ transform:translateY(-2px)
+}
+.adminPanel .card{background:#20233a;color:#fff}
 
 .bar{
  display:flex;
@@ -87,13 +178,17 @@ button{cursor:pointer}
  gap:10px;
  flex-wrap:wrap
 }
+.bar h2{margin:5px 0}
 .back{
  background:#263238;
- color:white;
+ color:#fff;
  border:0;
  padding:10px 16px;
- border-radius:12px
+ border-radius:12px;
+ transition:.2s
 }
+.back:hover{background:#111820;transform:translateX(-3px)}
+
 .nav{
  display:flex;
  gap:8px;
@@ -104,9 +199,11 @@ button{cursor:pointer}
  border:0;
  padding:10px 15px;
  border-radius:12px;
- white-space:nowrap
+ white-space:nowrap;
+ transition:.2s
 }
-.nav button.active{background:#6535bd;color:white}
+.nav button:hover{transform:translateY(-2px)}
+.nav button.active{background:#6535bd;color:#fff}
 
 .grid{
  display:grid;
@@ -115,26 +212,35 @@ button{cursor:pointer}
 }
 .product{
  border:1px solid #ddd;
- border-radius:16px;
+ border-radius:18px;
  padding:12px;
- background:white
+ background:#fff;
+ color:#222;
+ position:relative;
+ overflow:hidden;
+ transition:.3s;
+ animation:productIn .5s ease both
+}
+.product:hover{
+ transform:translateY(-6px);
+ box-shadow:0 15px 35px #0002
 }
 .product img{
  width:100%;
- height:160px;
+ height:170px;
  object-fit:cover;
- border-radius:12px
+ border-radius:13px
 }
 .noPhoto{
- height:160px;
+ height:170px;
  display:grid;
  place-items:center;
  font-size:55px;
- background:#eee;
- border-radius:12px
+ background:linear-gradient(135deg,#eee,#ddd);
+ border-radius:13px
 }
 .price{font-size:21px;font-weight:bold}
-.old{text-decoration:line-through;color:#888;font-size:14px}
+.old{text-decoration:line-through;color:#888;font-size:14px;margin-left:7px}
 .pill{
  display:inline-block;
  padding:5px 9px;
@@ -160,29 +266,47 @@ button{cursor:pointer}
  width:100%;
  padding:11px;
  border:1px solid #aaa;
- border-radius:10px
+ border-radius:10px;
+ outline:none;
+ transition:.2s
 }
-.field textarea{min-height:80px}
+.field input:focus,
+.field select:focus,
+.field textarea:focus{
+ border-color:#673ab7;
+ box-shadow:0 0 0 3px #673ab722
+}
+.field textarea{min-height:80px;resize:vertical}
+
 .btn{
  border:0;
  padding:11px 16px;
  border-radius:11px;
- color:white;
- margin:4px
+ color:#fff;
+ margin:4px;
+ transition:.22s;
+ box-shadow:0 5px 12px #0002
 }
+.btn:hover{
+ transform:translateY(-2px);
+ box-shadow:0 8px 18px #0003
+}
+.btn:active{transform:scale(.96)}
 .primary{background:#673ab7}
 .green{background:#168b4b}
 .blue{background:#0879bd}
 .red{background:#c62828}
 .orange{background:#ef7d00}
 .gray{background:#555}
+.pink{background:#d7287e}
 
 .notice{
  padding:12px;
  background:#fff3cd;
  color:#624900;
  border-radius:12px;
- margin:12px 0
+ margin:12px 0;
+ border-left:4px solid #efb400
 }
 .statgrid{
  display:grid;
@@ -194,39 +318,206 @@ button{cursor:pointer}
  border-radius:15px;
  background:#eee;
  color:#222;
- text-align:center
+ text-align:center;
+ transition:.25s
 }
+.stat:hover{transform:translateY(-4px)}
 .stat b{
  display:block;
- font-size:27px
+ font-size:27px;
+ margin-bottom:4px
 }
 .search{
  width:100%;
  padding:13px;
  border:1px solid #aaa;
  border-radius:12px;
- margin-bottom:12px
+ margin-bottom:12px;
+ outline:none
+}
+.search:focus{
+ border-color:#673ab7;
+ box-shadow:0 0 0 3px #673ab722
 }
 .hidden{display:none!important}
-footer{text-align:center;padding:30px;color:#aaa}
 .small{font-size:13px;color:#777}
 .adminPanel .small{color:#bbb}
+
+.empty{
+ padding:25px;
+ text-align:center;
+ border:2px dashed #bbb;
+ border-radius:16px;
+ color:#666
+}
+.adminPanel .empty{color:#bbb;border-color:#555}
+
+.wish{
+ position:absolute;
+ right:10px;
+ top:10px;
+ width:40px;
+ height:40px;
+ border:0;
+ border-radius:50%;
+ background:#fff;
+ box-shadow:0 5px 15px #0002;
+ font-size:20px;
+ transition:.2s
+}
+.wish:hover{transform:scale(1.1)}
+.wish.active{background:#ffe4ed}
+
+.cartBar{
+ position:fixed;
+ right:18px;
+ bottom:18px;
+ z-index:200;
+ border:0;
+ border-radius:50px;
+ padding:14px 20px;
+ background:linear-gradient(135deg,#673ab7,#e52c8a);
+ color:#fff;
+ font-weight:bold;
+ box-shadow:0 15px 40px #0006;
+ animation:pulse 2s infinite
+}
+
+.modal{
+ position:fixed;
+ inset:0;
+ z-index:500;
+ display:none;
+ align-items:center;
+ justify-content:center;
+ padding:18px;
+ background:#0009;
+ backdrop-filter:blur(7px)
+}
+.modal.show{display:flex;animation:fade .2s ease}
+.modalBox{
+ width:min(520px,100%);
+ max-height:90vh;
+ overflow:auto;
+ background:#fff;
+ color:#222;
+ border-radius:22px;
+ padding:22px;
+ box-shadow:0 25px 80px #0009;
+ animation:modalIn .3s ease
+}
+.modalBox h2{margin-top:0}
+.close{
+ float:right;
+ border:0;
+ background:#eee;
+ width:35px;
+ height:35px;
+ border-radius:50%;
+ font-size:20px
+}
+
+.toast{
+ position:fixed;
+ left:50%;
+ bottom:25px;
+ transform:translate(-50%,30px);
+ z-index:1000;
+ background:#111827;
+ color:#fff;
+ padding:13px 18px;
+ border-radius:13px;
+ box-shadow:0 10px 35px #0007;
+ opacity:0;
+ pointer-events:none;
+ transition:.3s
+}
+.toast.show{
+ opacity:1;
+ transform:translate(-50%,0)
+}
+
+.loader{
+ width:42px;
+ height:42px;
+ border:4px solid #ddd;
+ border-top-color:#673ab7;
+ border-radius:50%;
+ animation:spin .8s linear infinite;
+ margin:20px auto
+}
+
+footer{
+ text-align:center;
+ padding:30px;
+ color:#aaa;
+ background:#060916
+}
+
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{
+ from{opacity:0;transform:translateY(20px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@keyframes panelIn{
+ from{opacity:0;transform:translateY(12px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@keyframes cardIn{
+ from{opacity:0;transform:translateY(15px)}
+ to{opacity:1;transform:translateY(0)}
+}
+@keyframes productIn{
+ from{opacity:0;transform:scale(.96)}
+ to{opacity:1;transform:scale(1)}
+}
+@keyframes modalIn{
+ from{opacity:0;transform:scale(.94) translateY(15px)}
+ to{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes float{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-35px)}
+}
+@keyframes bounce{
+ 0%,100%{transform:translateY(0)}
+ 50%{transform:translateY(-10px)}
+}
+@keyframes pulse{
+ 0%,100%{box-shadow:0 15px 40px #0006}
+ 50%{box-shadow:0 15px 50px #e52c8a88}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes topIn{
+ from{transform:translateY(-100%)}
+ to{transform:translateY(0)}
+}
+
+@media(max-width:600px){
+ .top h1{font-size:24px}
+ .top p{font-size:12px}
+ .wrap{padding:12px}
+ .home{padding-top:35px}
+ .role{min-height:145px}
+ .card{padding:14px}
+ .btn{width:auto}
+ .cartBar{right:10px;bottom:10px}
+}
 </style>
 </head>
 
 <body>
 
-<header class="top">
+<header class="top" id="brandHeader">
 <h1>✨ AD Brand Market</h1>
 <p>Shopping • Food • Local Delivery • Seller • Delivery Boy</p>
 </header>
 
-<!-- HOME -->
 <main id="home" class="home">
 
 <div class="wrap">
 
-<div style="font-size:55px">🛍️</div>
+<div class="heroIcon">🛍️</div>
 
 <h2>AD Brand Market</h2>
 
@@ -254,13 +545,11 @@ footer{text-align:center;padding:30px;color:#aaa}
 <br><small>Order Deliver करें</small>
 </button>
 
-<!-- Admin सामान्य Customer/Seller को नहीं दिखेगा -->
-<button class="role admin" id="adminHomeButton" style="display:none" onclick="adminLogin()">
-👑
-<br>Admin
-<br><small>AD Brand Control</small>
-</button>
+</div>
 
+<div class="notice" style="max-width:850px;margin:30px auto 0">
+🔐 Customer, Seller और Delivery Boy public roles हैं।
+Admin public menu में नहीं दिखाया जाता।
 </div>
 
 </div>
@@ -279,10 +568,9 @@ footer{text-align:center;padding:30px;color:#aaa}
 
 <div class="card">
 
-<h3>🛒 Categories</h3>
+<h3>🛒 Products</h3>
 
 <div class="nav">
-
 <button class="active" onclick="setCategory('all',this)">सब</button>
 <button onclick="setCategory('कपड़े',this)">कपड़े</button>
 <button onclick="setCategory('जूते',this)">जूते</button>
@@ -292,7 +580,6 @@ footer{text-align:center;padding:30px;color:#aaa}
 <button onclick="setCategory('Non-Veg',this)">Non-Veg</button>
 <button onclick="setCategory('चाय',this)">चाय</button>
 <button onclick="setCategory('Snacks',this)">Snacks</button>
-
 </div>
 
 <input
@@ -325,7 +612,7 @@ footer{text-align:center;padding:30px;color:#aaa}
 
 <div class="field">
 <label>Mobile</label>
-<input id="customerMobile" placeholder="Mobile Number">
+<input id="customerMobile" placeholder="Mobile Number" inputmode="numeric">
 </div>
 
 <div class="field">
@@ -335,9 +622,7 @@ footer{text-align:center;padding:30px;color:#aaa}
 
 </div>
 
-<button class="btn primary" onclick="saveCustomer()">
-💾 Account Save
-</button>
+<button class="btn primary" onclick="saveCustomer()">💾 Account Save</button>
 
 <button class="btn blue" onclick="getLocation('customerLocation')">
 📍 Current Location
@@ -358,13 +643,20 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 
 <div class="card">
-
-<h3>📦 My Orders</h3>
-
-<div id="customerOrders">
-अभी कोई order नहीं है।
+<h3>❤️ Wishlist</h3>
+<div id="wishlist"></div>
 </div>
 
+
+<div class="card">
+<h3>🛒 My Cart</h3>
+<div id="cart"></div>
+</div>
+
+
+<div class="card">
+<h3>📦 My Orders</h3>
+<div id="customerOrders">अभी कोई order नहीं है।</div>
 </div>
 
 </div>
@@ -377,13 +669,9 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 <div class="wrap">
 
 <div class="bar">
-
 <h2>🏪 Seller Panel</h2>
-
 <button class="back" onclick="goHome()">← Home</button>
-
 </div>
-
 
 <div class="card">
 
@@ -403,7 +691,7 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 <div class="field">
 <label>Mobile</label>
-<input id="sellerMobile">
+<input id="sellerMobile" inputmode="numeric">
 </div>
 
 <div class="field">
@@ -451,19 +739,28 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 </div>
 
-<button class="btn green" onclick="saveSeller()">
-💾 Seller Account Save
-</button>
+<button class="btn green" onclick="saveSeller()">💾 Seller Account Save</button>
 
 <div class="notice">
-असली Aadhaar/PAN documents को secure रखने के लिए बाद में private backend/database जरूरी होगा।
-इस demo में सिर्फ file चुनी गई है या नहीं, उसका record रखा जाता है।
+KYC files अभी केवल local demo flag के रूप में रखे जाते हैं।
+Production में इन्हें Supabase private storage में रखना चाहिए।
 </div>
 
 </div>
 
 
-<!-- ADD PRODUCT -->
+<div class="card">
+
+<h3>🟢 Shop Status</h3>
+
+<button id="sellerOpenButton" class="btn green" onclick="toggleSellerStatus()">
+🟢 Shop Open
+</button>
+
+<span id="sellerStatusText" class="pill">Open</span>
+
+</div>
+
 
 <div class="card">
 
@@ -504,12 +801,12 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 <div class="field">
 <label>Price ₹</label>
-<input id="productPrice" type="number">
+<input id="productPrice" type="number" min="1">
 </div>
 
 <div class="field">
 <label>Old Price ₹</label>
-<input id="productOldPrice" type="number">
+<input id="productOldPrice" type="number" min="0">
 </div>
 
 <div class="field">
@@ -519,7 +816,7 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 <div class="field">
 <label>Stock / Pieces</label>
-<input id="productStock" type="number" value="1">
+<input id="productStock" type="number" min="1" value="1">
 </div>
 
 <div class="field">
@@ -581,49 +878,34 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 कपड़े, जूते और चप्पल में Delivery + Self Pickup उपलब्ध है।
 </div>
 
-<button class="btn green" onclick="addProduct()">
-➕ Product Save
-</button>
+<button class="btn green" onclick="addProduct()">➕ Product Save</button>
 
 </div>
 
 
 <div class="card">
-
 <h3>📦 Seller Orders</h3>
-
-<div id="sellerOrders">
-अभी कोई order नहीं है।
+<div id="sellerOrders">अभी कोई order नहीं है।</div>
 </div>
-
-</div>
-
 
 <div class="card">
-
 <h3>💰 Weekly Payment / Settlement</h3>
-
 <div id="sellerFinance"></div>
-
 </div>
 
 </div>
 </section>
 
 
-<!-- DELIVERY BOY -->
+<!-- DELIVERY -->
 <section id="delivery" class="panel deliveryPanel">
 
 <div class="wrap">
 
 <div class="bar">
-
 <h2>🛵 Delivery Boy Panel</h2>
-
 <button class="back" onclick="goHome()">← Home</button>
-
 </div>
-
 
 <div class="card">
 
@@ -643,7 +925,7 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 <div class="field">
 <label>Mobile</label>
-<input id="deliveryMobile">
+<input id="deliveryMobile" inputmode="numeric">
 </div>
 
 <div class="field">
@@ -691,12 +973,10 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 
 </div>
 
-<button class="btn blue" onclick="saveDelivery()">
-💾 Delivery Account Save
-</button>
+<button class="btn blue" onclick="saveDelivery()">💾 Delivery Account Save</button>
 
 <p class="small">
-Delivery Boy के लिए Driving Licence और RC option इस website में नहीं रखा गया है।
+Delivery Boy के लिए Driving Licence और RC option इस frontend में नहीं रखा गया है।
 </p>
 
 </div>
@@ -704,21 +984,25 @@ Delivery Boy के लिए Driving Licence और RC option इस website �
 
 <div class="card">
 
-<h3>📦 Assigned Deliveries</h3>
+<h3>🟢 Delivery Status</h3>
 
-<div id="deliveryOrders">
-अभी कोई assigned order नहीं है।
-</div>
+<button id="deliveryOnlineButton" class="btn gray" onclick="toggleDeliveryOnline()">
+⚪ Go Online
+</button>
+
+<span id="deliveryOnlineText" class="pill">Offline</span>
 
 </div>
 
 
 <div class="card">
+<h3>📦 Assigned Deliveries</h3>
+<div id="deliveryOrders">अभी कोई assigned delivery नहीं है।</div>
+</div>
 
+<div class="card">
 <h3>💰 Weekly Delivery Earnings</h3>
-
 <div id="deliveryFinance"></div>
-
 </div>
 
 </div>
@@ -731,17 +1015,14 @@ Delivery Boy के लिए Driving Licence और RC option इस website �
 <div class="wrap">
 
 <div class="bar">
-
 <h2>👑 AD Brand Control — Admin</h2>
-
 <button class="back" onclick="goHome()">← Home</button>
-
 </div>
 
 <div class="notice">
-यह Owner/Admin control area है। सामान्य Customer, Seller और Delivery Boy को Admin records नहीं दिखाए जाते।
+🔐 यह private Owner/Admin control area है।
+केवल Supabase authorized Admin account को access मिलेगा।
 </div>
-
 
 <div class="statgrid">
 
@@ -772,44 +1053,29 @@ Orders
 
 </div>
 
-
 <div class="card">
-
 <h3>👥 Customers</h3>
 <div id="adminCustomers"></div>
-
 </div>
 
-
 <div class="card">
-
 <h3>🏪 Sellers + KYC Status</h3>
 <div id="adminSellers"></div>
-
 </div>
 
-
 <div class="card">
-
 <h3>🛵 Delivery Boys + KYC Status</h3>
 <div id="adminDelivery"></div>
-
 </div>
 
-
 <div class="card">
-
 <h3>🛍️ Products</h3>
 <div id="adminProducts"></div>
-
 </div>
 
-
 <div class="card">
-
 <h3>📦 Orders</h3>
 <div id="adminOrders"></div>
-
 </div>
 
 </div>
@@ -817,72 +1083,231 @@ Orders
 
 
 <footer>
-
 © AD Brand Market
-
-<br><br>
-
-
-
+<br>
+<span class="small">Shopping • Food • Local Delivery</span>
+</footer>
 
 
- 
+<button id="cartButton" class="cartBar" onclick="openCartModal()">
+🛒 Cart <span id="cartCount">0</span>
+</button>
+
+
+<!-- CART MODAL -->
+<div id="cartModal" class="modal" onclick="closeModalOnBackdrop(event,'cartModal')">
+<div class="modalBox">
+
+<button class="close" onclick="closeModal('cartModal')">×</button>
+
+<h2>🛒 My Cart</h2>
+
+<div id="cartModalContent"></div>
+
+</div>
+</div>
+
+
+<!-- ADMIN LOGIN MODAL -->
+<div id="adminLoginModal" class="modal" onclick="closeModalOnBackdrop(event,'adminLoginModal')">
+<div class="modalBox">
+
+<button class="close" onclick="closeModal('adminLoginModal')">×</button>
+
+<h2>🔐 Admin Login</h2>
+
+<p class="small">
+यह public role नहीं है। केवल authorized AD Brand Market Admin के लिए।
+</p>
+
+<div class="field">
+<label>Admin Email</label>
+<input id="adminEmail" type="email" autocomplete="username">
+</div>
+
+<br>
+
+<div class="field">
+<label>Admin Password</label>
+<input id="adminPassword" type="password" autocomplete="current-password">
+</div>
+
+<br>
+
+<button class="btn primary" onclick="adminLogin()">
+🔐 Secure Admin Login
+</button>
+
+</div>
+</div>
+
+
+<div id="toast" class="toast"></div>
+
+
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* =========================================================
+   SUPABASE CONNECTION
+   ========================================================= */
+
+const SUPABASE_URL =
+  "https://jwvawjztfwrfpminocww.supabase.co";
+
+/*
+ IMPORTANT:
+ नीचे अपनी CURRENT FILE में मौजूद वही Supabase
+ PUBLISHABLE KEY रखें।
+ Secret / service-role key कभी यहाँ न रखें।
+*/
+const SUPABASE_PUBLISHABLE_KEY =
+  "PASTE_YOUR_EXISTING_PUBLISHABLE_KEY_HERE";
+
+let supabaseClient = null;
+
+if(
+  SUPABASE_PUBLISHABLE_KEY &&
+  !SUPABASE_PUBLISHABLE_KEY.includes("PASTE_YOUR")
+){
+  supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+}
+
+
+/* =========================================================
+   APP STATE
+   ========================================================= */
 
 const STORAGE_KEY = "AD_BRAND_MARKET_FINAL_2026";
 
-let db = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+window.__adBrandAdminAuthorized = false;
+
+let db;
+
+try{
+ db = JSON.parse(
+   localStorage.getItem(STORAGE_KEY) || "null"
+ );
+}catch(error){
+ db = null;
+}
 
 if(!db){
-
  db = {
    customers:[],
    sellers:[],
    delivery:[],
    products:[],
    orders:[],
-   deliveryEarnings:0
+   deliveryEarnings:0,
+   cart:[],
+   wishlist:[],
+   sellerOpen:true,
+   deliveryOnline:false
  };
-
  saveDB();
-
 }
+
+db.customers = Array.isArray(db.customers) ? db.customers : [];
+db.sellers = Array.isArray(db.sellers) ? db.sellers : [];
+db.delivery = Array.isArray(db.delivery) ? db.delivery : [];
+db.products = Array.isArray(db.products) ? db.products : [];
+db.orders = Array.isArray(db.orders) ? db.orders : [];
+db.cart = Array.isArray(db.cart) ? db.cart : [];
+db.wishlist = Array.isArray(db.wishlist) ? db.wishlist : [];
+db.deliveryEarnings = Number(db.deliveryEarnings || 0);
 
 let currentCategory = "all";
 
 
-/* =========================
-   BASIC FUNCTIONS
-========================= */
+/* =========================================================
+   BASIC HELPERS
+   ========================================================= */
 
 function $(id){
  return document.getElementById(id);
 }
 
 function saveDB(){
- localStorage.setItem(STORAGE_KEY,JSON.stringify(db));
+ localStorage.setItem(
+   STORAGE_KEY,
+   JSON.stringify(db)
+ );
 }
 
 function makeID(prefix){
-
  return prefix + "-" +
- Date.now().toString().slice(-8);
+   Date.now().toString().slice(-8);
+}
 
+function safe(value){
+ return String(value ?? "")
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+}
+
+function toast(message){
+ const box = $("toast");
+ if(!box)return;
+
+ box.textContent = message;
+ box.classList.add("show");
+
+ clearTimeout(window.__toastTimer);
+
+ window.__toastTimer =
+   setTimeout(function(){
+     box.classList.remove("show");
+   },2500);
+}
+
+function escapeAttribute(value){
+ return safe(value);
 }
 
 
-/* =========================
-   OPEN PANELS
-========================= */
+/* =========================================================
+   PANELS
+   ========================================================= */
 
 function openPanel(panelName){
 
+ if(
+   panelName==="admin" &&
+   window.__adBrandAdminAuthorized!==true
+ ){
+   toast("Admin access केवल authorized Admin के लिए है।");
+   return;
+ }
+
  $("home").style.display="none";
 
- document.querySelectorAll(".panel").forEach(function(panel){
+ document.querySelectorAll(".panel")
+ .forEach(function(panel){
    panel.classList.remove("active");
  });
 
- $(panelName).classList.add("active");
+ const panel = $(panelName);
+
+ if(!panel){
+   $("home").style.display="block";
+   return;
+ }
+
+ panel.classList.add("active");
+
+ window.scrollTo({
+   top:0,
+   behavior:"smooth"
+ });
 
  if(panelName==="customer"){
    loadCustomer();
@@ -896,410 +1321,587 @@ function openPanel(panelName){
    loadDelivery();
  }
 
+ if(panelName==="admin"){
+   renderAdmin();
+ }
 }
 
-function goHome(){
+async function goHome(){
 
- document.querySelectorAll(".panel").forEach(function(panel){
+ if(window.__adBrandAdminAuthorized===true){
+
+   window.__adBrandAdminAuthorized=false;
+
+   if(supabaseClient){
+     try{
+       await supabaseClient.auth.signOut();
+     }catch(error){
+       console.warn(error);
+     }
+   }
+ }
+
+ document.querySelectorAll(".panel")
+ .forEach(function(panel){
    panel.classList.remove("active");
  });
 
  $("home").style.display="block";
 
+ window.scrollTo({
+   top:0,
+   behavior:"smooth"
+ });
 }
 
 
-/* =========================
-   ADMIN LOGIN
-========================= */
+/* =========================================================
+   ADMIN PRIVATE ACCESS
+   Hidden shortcut:
+   Ctrl + Shift + A
+   ========================================================= */
+
+document.addEventListener(
+ "keydown",
+ function(event){
+
+   if(
+     event.ctrlKey &&
+     event.shiftKey &&
+     event.key.toLowerCase()==="a"
+   ){
+     event.preventDefault();
+
+     if(window.__adBrandAdminAuthorized===true){
+       openPanel("admin");
+     }else{
+       openAdminLogin();
+     }
+   }
+ }
+);
+
+let logoClicks=0;
+let logoTimer=null;
+
+$("brandHeader").addEventListener(
+ "click",
+ function(){
+
+   logoClicks++;
+
+   clearTimeout(logoTimer);
+
+   logoTimer=setTimeout(
+     function(){
+       logoClicks=0;
+     },
+     1800
+   );
+
+   if(logoClicks>=5){
+     logoClicks=0;
+     openAdminLogin();
+   }
+ }
+);
+
+function openAdminLogin(){
+
+ if(window.__adBrandAdminAuthorized===true){
+   openPanel("admin");
+   return;
+ }
+
+ $("adminEmail").value="";
+ $("adminPassword").value="";
+
+ $("adminLoginModal")
+ .classList.add("show");
+}
 
 async function adminLogin(){
-  const email = prompt("Admin Email डालें:");
-  if(!email){ return; }
-  const password = prompt("Admin Password डालें:");
-  if(!password){ return; }
-  try{
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: email.trim(),
-      password: password
-    });
-    if(error){
-      alert("Admin Login Failed: " + error.message);
-      return;
-    }
-    if(!data.user){
-      alert("Login failed.");
-      return;
-    }
-    const { data: profile, error: profileError } = await supabaseClient
-      .from("profiles")
-      .select("id,user_id,role,full_name,is_active")
-      .eq("user_id", data.user.id)
-      .maybeSingle();
 
-    if(profileError || !profile || profile.role !== "admin" || profile.is_active !== true){
-      await supabaseClient.auth.signOut();
-      alert("Access denied. Admin account required.");
-      return;
-    }
-    alert("Secure Admin Login Successful");
-    openPanel("admin");
-    renderAdmin();
-  }catch(error){
-    console.error("Admin Login Error:", error);
-    alert("Admin login में technical error आया।");
-  }
+ if(!supabaseClient){
+   alert(
+     "Supabase publishable key अभी HTML में set नहीं है।"
+   );
+   return;
+ }
+
+ const email =
+   $("adminEmail").value.trim();
+
+ const password =
+   $("adminPassword").value;
+
+ if(!email || !password){
+   alert("Admin Email और Password दोनों डालें।");
+   return;
+ }
+
+ const loginButton =
+   document.querySelector(
+     "#adminLoginModal .primary"
+   );
+
+ if(loginButton){
+   loginButton.disabled=true;
+   loginButton.textContent="🔄 Checking...";
+ }
+
+ try{
+
+   const result =
+     await supabaseClient.auth.signInWithPassword({
+       email:email,
+       password:password
+     });
+
+   const data = result.data;
+   const error = result.error;
+
+   if(error){
+     alert(
+       "Admin Login Failed: " +
+       error.message
+     );
+     return;
+   }
+
+   if(!data || !data.user){
+     alert("Login failed.");
+     return;
+   }
+
+   const profileResult =
+     await supabaseClient
+       .from("profiles")
+       .select(
+         "id,user_id,role,full_name,is_active"
+       )
+       .eq("user_id",data.user.id)
+       .maybeSingle();
+
+   const profile =
+     profileResult.data;
+
+   const profileError =
+     profileResult.error;
+
+   if(
+     profileError ||
+     !profile ||
+     profile.role!=="admin" ||
+     profile.is_active!==true
+   ){
+
+     await supabaseClient.auth.signOut();
+
+     alert(
+       "Access denied. Admin account required."
+     );
+
+     return;
+   }
+
+   window.__adBrandAdminAuthorized=true;
+
+   closeModal("adminLoginModal");
+
+   toast("🔐 Secure Admin Login Successful");
+
+   openPanel("admin");
+
+ }catch(error){
+
+   console.error(
+     "Admin Login Error:",
+     error
+   );
+
+   alert(
+     "Admin login में technical error आया।"
+   );
+
+ }finally{
+
+   if(loginButton){
+     loginButton.disabled=false;
+     loginButton.textContent="🔐 Secure Admin Login";
+   }
+ }
 }
 
 
+/* =========================================================
+   MODALS
+   ========================================================= */
 
+function closeModal(id){
+ const modal=$(id);
+ if(modal){
+   modal.classList.remove("show");
+ }
+}
+
+function closeModalOnBackdrop(event,id){
+ if(event.target.id===id){
+   closeModal(id);
+ }
 }
 
 
-/* =========================
+/* =========================================================
    LOCATION
-========================= */
+   ========================================================= */
 
 function getLocation(inputID){
 
  if(!navigator.geolocation){
-
-   alert("इस browser में Location उपलब्ध नहीं है।");
+   alert(
+     "इस browser में Location उपलब्ध नहीं है।"
+   );
    return;
-
  }
+
+ toast("📍 Location प्राप्त की जा रही है...");
 
  navigator.geolocation.getCurrentPosition(
 
    function(position){
 
-     let lat =
+     const lat =
        position.coords.latitude.toFixed(6);
 
-     let lng =
+     const lng =
        position.coords.longitude.toFixed(6);
 
-     $(inputID).value =
-       lat + ", " + lng;
+     if($(inputID)){
+       $(inputID).value =
+         lat + ", " + lng;
+     }
 
+     toast("📍 Location मिल गई।");
    },
 
    function(){
-
      alert(
        "Location permission Allow करें।"
      );
+   },
 
+   {
+     enableHighAccuracy:true,
+     timeout:10000,
+     maximumAge:30000
    }
-
  );
-
 }
 
 
-/* =========================
+/* =========================================================
    CUSTOMER
-========================= */
+   ========================================================= */
 
 function loadCustomer(){
 
  if(!$("customerId").value){
-
    $("customerId").value =
      makeID("CUS");
-
  }
 
  renderProducts();
  renderCustomerOrders();
-
+ renderCart();
+ renderWishlist();
+ updateCartCount();
 }
-
 
 function saveCustomer(){
 
- let id = $("customerId").value;
+ const id =
+   $("customerId").value;
 
- let customer = {
+ const mobile =
+   $("customerMobile").value.trim();
+
+ if(!$("customerName").value.trim()){
+   alert("Customer नाम डालें।");
+   return;
+ }
+
+ if(!mobile){
+   alert("Mobile Number डालें।");
+   return;
+ }
+
+ const customer={
 
    id:id,
 
-   name:$("customerName").value,
+   name:
+     $("customerName").value.trim(),
 
-   mobile:$("customerMobile").value,
+   mobile:mobile,
 
-   address:$("customerAddress").value,
+   address:
+     $("customerAddress").value.trim(),
 
-   location:$("customerLocation").value
+   location:
+     $("customerLocation").value
 
  };
 
- let index =
+ const index =
    db.customers.findIndex(
      function(x){
        return x.id===id;
      }
    );
 
- if(index >= 0){
-
+ if(index>=0){
    db.customers[index]=customer;
-
  }else{
-
    db.customers.push(customer);
-
  }
 
  saveDB();
 
- alert("Customer Account Save हो गया।");
-
+ toast("✅ Customer Account Save हो गया।");
 }
 
 
-/* =========================
+/* =========================================================
    SELLER
-========================= */
+   ========================================================= */
 
 function loadSeller(){
 
  if(!$("sellerId").value){
-
    $("sellerId").value =
      makeID("SEL");
-
  }
 
  renderSellerOrders();
  renderSellerFinance();
-
  updateDeliveryRule();
-
+ updateSellerStatusUI();
 }
-
 
 function saveSeller(){
 
- let seller = {
+ if(!$("sellerName").value.trim()){
+   alert("Seller Name डालें।");
+   return;
+ }
+
+ if(!$("shopName").value.trim()){
+   alert("Shop Name डालें।");
+   return;
+ }
+
+ const seller={
 
    id:$("sellerId").value,
 
-   name:$("sellerName").value,
+   name:
+     $("sellerName").value.trim(),
 
-   mobile:$("sellerMobile").value,
+   mobile:
+     $("sellerMobile").value.trim(),
 
-   shop:$("shopName").value,
+   shop:
+     $("shopName").value.trim(),
 
-   address:$("shopAddress").value,
+   address:
+     $("shopAddress").value.trim(),
 
-   location:$("shopLocation").value,
+   location:
+     $("shopLocation").value,
 
-   face:$("sellerFace").files.length > 0,
+   face:
+     $("sellerFace").files.length>0,
 
-   aadhaar:$("sellerAadhaar").files.length > 0,
+   aadhaar:
+     $("sellerAadhaar").files.length>0,
 
-   pan:$("sellerPan").files.length > 0,
+   pan:
+     $("sellerPan").files.length>0,
 
-   document:$("sellerDocument").files.length > 0,
+   document:
+     $("sellerDocument").files.length>0,
 
-   shopPhoto:$("shopPhoto").files.length > 0
+   shopPhoto:
+     $("shopPhoto").files.length>0
 
  };
 
- let index =
+ const index =
    db.sellers.findIndex(
      function(x){
        return x.id===seller.id;
      }
    );
 
- if(index >= 0){
-
+ if(index>=0){
    db.sellers[index]=seller;
-
  }else{
-
    db.sellers.push(seller);
-
  }
 
  saveDB();
 
- alert("Seller Account Save हो गया।");
-
+ toast("✅ Seller Account Save हो गया।");
 }
 
+function toggleSellerStatus(){
 
-/* =========================
-   DELIVERY BOY
-========================= */
-
-function loadDelivery(){
-
- if(!$("deliveryId").value){
-
-   $("deliveryId").value =
-     makeID("DEL");
-
- }
-
- renderDeliveryOrders();
- renderDeliveryFinance();
-
-}
-
-
-function saveDelivery(){
-
- let delivery = {
-
-   id:$("deliveryId").value,
-
-   name:$("deliveryName").value,
-
-   mobile:$("deliveryMobile").value,
-
-   address:$("deliveryAddress").value,
-
-   face:$("deliveryFace").files.length > 0,
-
-   aadhaar:$("deliveryAadhaar").files.length > 0,
-
-   pan:$("deliveryPan").files.length > 0,
-
-   location:$("deliveryLocation").value,
-
-   vehicle:$("vehicleType").value,
-
-   vehicleNumber:$("vehicleNumber").value
-
- };
-
- let index =
-   db.delivery.findIndex(
-     function(x){
-       return x.id===delivery.id;
-     }
-   );
-
- if(index >= 0){
-
-   db.delivery[index]=delivery;
-
- }else{
-
-   db.delivery.push(delivery);
-
- }
+ db.sellerOpen =
+   db.sellerOpen===false;
 
  saveDB();
 
- alert("Delivery Boy Account Save हो गया।");
+ updateSellerStatusUI();
 
+ renderProducts();
+
+ toast(
+   db.sellerOpen
+   ? "🟢 Shop Open है।"
+   : "🔴 Shop Closed है।"
+ );
 }
 
+function updateSellerStatusUI(){
 
-/* =========================
+ const open =
+   db.sellerOpen!==false;
+
+ const button =
+   $("sellerOpenButton");
+
+ const text =
+   $("sellerStatusText");
+
+ if(button){
+   button.textContent =
+     open
+     ? "🟢 Shop Open"
+     : "🔴 Shop Closed";
+
+   button.className =
+     open
+     ? "btn green"
+     : "btn red";
+ }
+
+ if(text){
+   text.textContent =
+     open ? "Open" : "Closed";
+ }
+
+
+/* =========================================================
    PRODUCT DELIVERY RULE
-========================= */
+   ========================================================= */
 
 function updateDeliveryRule(){
 
- let category =
+ const category =
    $("productCategory").value;
 
- let food =
-   ["खाना","चाय","Snacks"].includes(category);
+ const food =
+   ["खाना","चाय","Snacks"]
+   .includes(category);
 
  if(food){
 
-   $("productDelivery").value =
+   $("productDelivery").value=
      "Delivery Only";
 
    $("productDelivery").disabled=true;
 
-   $("deliveryNotice").textContent =
+   $("deliveryNotice").textContent=
      "🍔 खाना / चाय / Snacks के लिए केवल Delivery होगी। Self Pickup नहीं।";
 
  }else{
 
    $("productDelivery").disabled=false;
 
-   $("productDelivery").value =
+   $("productDelivery").value=
      "Delivery + Self Pickup";
 
-   $("deliveryNotice").textContent =
+   $("deliveryNotice").textContent=
      "👕 कपड़े / 👟 जूते / 🩴 चप्पल में Delivery + Self Pickup उपलब्ध है।";
-
  }
-
 }
 
 
-/* =========================
+/* =========================================================
    ADD PRODUCT
-========================= */
+   ========================================================= */
 
 async function addProduct(){
 
- let name =
+ const name =
    $("productName").value.trim();
 
- let price =
+ const price =
    Number($("productPrice").value);
 
- let stock =
+ const stock =
    Number($("productStock").value);
 
  if(!name){
-
    alert("Product Name डालें।");
    return;
-
  }
 
- if(!price){
-
-   alert("Product Price डालें।");
+ if(price<=0){
+   alert("Valid Product Price डालें।");
    return;
-
  }
 
- if(stock < 1){
-
+ if(stock<1){
    alert("Stock कम से कम 1 होना चाहिए।");
    return;
-
  }
 
+ const sellerID =
+   $("sellerId").value || "SELLER";
 
  let photo="";
 
- let file =
+ const file =
    $("productPhoto").files[0];
 
  if(file){
 
+   if(file.size>3*1024*1024){
+     alert(
+       "Product photo 3MB से छोटी रखें।"
+     );
+     return;
+   }
+
    photo =
      await fileToDataURL(file);
-
  }
 
-
- let category =
+ const category =
    $("productCategory").value;
 
- let food =
-   ["खाना","चाय","Snacks"].includes(category);
+ const food =
+   ["खाना","चाय","Snacks"]
+   .includes(category);
 
- let deliveryOption =
+ const deliveryOption =
    food
    ? "Delivery Only"
    : $("productDelivery").value;
 
-
- let product={
+ const product={
 
    id:makeID("PRO"),
 
@@ -1307,78 +1909,88 @@ async function addProduct(){
 
    category:category,
 
-   type:$("productType").value,
+   type:
+     $("productType").value.trim(),
 
-   food:$("foodType").value,
+   food:
+     $("foodType").value,
 
    price:price,
 
    oldPrice:
-     Number($("productOldPrice").value)||0,
+     Number(
+       $("productOldPrice").value
+     )||0,
 
-   offer:$("productOffer").value,
+   offer:
+     $("productOffer").value.trim(),
 
    stock:stock,
 
-   brand:$("productBrand").value,
+   brand:
+     $("productBrand").value.trim(),
 
-   color:$("productColor").value,
+   color:
+     $("productColor").value.trim(),
 
-   material:$("productMaterial").value,
+   material:
+     $("productMaterial").value.trim(),
 
-   size:$("productSize").value,
+   size:
+     $("productSize").value.trim(),
 
-   weight:$("productWeight").value,
+   weight:
+     $("productWeight").value.trim(),
 
-   quantity:$("productQuantity").value,
+   quantity:
+     $("productQuantity").value.trim(),
 
    photo:photo,
 
-   returnPolicy:$("productReturn").value,
+   returnPolicy:
+     $("productReturn").value.trim(),
 
-   delivery:deliveryOption,
+   delivery:
+     deliveryOption,
 
-   description:$("productDescription").value,
+   description:
+     $("productDescription").value.trim(),
 
-   seller:$("sellerId").value || "SELLER"
+   seller:sellerID,
 
+   createdAt:
+     new Date().toISOString()
  };
 
-
- db.products.push(product);
+ db.products.unshift(product);
 
  saveDB();
 
- alert("Product Save हो गया।");
+ toast("🎉 Product Successfully Save हो गया।");
 
  clearProductForm();
 
  renderProducts();
-
+ renderSellerOrders();
  renderAdmin();
-
 }
-
 
 function fileToDataURL(file){
 
- return new Promise(function(resolve){
+ return new Promise(function(resolve,reject){
 
-   let reader =
+   const reader =
      new FileReader();
 
    reader.onload=function(){
-
      resolve(reader.result);
-
    };
 
+   reader.onerror=reject;
+
    reader.readAsDataURL(file);
-
  });
-
 }
-
 
 function clearProductForm(){
 
@@ -1397,13 +2009,12 @@ function clearProductForm(){
  $("productReturn").value="";
  $("productDescription").value="";
  $("productPhoto").value="";
-
 }
 
 
-/* =========================
-   CUSTOMER CATEGORIES
-========================= */
+/* =========================================================
+   CATEGORIES / PRODUCTS
+   ========================================================= */
 
 function setCategory(category,button){
 
@@ -1412,75 +2023,98 @@ function setCategory(category,button){
  document
  .querySelectorAll("#customer .nav button")
  .forEach(function(btn){
-
    btn.classList.remove("active");
-
  });
 
- button.classList.add("active");
+ if(button){
+   button.classList.add("active");
+ }
 
  renderProducts();
-
 }
-
-
-/* =========================
-   SHOW PRODUCTS
-========================= */
 
 function renderProducts(){
 
- let search =
-   ($("customerSearch")?.value || "")
-   .toLowerCase();
+ const search =
+   ($("customerSearch")?.value||"")
+   .toLowerCase()
+   .trim();
+
+ const shopOpen =
+   db.sellerOpen!==false;
 
  let products =
    db.products.filter(function(p){
 
-     let categoryMatch =
+     const categoryMatch =
        currentCategory==="all" ||
        p.category===currentCategory ||
        p.food===currentCategory;
 
-     let searchMatch =
+     const searchMatch =
        (
          p.name+" "+
          p.type+" "+
          p.brand+" "+
          p.category
-       ).toLowerCase()
+       )
+       .toLowerCase()
        .includes(search);
 
      return categoryMatch && searchMatch;
-
    });
 
+ if(!shopOpen){
+   products=[];
+ }
 
  let html="";
 
-
- if(!products.length){
+ if(!shopOpen){
 
    html=
-   `<div class="card">
+   `<div class="empty">
+      <h3>🔴 Seller Shop अभी Closed है</h3>
+      <p>Shop खुलने के बाद products दिखाई देंगे।</p>
+    </div>`;
+
+ }else if(!products.length){
+
+   html=
+   `<div class="empty">
       <h3>अभी कोई Product नहीं है।</h3>
       <p>Seller Panel में जाकर Product Add करें।</p>
     </div>`;
 
  }else{
 
-   products.forEach(function(p){
+   products.forEach(function(p,index){
 
-     let image =
+     const liked =
+       db.wishlist.includes(p.id);
+
+     const image =
        p.photo
        ?
-       `<img src="${p.photo}" alt="">`
+       `<img src="${p.photo}" alt="${escapeAttribute(p.name)}">`
        :
        `<div class="noPhoto">🛍️</div>`;
 
+     const stockText =
+       Number(p.stock)>0
+       ? "Stock: "+p.stock
+       : "Out of Stock";
+
      html +=
 
-     `<div class="product">
+     `<div class="product"
+       style="animation-delay:${index*40}ms">
+
+       <button
+       class="wish ${liked?"active":""}"
+       onclick="toggleWishlist('${p.id}')">
+       ${liked?"❤️":"♡"}
+       </button>
 
        ${image}
 
@@ -1494,30 +2128,24 @@ function renderProducts(){
        ${safe(p.food)}
        </span>
 
-       <p>
-       ${safe(p.description)}
-       </p>
+       <p>${safe(p.description)}</p>
 
        <div class="price">
        ₹${p.price}
-
        ${
          p.oldPrice
          ?
-         `<span class="old">
-         ₹${p.oldPrice}
-         </span>`
+         `<span class="old">₹${p.oldPrice}</span>`
          :""
        }
-
        </div>
 
        <span class="pill">
-       ${safe(p.offer || "No Offer")}
+       ${safe(p.offer||"No Offer")}
        </span>
 
        <span class="pill">
-       Stock: ${p.stock}
+       ${safe(stockText)}
        </span>
 
        <p class="small">
@@ -1526,29 +2154,96 @@ function renderProducts(){
 
        <button
        class="btn primary"
-       onclick="placeOrder('${p.id}')"
-       >
-       🛒 Order
+       ${Number(p.stock)<1?"disabled":""}
+       onclick="addToCart('${p.id}')">
+       🛒 Add to Cart
+       </button>
+
+       <button
+       class="btn blue"
+       ${Number(p.stock)<1?"disabled":""}
+       onclick="buyNow('${p.id}')">
+       ⚡ Order Now
        </button>
 
      </div>`;
-
    });
-
  }
 
  $("products").innerHTML=html;
-
 }
 
 
-/* =========================
-   PLACE ORDER
-========================= */
+/* =========================================================
+   WISHLIST
+   ========================================================= */
 
-function placeOrder(productID){
+function toggleWishlist(productID){
 
- let product =
+ const index =
+   db.wishlist.indexOf(productID);
+
+ if(index>=0){
+   db.wishlist.splice(index,1);
+   toast("♡ Wishlist से हटाया गया।");
+ }else{
+   db.wishlist.push(productID);
+   toast("❤️ Wishlist में जोड़ दिया।");
+ }
+
+ saveDB();
+
+ renderProducts();
+ renderWishlist();
+}
+
+function renderWishlist(){
+
+ const box=$("wishlist");
+ if(!box)return;
+
+ const products =
+   db.wishlist
+   .map(function(id){
+     return db.products.find(
+       function(p){return p.id===id}
+     );
+   })
+   .filter(Boolean);
+
+ if(!products.length){
+   box.innerHTML=
+     `<div class="empty">
+       अभी Wishlist खाली है।
+      </div>`;
+   return;
+ }
+
+ box.innerHTML =
+   products.map(function(p){
+
+     return `
+     <div class="card">
+       <b>${safe(p.name)}</b>
+       <br>
+       ₹${p.price}
+       <br>
+       <button class="btn primary"
+       onclick="addToCart('${p.id}')">
+       🛒 Add to Cart
+       </button>
+     </div>`;
+   }).join("");
+}
+
+
+/* =========================================================
+   CART
+   ========================================================= */
+
+function addToCart(productID){
+
+ const product =
    db.products.find(
      function(p){
        return p.id===productID;
@@ -1556,171 +2251,446 @@ function placeOrder(productID){
    );
 
  if(!product){
-
    alert("Product नहीं मिला।");
    return;
-
  }
 
- if(product.stock < 1){
-
+ if(Number(product.stock)<1){
    alert("यह Product Out of Stock है।");
    return;
-
  }
 
-
- if(!db.customers.length){
-
-   alert(
-     "पहले Customer Panel में Customer Account Save करें।"
+ const item =
+   db.cart.find(
+     function(x){
+       return x.productID===productID;
+     }
    );
 
-   openPanel("customer");
-
-   return;
-
+ if(item){
+   if(item.qty>=Number(product.stock)){
+     alert("इतना stock उपलब्ध नहीं है।");
+     return;
+   }
+   item.qty++;
+ }else{
+   db.cart.push({
+     productID:productID,
+     qty:1
+   });
  }
-
-
- let customer =
-   db.customers[db.customers.length-1];
-
-
- let order={
-
-   id:makeID("ORD"),
-
-   productID:product.id,
-
-   productName:product.name,
-
-   customerID:customer.id,
-
-   sellerID:product.seller,
-
-   amount:product.price,
-
-   status:"Order Placed",
-
-   delivery:product.delivery,
-
-   created:new Date().toLocaleString("hi-IN"),
-
-   returnRequested:false
-
- };
-
-
- db.orders.push(order);
-
- product.stock--;
 
  saveDB();
 
- renderProducts();
+ updateCartCount();
+ renderCart();
 
- renderCustomerOrders();
+ toast("🛒 Cart में जोड़ दिया गया।");
+}
 
- renderSellerOrders();
+function changeCartQty(productID,change){
 
- renderDeliveryOrders();
+ const item =
+   db.cart.find(
+     function(x){
+       return x.productID===productID;
+     }
+   );
 
- renderAdmin();
+ const product =
+   db.products.find(
+     function(p){
+       return p.id===productID;
+     }
+   );
 
- alert(
-   "Order Successfully Place हो गया।"
+ if(!item || !product)return;
+
+ item.qty += change;
+
+ if(item.qty<=0){
+   db.cart =
+     db.cart.filter(
+       function(x){
+         return x.productID!==productID;
+       }
+     );
+ }
+
+ if(item.qty>Number(product.stock)){
+   item.qty=Number(product.stock);
+ }
+
+ saveDB();
+
+ updateCartCount();
+ renderCart();
+ renderCartModal();
+}
+
+function removeFromCart(productID){
+
+ db.cart =
+   db.cart.filter(
+     function(x){
+       return x.productID!==productID;
+     }
+   );
+
+ saveDB();
+
+ updateCartCount();
+ renderCart();
+ renderCartModal();
+
+ toast("🗑️ Cart से हटाया गया।");
+}
+
+function getCartTotal(){
+
+ return db.cart.reduce(
+   function(total,item){
+
+     const product =
+       db.products.find(
+         function(p){
+           return p.id===item.productID;
+         }
+       );
+
+     if(!product)return total;
+
+     return total +
+       Number(product.price||0) *
+       Number(item.qty||0);
+
+   },
+   0
  );
+}
 
+function updateCartCount(){
+
+ const count =
+   db.cart.reduce(
+     function(total,item){
+       return total+Number(item.qty||0);
+     },
+     0
+   );
+
+ $("cartCount").textContent=count;
+}
+
+function renderCart(){
+
+ const box=$("cart");
+ if(!box)return;
+
+ if(!db.cart.length){
+
+   box.innerHTML=
+     `<div class="empty">
+       Cart अभी खाली है।
+      </div>`;
+   return;
+ }
+
+ box.innerHTML =
+   db.cart.map(function(item){
+
+     const p =
+       db.products.find(
+         function(x){
+           return x.id===item.productID;
+         }
+       );
+
+     if(!p)return "";
+
+     return `
+     <div class="card">
+
+       <b>${safe(p.name)}</b>
+
+       <br>
+       ₹${p.price} × ${item.qty}
+
+       <br><br>
+
+       <button class="btn gray"
+       onclick="changeCartQty('${p.id}',-1)">
+       −
+       </button>
+
+       <button class="btn blue"
+       onclick="changeCartQty('${p.id}',1)">
+       +
+       </button>
+
+       <button class="btn red"
+       onclick="removeFromCart('${p.id}')">
+       Remove
+       </button>
+
+     </div>`;
+   }).join("") +
+
+   `<h3>Total: ₹${getCartTotal()}</h3>
+
+    <button class="btn primary"
+    onclick="checkoutCart()">
+    ⚡ Place Cart Order
+    </button>`;
+}
+
+function openCartModal(){
+ renderCartModal();
+ $("cartModal").classList.add("show");
+}
+
+function renderCartModal(){
+
+ const box =
+   $("cartModalContent");
+
+ if(!db.cart.length){
+
+   box.innerHTML=
+     `<div class="empty">
+       Cart अभी खाली है।
+      </div>`;
+   return;
+ }
+
+ box.innerHTML =
+   db.cart.map(function(item){
+
+     const p =
+       db.products.find(
+         function(x){
+           return x.id===item.productID;
+         }
+       );
+
+     if(!p)return "";
+
+     return `
+     <div class="card">
+
+       <b>${safe(p.name)}</b>
+       <br>
+       ₹${p.price} × ${item.qty}
+
+       <br><br>
+
+       <button class="btn gray"
+       onclick="changeCartQty('${p.id}',-1)">
+       −
+       </button>
+
+       <button class="btn blue"
+       onclick="changeCartQty('${p.id}',1)">
+       +
+       </button>
+
+       <button class="btn red"
+       onclick="removeFromCart('${p.id}')">
+       Remove
+       </button>
+
+     </div>`;
+   }).join("") +
+
+   `<h3>Total: ₹${getCartTotal()}</h3>
+
+    <button class="btn primary"
+    onclick="checkoutCart()">
+    ⚡ Place Cart Order
+    </button>`;
+}
+
+function checkoutCart(){
+
+ if(!db.cart.length){
+   alert("Cart खाली है।");
+   return;
+ }
+
+ if(!db.customers.length){
+   alert(
+     "पहले Customer Panel में Customer Account Save करें।"
+   );
+   closeModal("cartModal");
+   openPanel("customer");
+   return;
+ }
+
+ const customer =
+   db.customers[db.customers.length-1];
+
+ const cartCopy =
+   [...db.cart];
+
+ let created=0;
+
+ cartCopy.forEach(function(item){
+
+   const product =
+     db.products.find(
+       function(p){
+         return p.id===item.productID;
+       }
+     );
+
+   if(!product)return;
+
+   if(Number(product.stock)<item.qty)return;
+
+   const order={
+     id:makeID("ORD"),
+     productID:product.id,
+     productName:product.name,
+     customerID:customer.id,
+     sellerID:product.seller,
+     amount:
+       Number(product.price)*
+       Number(item.qty),
+     quantity:item.qty,
+     status:"Order Placed",
+     delivery:product.delivery,
+     payment:"COD / UPI",
+     created:
+       new Date().toLocaleString("hi-IN"),
+     returnRequested:false
+   };
+
+   db.orders.push(order);
+
+   product.stock -= item.qty;
+
+   created++;
+ });
+
+ db.cart=[];
+
+ saveDB();
+
+ closeModal("cartModal");
+
+ renderAll();
+
+ if(created){
+   toast(
+     "🎉 "+created+
+     " order successfully placed."
+   );
+ }else{
+   alert(
+     "Available stock नहीं मिला।"
+   );
+ }
+}
+
+function buyNow(productID){
+
+ addToCart(productID);
+
+ setTimeout(function(){
+   openCartModal();
+ },100);
 }
 
 
-/* =========================
-   CUSTOMER ORDERS
-========================= */
+/* =========================================================
+   ORDERS
+   ========================================================= */
+
+function placeOrder(productID){
+ buyNow(productID);
+}
 
 function renderCustomerOrders(){
 
- let customerIDs =
-   db.customers.map(function(c){
-     return c.id;
-   });
+ const box =
+   $("customerOrders");
 
+ const customerIDs =
+   db.customers.map(
+     function(c){return c.id}
+   );
 
- let orders =
-   db.orders.filter(function(o){
-     return customerIDs.includes(o.customerID);
-   });
-
+ const orders =
+   db.orders.filter(
+     function(o){
+       return customerIDs.includes(
+         o.customerID
+       );
+     }
+   );
 
  if(!orders.length){
-
-   $("customerOrders").innerHTML =
+   box.innerHTML=
      "अभी कोई order नहीं है।";
-
    return;
-
  }
 
+ box.innerHTML =
+   orders.map(function(o){
 
- let html="";
+     return `
+     <div class="card">
 
+       <b>${safe(o.id)}</b>
 
- orders.forEach(function(o){
+       <br>
+       Product:
+       ${safe(o.productName)}
 
-   html +=
+       <br>
+       Amount:
+       ₹${o.amount}
 
-   `<div class="card">
+       <br>
+       Status:
+       <b>${safe(o.status)}</b>
 
-   <b>${safe(o.id)}</b>
+       <br>
+       Payment:
+       ${safe(o.payment||"COD / UPI")}
 
-   <br>
+       <br><br>
 
-   Product:
-   ${safe(o.productName)}
+       ${
+         o.status!=="Completed"
+         ?
+         `<button
+         class="btn green"
+         onclick="customerReceived('${o.id}')">
+         ✅ Item सही मिला
+         </button>`
+         :""
+       }
 
-   <br>
+       ${
+         !o.returnRequested &&
+         o.status!=="Completed"
+         ?
+         `<button
+         class="btn red"
+         onclick="requestReturn('${o.id}')">
+         ↩️ Return Request
+         </button>`
+         :""
+       }
 
-   Amount:
-   ₹${o.amount}
-
-   <br>
-
-   Status:
-   <b>${safe(o.status)}</b>
-
-   <br><br>
-
-   <button
-   class="btn green"
-   onclick="customerReceived('${o.id}')"
-   >
-   ✅ Item सही मिला
-   </button>
-
-   <button
-   class="btn red"
-   onclick="requestReturn('${o.id}')"
-   >
-   ↩️ Return Request
-   </button>
-
-   </div>`;
-
- });
-
- $("customerOrders").innerHTML=html;
-
+     </div>`;
+   }).join("");
 }
-
-
-/* =========================
-   CUSTOMER RECEIVED
-========================= */
 
 function customerReceived(orderID){
 
- let order =
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -1730,30 +2700,23 @@ function customerReceived(orderID){
  if(!order)return;
 
  order.status="Completed";
+ order.completedAt =
+   new Date().toISOString();
 
  db.deliveryEarnings += 40;
 
  saveDB();
 
- renderCustomerOrders();
- renderDeliveryOrders();
- renderDeliveryFinance();
- renderAdmin();
+ renderAll();
 
- alert(
-   "Order Completed हो गया।"
+ toast(
+   "✅ Order Completed हो गया।"
  );
-
 }
-
-
-/* =========================
-   RETURN
-========================= */
 
 function requestReturn(orderID){
 
- let order =
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -1762,95 +2725,87 @@ function requestReturn(orderID){
 
  if(!order)return;
 
- order.returnRequested=true;
+ if(order.status==="Completed"){
+   alert(
+     "Completed order का return backend policy के अनुसार process होगा।"
+   );
+   return;
+ }
 
+ order.returnRequested=true;
  order.status="Return Requested";
 
  saveDB();
 
- renderCustomerOrders();
- renderSellerOrders();
- renderAdmin();
+ renderAll();
 
- alert(
-   "Return Request Seller को भेज दी गई।"
+ toast(
+   "↩️ Return Request Seller को भेज दी गई।"
  );
-
 }
 
 
-/* =========================
+/* =========================================================
    SELLER ORDERS
-========================= */
+   ========================================================= */
 
 function renderSellerOrders(){
 
- let html="";
+ const box =
+   $("sellerOrders");
 
  if(!db.orders.length){
-
-   $("sellerOrders").innerHTML=
+   box.innerHTML=
      "अभी कोई order नहीं है।";
-
    return;
-
  }
 
+ box.innerHTML =
+   db.orders.map(function(o){
 
- db.orders.forEach(function(o){
+     return `
+     <div class="card">
 
-   html +=
+       <b>${safe(o.id)}</b>
+       <br>
+       Product: ${safe(o.productName)}
+       <br>
+       ₹${o.amount}
+       <br>
+       Status:
+       <b>${safe(o.status)}</b>
 
-   `<div class="card">
+       <br><br>
 
-   <b>${safe(o.id)}</b>
+       ${
+         o.status==="Order Placed"
+         ?
+         `<button
+         class="btn green"
+         onclick="sellerReady('${o.id}')">
+         📦 Order Ready
+         </button>`
+         :""
+       }
 
-   <br>
+       ${
+         o.returnRequested
+         ?
+         `<button
+         class="btn orange"
+         onclick="sellerReturnReceived('${o.id}')">
+         ↩️ Return Received
+         </button>`
+         :""
+       }
 
-   Product:
-   ${safe(o.productName)}
-
-   <br>
-
-   ₹${o.amount}
-
-   <br>
-
-   Status:
-   <b>${safe(o.status)}</b>
-
-   <br><br>
-
-   <button
-   class="btn green"
-   onclick="sellerReady('${o.id}')"
-   >
-   📦 Order Ready
-   </button>
-
-   <button
-   class="btn orange"
-   onclick="sellerReturnReceived('${o.id}')"
-   >
-   ↩️ Return Received
-   </button>
-
-   </div>`;
-
- });
-
- $("sellerOrders").innerHTML=html;
-
+     </div>`;
+   }).join("");
 }
-
-
-/* =========================
-   SELLER READY
-========================= */
 
 function sellerReady(orderID){
 
- let order =
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -1863,24 +2818,16 @@ function sellerReady(orderID){
 
  saveDB();
 
- renderSellerOrders();
- renderDeliveryOrders();
- renderAdmin();
+ renderAll();
 
- alert(
-   "Order Delivery Boy के लिए Ready है।"
+ toast(
+   "📦 Order Delivery Boy के लिए Ready है।"
  );
-
 }
-
-
-/* =========================
-   SELLER RETURN
-========================= */
 
 function sellerReturnReceived(orderID){
 
- let order =
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -1894,103 +2841,220 @@ function sellerReturnReceived(orderID){
 
  saveDB();
 
- renderSellerOrders();
- renderCustomerOrders();
- renderAdmin();
+ renderAll();
 
- alert(
-   "Return Received हो गया। Refund Admin Approval के लिए pending है।"
+ toast(
+   "↩️ Return received. Refund pending."
  );
-
 }
 
 
-/* =========================
-   DELIVERY ORDERS
-========================= */
+/* =========================================================
+   DELIVERY
+   ========================================================= */
+
+function loadDelivery(){
+
+ if(!$("deliveryId").value){
+   $("deliveryId").value =
+     makeID("DEL");
+ }
+
+ renderDeliveryOrders();
+ renderDeliveryFinance();
+ updateDeliveryOnlineUI();
+}
+
+function saveDelivery(){
+
+ if(!$("deliveryName").value.trim()){
+   alert("Delivery Boy Name डालें।");
+   return;
+ }
+
+ const delivery={
+
+   id:$("deliveryId").value,
+
+   name:
+     $("deliveryName").value.trim(),
+
+   mobile:
+     $("deliveryMobile").value.trim(),
+
+   address:
+     $("deliveryAddress").value.trim(),
+
+   face:
+     $("deliveryFace").files.length>0,
+
+   aadhaar:
+     $("deliveryAadhaar").files.length>0,
+
+   pan:
+     $("deliveryPan").files.length>0,
+
+   location:
+     $("deliveryLocation").value,
+
+   vehicle:
+     $("vehicleType").value,
+
+   vehicleNumber:
+     $("vehicleNumber").value.trim()
+
+ };
+
+ const index =
+   db.delivery.findIndex(
+     function(x){
+       return x.id===delivery.id;
+     }
+   );
+
+ if(index>=0){
+   db.delivery[index]=delivery;
+ }else{
+   db.delivery.push(delivery);
+ }
+
+ saveDB();
+
+ toast(
+   "✅ Delivery Account Save हो गया।"
+ );
+}
+
+function toggleDeliveryOnline(){
+
+ db.deliveryOnline =
+   db.deliveryOnline!==true;
+
+ saveDB();
+
+ updateDeliveryOnlineUI();
+
+ toast(
+   db.deliveryOnline
+   ? "🟢 Delivery Boy Online है।"
+   : "⚪ Delivery Boy Offline है।"
+ );
+}
+
+function updateDeliveryOnlineUI(){
+
+ const button =
+   $("deliveryOnlineButton");
+
+ const text =
+   $("deliveryOnlineText");
+
+ if(!button)return;
+
+ if(db.deliveryOnline){
+
+   button.textContent=
+     "🟢 Go Offline";
+
+   button.className=
+     "btn green";
+
+   text.textContent=
+     "Online";
+
+ }else{
+
+   button.textContent=
+     "⚪ Go Online";
+
+   button.className=
+     "btn gray";
+
+   text.textContent=
+     "Offline";
+ }
+}
 
 function renderDeliveryOrders(){
 
- let orders =
-   db.orders.filter(function(o){
+ const box =
+   $("deliveryOrders");
 
-     return (
-       o.status==="Ready for Delivery" ||
-       o.status==="Picked Up" ||
-       o.status==="Out for Delivery"
-     );
+ const orders =
+   db.orders.filter(
+     function(o){
 
-   });
-
+       return (
+         o.status==="Ready for Delivery" ||
+         o.status==="Picked Up" ||
+         o.status==="Out for Delivery"
+       );
+     }
+   );
 
  if(!orders.length){
 
-   $("deliveryOrders").innerHTML =
+   box.innerHTML=
      "अभी कोई assigned delivery नहीं है।";
 
    return;
-
  }
 
+ box.innerHTML =
+   orders.map(function(o){
 
- let html="";
+     return `
+     <div class="card">
 
+       <b>${safe(o.id)}</b>
+       <br>
+       Product:
+       ${safe(o.productName)}
+       <br>
+       Amount:
+       ₹${o.amount}
+       <br>
+       Status:
+       <b>${safe(o.status)}</b>
 
- orders.forEach(function(o){
+       <br><br>
 
-   html +=
+       ${
+         o.status==="Ready for Delivery"
+         ?
+         `<button
+         class="btn blue"
+         onclick="deliveryPickup('${o.id}')">
+         🛵 Pickup
+         </button>`
+         :""
+       }
 
-   `<div class="card">
+       ${
+         o.status==="Picked Up"
+         ?
+         `<button
+         class="btn green"
+         onclick="deliveryOut('${o.id}')">
+         🚚 Out for Delivery
+         </button>`
+         :""
+       }
 
-   <b>${safe(o.id)}</b>
-
-   <br>
-
-   Product:
-   ${safe(o.productName)}
-
-   <br>
-
-   Amount:
-   ₹${o.amount}
-
-   <br>
-
-   Status:
-   <b>${safe(o.status)}</b>
-
-   <br><br>
-
-   <button
-   class="btn blue"
-   onclick="deliveryPickup('${o.id}')"
-   >
-   🛵 Pickup
-   </button>
-
-   <button
-   class="btn green"
-   onclick="deliveryOut('${o.id}')"
-   >
-   🚚 Out for Delivery
-   </button>
-
-   </div>`;
-
- });
-
- $("deliveryOrders").innerHTML=html;
-
+     </div>`;
+   }).join("");
 }
-
-
-/* =========================
-   DELIVERY PICKUP
-========================= */
 
 function deliveryPickup(orderID){
 
- let order =
+ if(!db.deliveryOnline){
+   alert(
+     "पहले Delivery Boy को Online करें।"
+   );
+   return;
+ }
+
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -2003,19 +3067,14 @@ function deliveryPickup(orderID){
 
  saveDB();
 
- renderDeliveryOrders();
- renderAdmin();
+ renderAll();
 
+ toast("🛵 Order Pickup हो गया।");
 }
-
-
-/* =========================
-   OUT FOR DELIVERY
-========================= */
 
 function deliveryOut(orderID){
 
- let order =
+ const order =
    db.orders.find(
      function(o){
        return o.id===orderID;
@@ -2028,30 +3087,33 @@ function deliveryOut(orderID){
 
  saveDB();
 
- renderDeliveryOrders();
- renderCustomerOrders();
- renderAdmin();
+ renderAll();
 
+ toast(
+   "🚚 Order Out for Delivery है।"
+ );
 }
 
 
-/* =========================
-   SELLER FINANCE
-========================= */
+/* =========================================================
+   FINANCE
+   ========================================================= */
 
 function renderSellerFinance(){
 
- let gross =
+ const gross =
    db.orders.reduce(
      function(total,o){
-       return total + Number(o.amount||0);
-     },0
+       return total+
+         Number(o.amount||0);
+     },
+     0
    );
 
- let platformFee =
-   Math.round(gross * 0.05);
+ const platformFee =
+   Math.round(gross*0.05);
 
- let net =
+ const net =
    gross-platformFee;
 
  $("sellerFinance").innerHTML=
@@ -2082,13 +3144,7 @@ function renderSellerFinance(){
  Weekly Settlement: Pending
  </span>
  `;
-
 }
-
-
-/* =========================
-   DELIVERY FINANCE
-========================= */
 
 function renderDeliveryFinance(){
 
@@ -2115,29 +3171,34 @@ function renderDeliveryFinance(){
  Weekly Payout: Pending
  </span>
  `;
-
 }
 
 
-/* =========================
+/* =========================================================
    ADMIN
-========================= */
+   ========================================================= */
 
 function renderAdmin(){
 
- $("adminCustomerCount").textContent =
+ if(
+   window.__adBrandAdminAuthorized!==true
+ ){
+   return;
+ }
+
+ $("adminCustomerCount").textContent=
    db.customers.length;
 
- $("adminSellerCount").textContent =
+ $("adminSellerCount").textContent=
    db.sellers.length;
 
- $("adminDeliveryCount").textContent =
+ $("adminDeliveryCount").textContent=
    db.delivery.length;
 
- $("adminProductCount").textContent =
+ $("adminProductCount").textContent=
    db.products.length;
 
- $("adminOrderCount").textContent =
+ $("adminOrderCount").textContent=
    db.orders.length;
 
 
@@ -2147,7 +3208,10 @@ function renderAdmin(){
 
  if(!db.customers.length){
 
-   customersHTML="कोई Customer record नहीं है।";
+   customersHTML=
+     `<div class="empty">
+       कोई Customer record नहीं है।
+      </div>`;
 
  }else{
 
@@ -2157,21 +3221,19 @@ function renderAdmin(){
 
      `<div class="card">
 
-     <b>${safe(c.id)}</b>
+       <b>${safe(c.id)}</b>
 
-     <br>
-     Name: ${safe(c.name)}
+       <br>
+       Name: ${safe(c.name)}
 
-     <br>
-     Mobile: ${safe(c.mobile)}
+       <br>
+       Mobile: ${safe(c.mobile)}
 
-     <br>
-     Address: ${safe(c.address)}
+       <br>
+       Address: ${safe(c.address)}
 
      </div>`;
-
    });
-
  }
 
  $("adminCustomers").innerHTML=
@@ -2184,7 +3246,10 @@ function renderAdmin(){
 
  if(!db.sellers.length){
 
-   sellersHTML="कोई Seller record नहीं है।";
+   sellersHTML=
+     `<div class="empty">
+       कोई Seller record नहीं है।
+      </div>`;
 
  }else{
 
@@ -2194,35 +3259,26 @@ function renderAdmin(){
 
      `<div class="card">
 
-     <b>${safe(s.id)}</b>
+       <b>${safe(s.id)}</b>
 
-     <br>
-     Shop:
-     ${safe(s.shop)}
+       <br>
+       Shop: ${safe(s.shop)}
 
-     <br>
-     Name:
-     ${safe(s.name)}
+       <br>
+       Name: ${safe(s.name)}
 
-     <br>
-     Mobile:
-     ${safe(s.mobile)}
+       <br>
+       Mobile: ${safe(s.mobile)}
 
-     <br>
-
-     KYC:
-     Face ${s.face?"✅":"❌"}
-     |
-     Aadhaar ${s.aadhaar?"✅":"❌"}
-     |
-     PAN ${s.pan?"✅":"❌"}
-     |
-     Business Document ${s.document?"✅":"❌"}
+       <br>
+       KYC:
+       Face ${s.face?"✅":"❌"} |
+       Aadhaar ${s.aadhaar?"✅":"❌"} |
+       PAN ${s.pan?"✅":"❌"} |
+       Business ${s.document?"✅":"❌"}
 
      </div>`;
-
    });
-
  }
 
  $("adminSellers").innerHTML=
@@ -2236,7 +3292,9 @@ function renderAdmin(){
  if(!db.delivery.length){
 
    deliveryHTML=
-     "कोई Delivery Boy record नहीं है।";
+     `<div class="empty">
+       कोई Delivery Boy record नहीं है।
+      </div>`;
 
  }else{
 
@@ -2246,37 +3304,29 @@ function renderAdmin(){
 
      `<div class="card">
 
-     <b>${safe(d.id)}</b>
+       <b>${safe(d.id)}</b>
 
-     <br>
-     Name:
-     ${safe(d.name)}
+       <br>
+       Name: ${safe(d.name)}
 
-     <br>
-     Mobile:
-     ${safe(d.mobile)}
+       <br>
+       Mobile: ${safe(d.mobile)}
 
-     <br>
-     Vehicle:
-     ${safe(d.vehicle)}
+       <br>
+       Vehicle: ${safe(d.vehicle)}
 
-     <br>
-     Vehicle Number:
-     ${safe(d.vehicleNumber)}
+       <br>
+       Vehicle Number:
+       ${safe(d.vehicleNumber)}
 
-     <br>
-
-     KYC:
-     Face ${d.face?"✅":"❌"}
-     |
-     Aadhaar ${d.aadhaar?"✅":"❌"}
-     |
-     PAN ${d.pan?"✅":"❌"}
+       <br>
+       KYC:
+       Face ${d.face?"✅":"❌"} |
+       Aadhaar ${d.aadhaar?"✅":"❌"} |
+       PAN ${d.pan?"✅":"❌"}
 
      </div>`;
-
    });
-
  }
 
  $("adminDelivery").innerHTML=
@@ -2290,7 +3340,9 @@ function renderAdmin(){
  if(!db.products.length){
 
    productsHTML=
-     "कोई Product नहीं है।";
+     `<div class="empty">
+       कोई Product नहीं है।
+      </div>`;
 
  }else{
 
@@ -2300,27 +3352,26 @@ function renderAdmin(){
 
      `<div class="card">
 
-     <b>${safe(p.name)}</b>
+       <b>${safe(p.name)}</b>
 
-     <br>
+       <br>
+       Category:
+       ${safe(p.category)}
 
-     Category:
-     ${safe(p.category)}
+       <br>
+       Price:
+       ₹${p.price}
 
-     <br>
+       <br>
+       Stock:
+       ${p.stock}
 
-     Price:
-     ₹${p.price}
-
-     <br>
-
-     Stock:
-     ${p.stock}
+       <br>
+       Delivery:
+       ${safe(p.delivery)}
 
      </div>`;
-
    });
-
  }
 
  $("adminProducts").innerHTML=
@@ -2334,7 +3385,9 @@ function renderAdmin(){
  if(!db.orders.length){
 
    ordersHTML=
-     "कोई Order नहीं है।";
+     `<div class="empty">
+       कोई Order नहीं है।
+      </div>`;
 
  }else{
 
@@ -2344,78 +3397,83 @@ function renderAdmin(){
 
      `<div class="card">
 
-     <b>${safe(o.id)}</b>
+       <b>${safe(o.id)}</b>
 
-     <br>
+       <br>
+       Product:
+       ${safe(o.productName)}
 
-     Product:
-     ${safe(o.productName)}
+       <br>
+       Amount:
+       ₹${o.amount}
 
-     <br>
+       <br>
+       Status:
+       ${safe(o.status)}
 
-     Amount:
-     ₹${o.amount}
-
-     <br>
-
-     Status:
-     ${safe(o.status)}
+       <br>
+       Payment:
+       ${safe(o.payment||"COD / UPI")}
 
      </div>`;
-
    });
-
  }
 
  $("adminOrders").innerHTML=
    ordersHTML;
-
 }
 
 
-/* =========================
-   SECURITY AGAINST HTML
-========================= */
+/* =========================================================
+   RENDER ALL
+   ========================================================= */
 
-function safe(value){
+function renderAll(){
 
- return String(value ?? "")
- .replace(/&/g,"&amp;")
- .replace(/</g,"&lt;")
- .replace(/>/g,"&gt;")
- .replace(/"/g,"&quot;")
- .replace(/'/g,"&#039;");
+ renderProducts();
+ renderWishlist();
+ renderCart();
+ renderCustomerOrders();
+ renderSellerOrders();
+ renderSellerFinance();
+ renderDeliveryOrders();
+ renderDeliveryFinance();
+ updateCartCount();
+ updateSellerStatusUI();
+ updateDeliveryOnlineUI();
 
+ if(window.__adBrandAdminAuthorized===true){
+   renderAdmin();
+ }
 }
 
 
-/* =========================
-   START
-========================= */
+/* =========================================================
+   STARTUP
+   ========================================================= */
 
 updateDeliveryRule();
+updateSellerStatusUI();
+updateDeliveryOnlineUI();
+updateCartCount();
+renderProducts();
 
-
-
-
-</script>
-<!-- SUPABASE CONNECTION START -->
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-const SUPABASE_URL = "jwvawjztfwfpmlnocwiw";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
-
-const supabaseClient = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
+console.log(
+ "AD Brand Market frontend initialized."
 );
 
-console.log("AD Brand Market - Supabase Connected");
+if(supabaseClient){
+ console.log(
+   "AD Brand Market - Supabase Connected"
+ );
+}else{
+ console.warn(
+   "Supabase publishable key const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_तुम्हारी_वाली_पूरी_key";।"
+ );
+}
+
 </script>
 
-<!-- SUPABASE CONNECTION END -->
 </body>
 </html>
-
