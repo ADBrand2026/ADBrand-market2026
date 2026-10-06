@@ -299,7 +299,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .orange{background:#ef7d00}
 .gray{background:#555}
 .pink{background:#d7287e}
-
 .notice{
  padding:12px;
  background:#fff3cd;
@@ -997,9 +996,7 @@ Production में इन्हें Supabase private storage में र�
 <input id="vehicleNumber">
 </div>
 
-</div>
-
-<button class="btn blue" onclick="saveDelivery()">💾 Delivery Account Save</button>
+</div><button class="btn blue" onclick="saveDelivery()">💾 Delivery Account Save</button>
 
 <p class="small">
 Delivery Boy के लिए Driving Licence और RC option इस frontend में नहीं रखा गया है।
@@ -1392,6 +1389,7 @@ db.sellers = Array.isArray(db.sellers) ? db.sellers : [];
 db.delivery = Array.isArray(db.delivery) ? db.delivery : [];
 db.products = Array.isArray(db.products) ? db.products : [];
 db.orders = Array.isArray(db.orders) ? db.orders : [];
+db.deliveryEarnings = Number(db.deliveryEarnings || 0);
 db.cart = Array.isArray(db.cart) ? db.cart : [];
 db.wishlist = Array.isArray(db.wishlist) ? db.wishlist : [];
 db.activeCustomerId =
@@ -1995,9 +1993,7 @@ function saveSeller(){
    db.sellers[index]=seller;
  }else{
    db.sellers.push(seller);
- }
-
- saveDB();
+ }saveDB();
 
  toast("✅ Seller Account Save हो गया।");
 }
@@ -2757,6 +2753,114 @@ function renderCartModal(){
     </button>`;
 }
 
+
+/* =========================================================
+   DELIVERY / PACKAGING / EARNINGS ENGINE
+   Trial defaults: इन amounts को बाद में Admin settings से बदला जा सकता है।
+   ========================================================= */
+
+const AD_PRICING = {
+  platformFeePercent: 5,
+  foodPackaging: 10,
+  nonFoodPackaging: 15,
+  food: [
+    {max:3, fee:30},
+    {max:5, fee:50},
+    {max:7, fee:70}
+  ],
+  normalNonFood: [
+    {max:3, fee:30},
+    {max:5, fee:50},
+    {max:7, fee:70}
+  ],
+  expressNonFood: [
+    {max:3, fee:40},
+    {max:5, fee:60},
+    {max:6, fee:100}
+  ]
+};
+
+function isFoodProduct(product){
+  return product && ["खाना","चाय","Snacks"].includes(product.category);
+}
+
+function parseLatLng(value){
+  if(!value) return null;
+  const m=String(value).trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+  if(!m)return null;
+  const lat=Number(m[1]);
+  const lng=Number(m[2]);
+  if(!Number.isFinite(lat)||!Number.isFinite(lng))return null;
+  if(Math.abs(lat)>90||Math.abs(lng)>180)return null;
+  return {lat,lng};
+}
+
+function distanceKm(a,b){
+  const A=parseLatLng(a), B=parseLatLng(b);
+  if(!A||!B)return null;
+  const R=6371;
+  const dLat=(B.lat-A.lat)*Math.PI/180;
+  const dLng=(B.lng-A.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+
+    Math.cos(A.lat*Math.PI/180)*Math.cos(B.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+
+function feeFromSlabs(distance, slabs){
+  if(distance===null || distance===undefined || !Number.isFinite(distance))return null;
+  for(const slab of slabs){
+    if(distance<=slab.max)return slab.fee;
+  }
+  return null;
+}
+
+function getDeliveryCalculation(product, customer, options={}){
+  const food=isFoodProduct(product);
+  const type=options.deliveryType || (product.delivery==="Delivery Only" ? "normal" : "normal");
+  const pickup=type==="self_pickup";
+  const express=!food && type==="express";
+  const distance=distanceKm(customer && customer.location, options.sellerLocation);
+  const packaging=food ? AD_PRICING.foodPackaging : AD_PRICING.nonFoodPackaging;
+
+  if(pickup){
+    return {distanceKm:0, packagingFee:0, deliveryFee:0, deliveryEarning:0, deliveryType:"self_pickup", available:true, reason:"Self Pickup"};
+  }
+
+  if(express && food){
+    return {distanceKm:distance, packagingFee:packaging, deliveryFee:0, deliveryEarning:0, deliveryType:"normal", available:false, reason:"Food के लिए Express Delivery उपलब्ध नहीं है।"};
+  }
+
+  const slabs=express ? AD_PRICING.expressNonFood : (food ? AD_PRICING.food : AD_PRICING.normalNonFood);
+  const fee=feeFromSlabs(distance,slabs);
+
+  if(fee===null){
+    return {distanceKm:distance, packagingFee:packaging, deliveryFee:0, deliveryEarning:0, deliveryType:express?"express":"normal", available:false, reason: distance===null ? "Customer और Seller दोनों की location चाहिए।" : "इस दूरी पर local delivery उपलब्ध नहीं है।"};
+  }
+
+  const earning=express ? Math.round(fee*0.80) : Math.round(fee*0.70);
+  return {distanceKm:distance, packagingFee:packaging, deliveryFee:fee, deliveryEarning:earning, deliveryType:express?"express":"normal", available:true, reason:""};
+}
+
+function money(value){
+  return "₹"+Math.round(Number(value)||0);
+}
+
+function orderFinancials(order){
+  const itemTotal=Number(order.itemTotal ?? order.amount ?? 0);
+  const packagingFee=Number(order.packagingFee||0);
+  const deliveryFee=Number(order.deliveryFee||0);
+  const platformFee=Number(order.platformFee ?? Math.round(itemTotal*AD_PRICING.platformFeePercent/100));
+  const deliveryEarning=Number(order.deliveryEarning||0);
+  const sellerPayable=Math.max(0,itemTotal-platformFee-Number(order.refundAmount||0));
+  const customerTotal=Number(order.customerTotal ?? itemTotal+packagingFee+deliveryFee);
+  return {itemTotal,packagingFee,deliveryFee,platformFee,deliveryEarning,sellerPayable,customerTotal};
+}
+
+function getSellerLocation(product){
+  const seller=db.sellers.find(s=>s.id===product.seller);
+  return seller ? seller.location : null;
+}
+
 function checkoutCart(){
 
  if(!db.cart.length){
@@ -2765,86 +2869,85 @@ function checkoutCart(){
  }
 
  if(!db.customers.length){
-   alert(
-     "पहले Customer Panel में Customer Account Save करें।"
-   );
+   alert("पहले Customer Panel में Customer Account Save करें।");
    closeModal("cartModal");
    openPanel("customer");
    return;
  }
 
-const customer =
-   db.customers.find(function(c){
-     return c.id===db.activeCustomerId;
-   });if(!customer){
-   alert(
-     "पहले Customer Account Save करें।"
-   );
+ const customer=db.customers.find(c=>c.id===db.activeCustomerId);
+ if(!customer){
+   alert("पहले Customer Account Save करें।");
    closeModal("cartModal");
    openPanel("customer");
    return;
-}
+ }
 
- const cartCopy =
-   [...db.cart];
-
+ const cartCopy=[...db.cart];
  let created=0;
+ let blocked=[];
 
  cartCopy.forEach(function(item){
-
-   const product =
-     db.products.find(
-       function(p){
-         return p.id===item.productID;
-       }
-     );
-
+   const product=db.products.find(p=>p.id===item.productID);
    if(!product)return;
+   if(Number(product.stock)<Number(item.qty)){
+     blocked.push(product.name+" — stock कम है");
+     return;
+   }
 
-   if(Number(product.stock)<item.qty)return;
+   const sellerLocation=getSellerLocation(product);
+   const calc=getDeliveryCalculation(product,customer,{sellerLocation,deliveryType:"normal"});
+
+   if(!calc.available){
+     blocked.push(product.name+" — "+calc.reason);
+     return;
+   }
+
+   const itemTotal=Number(product.price)*Number(item.qty);
+   const platformFee=Math.round(itemTotal*AD_PRICING.platformFeePercent/100);
+   const customerTotal=itemTotal+calc.packagingFee+calc.deliveryFee;
 
    const order={
      id:makeID("ORD"),
      productID:product.id,
      productName:product.name,
+     category:product.category,
      customerID:customer.id,
      sellerID:product.seller,
-     amount:
-       Number(product.price)*
-       Number(item.qty),
-     quantity:item.qty,
+     amount:itemTotal,
+     itemTotal:itemTotal,
+     quantity:Number(item.qty),
+     packagingFee:calc.packagingFee,
+     deliveryFee:calc.deliveryFee,
+     platformFee:platformFee,
+     deliveryEarning:calc.deliveryEarning,
+     customerTotal:customerTotal,
+     deliveryDistanceKm:calc.distanceKm===null ? null : Number(calc.distanceKm.toFixed(2)),
+     deliveryType:calc.deliveryType,
      status:"Order Placed",
      delivery:product.delivery,
      payment:"COD / UPI",
-     created:
-       new Date().toLocaleString("hi-IN"),
+     created:new Date().toLocaleString("hi-IN"),
      returnRequested:false
    };
 
    db.orders.push(order);
-
-   product.stock -= item.qty;
-
+   product.stock-=Number(item.qty);
    created++;
  });
 
  db.cart=[];
-
  saveDB();
-
  closeModal("cartModal");
-
  renderAll();
 
+ if(blocked.length){
+   alert("कुछ items order नहीं हो पाए:\n\n"+blocked.join("\n"));
+ }
  if(created){
-   toast(
-     "🎉 "+created+
-     " order successfully placed."
-   );
- }else{
-   alert(
-     "Available stock नहीं मिला।"
-   );
+   toast("🎉 "+created+" order successfully placed.");
+ }else if(!blocked.length){
+   alert("Available stock नहीं मिला।");
  }
 }
 
@@ -2889,9 +2992,7 @@ function renderCustomerOrders(){
       </div>`;
 
    return;
- }
-
- box.innerHTML =
+ } box.innerHTML =
    orders.map(function(o){
 
      let returnHTML="";
@@ -2928,9 +3029,15 @@ function renderCustomerOrders(){
        ${safe(o.productName)}
 
        <br>
-       Amount:
-       ₹${o.amount}
-
+       Item Total: ${money(o.itemTotal ?? o.amount)}
+       <br>
+       Packaging: ${money(o.packagingFee)}
+       <br>
+       Delivery: ${money(o.deliveryFee)}
+       <br>
+       Customer Total: <b>${money(o.customerTotal ?? o.amount)}</b>
+       <br>
+       Distance: ${o.deliveryDistanceKm==null ? "Location pending" : safe(o.deliveryDistanceKm+" km")}
        <br>
        Quantity:
        ${o.quantity}
@@ -2993,7 +3100,9 @@ function customerReceived(orderID){
  order.completedAt =
    new Date().toISOString();
 
- db.deliveryEarnings += 40;
+ const earning=Number(order.deliveryEarning||0);
+ db.deliveryEarnings=Number(db.deliveryEarnings||0)+earning;
+ order.deliveryEarningPaid=true;
 
  saveDB();
 
@@ -3429,8 +3538,14 @@ const orders =
        Product:
        ${safe(o.productName)}
        <br>
-       Amount:
-       ₹${o.amount}
+       Customer Total:
+       ${money(o.customerTotal ?? o.amount)}
+       <br>
+       Distance:
+       ${o.deliveryDistanceKm==null ? "—" : safe(o.deliveryDistanceKm+" km")}
+       <br>
+       Your Earning:
+       <b>${money(o.deliveryEarning)}</b>
        <br>
        Status:
        <b>${safe(o.status)}</b>
@@ -3532,81 +3647,29 @@ order.deliveryID =
 
 function renderSellerFinance(){
 
- const sellerID =
-   db.activeSellerId;
+ const sellerID=db.activeSellerId;
+ const sellerOrders=db.orders.filter(o=>o.sellerID===sellerID);
+ const gross=sellerOrders.reduce((t,o)=>t+Number(o.itemTotal ?? o.amount ?? 0),0);
+ const platformFee=sellerOrders.reduce((t,o)=>t+Number(o.platformFee ?? Math.round(Number(o.itemTotal ?? o.amount ?? 0)*AD_PRICING.platformFeePercent/100)),0);
+ const refunds=sellerOrders.reduce((t,o)=>o.refundStatus==="Refund Approved" ? t+Number(o.refundAmount||o.itemTotal||o.amount||0) : t,0);
+ const net=Math.max(0,gross-platformFee-refunds);
+ const customerDeliveryFees=sellerOrders.reduce((t,o)=>t+Number(o.deliveryFee||0),0);
+ const packaging=sellerOrders.reduce((t,o)=>t+Number(o.packagingFee||0),0);
 
- const sellerOrders =
-   db.orders.filter(function(o){
-     return o.sellerID===sellerID;
-   });
-
- const gross =
-   sellerOrders.reduce(
-     function(total,o){
-       return total +
-         Number(o.amount || 0);
-     },
-     0
-   );
-
- const platformFee =
-   Math.round(gross * 0.05);
-
- const refunds =
-   sellerOrders.reduce(
-     function(total,o){
-
-       if(
-         o.refundStatus==="Refund Approved"
-       ){
-         return total +
-           Number(o.refundAmount || o.amount || 0);
-       }
-
-       return total;
-     },
-     0
-   );
-
- const net =
-   gross -
-   platformFee -
-   refunds;
-
- $("sellerFinance").innerHTML=
-
- `
+ $("sellerFinance").innerHTML=`
  <div class="statgrid">
-
-   <div class="stat">
-     <b>₹${gross}</b>
-     Gross Sales
-   </div>
-
-   <div class="stat">
-     <b>₹${platformFee}</b>
-     Platform Fee
-   </div>
-
-   <div class="stat">
-     <b>₹${refunds}</b>
-     Refunds
-   </div>
-
-   <div class="stat">
-     <b>₹${Math.max(0,net)}</b>
-     Net Payable
-   </div>
-
+   <div class="stat"><b>${money(gross)}</b>Product Sales</div>
+   <div class="stat"><b>${money(platformFee)}</b>Platform Fee</div>
+   <div class="stat"><b>${money(packaging)}</b>Packaging</div>
+   <div class="stat"><b>${money(customerDeliveryFees)}</b>Customer Delivery Fees</div>
+   <div class="stat"><b>${money(refunds)}</b>Refunds</div>
+   <div class="stat"><b>${money(net)}</b>Net Payable</div>
  </div>
-
  <br>
-
- <span class="pill">
- 📅 Weekly Settlement: Pending
- </span>
+ <span class="pill">📅 Weekly Settlement: Pending</span>
  `;
 }
+
 function renderDeliveryFinance(){
 
  $("deliveryFinance").innerHTML=
