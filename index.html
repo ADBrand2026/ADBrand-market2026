@@ -655,6 +655,36 @@ Customer से Aadhaar Card और PAN Card नहीं मांगा जा
 <div id="customerOrders">अभी कोई order नहीं है।</div>
 </div>
 
+<div class="card">
+
+<h3>⚙️ Settings</h3>
+
+<div class="nav">
+
+<button
+class="btn primary"
+onclick="openCustomerSettings()">
+⚙️ Account Settings
+</button>
+
+<button
+class="btn pink"
+onclick="openCustomerReturns()">
+↩️ Returns & Refunds
+</button>
+
+<button
+class="btn blue"
+onclick="customerSupport()">
+🆘 Help & Support
+</button>
+
+</div>
+
+<div id="customerSettingsBox"></div>
+
+</div>
+
 </div>
 </section>
 
@@ -880,33 +910,8 @@ Production में इन्हें Supabase private storage में र�
 
 
 <div class="card">
-
-<h3>⚙️ Settings</h3>
-
-<div class="nav">
-
-<button
-class="btn primary"
-onclick="openCustomerSettings()">
-⚙️ Account Settings
-</button>
-
-<button
-class="btn pink"
-onclick="openCustomerReturns()">
-↩️ Returns & Refunds
-</button>
-
-<button
-class="btn blue"
-onclick="customerSupport()">
-🆘 Help & Support
-</button>
-
-</div>
-
-<div id="customerSettingsBox"></div>
-
+<h3>📦 Seller Orders</h3>
+<div id="sellerOrders">अभी कोई order नहीं है।</div>
 </div>
 
 <div class="card">
@@ -1332,7 +1337,7 @@ const SUPABASE_URL =
  Secret / service-role key कभी यहाँ न रखें।
 */
 const SUPABASE_PUBLISHABLE_KEY =
-  "PASTE_YOUR_EXISTING_PUBLISHABLE_KEY_HERE";
+  "sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
 
 let supabaseClient = null;
 
@@ -2972,58 +2977,6 @@ function renderCustomerOrders(){
    }).join("");
 }
 
- box.innerHTML =
-   orders.map(function(o){
-
-     return `
-     <div class="card">
-
-       <b>${safe(o.id)}</b>
-
-       <br>
-       Product:
-       ${safe(o.productName)}
-
-       <br>
-       Amount:
-       ₹${o.amount}
-
-       <br>
-       Status:
-       <b>${safe(o.status)}</b>
-
-       <br>
-       Payment:
-       ${safe(o.payment||"COD / UPI")}
-
-       <br><br>
-
-       ${
-         o.status!=="Completed"
-         ?
-         `<button
-         class="btn green"
-         onclick="customerReceived('${o.id}')">
-         ✅ Item सही मिला
-         </button>`
-         :""
-       }
-
-       ${
-         !o.returnRequested &&
-         o.status!=="Completed"
-         ?
-         `<button
-         class="btn red"
-         onclick="requestReturn('${o.id}')">
-         ↩️ Return Request
-         </button>`
-         :""
-       }
-
-     </div>`;
-   }).join("");
-}
 
 function customerReceived(orderID){
 
