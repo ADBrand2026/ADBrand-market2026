@@ -3997,6 +3997,1311 @@ if(supabaseClient){
 }
 
 </script>
+</script>
+
+<script>
+/* =========================================================
+   AD BRAND MARKET - PART 6
+   PAYMENT / SETTLEMENT / COURIER / RTO / PROOF
+   Frontend foundation only
+   ========================================================= */
+
+window.AD_PART6 = window.AD_PART6 || {};
+
+/* ---------- PAYMENT ---------- */
+
+function createPaymentRecord(order, method){
+
+  return {
+    id:"PAY-"+Date.now(),
+    orderId:order && order.id ? order.id : "",
+    method:method || "COD",
+    status:"pending",
+    amount:Number(order && order.amount || 0),
+    createdAt:new Date().toISOString()
+  };
+
+}
+
+function markPaymentPending(order, method){
+
+  if(!order)return null;
+
+  order.paymentMethod =
+    method || order.paymentMethod || "COD";
+
+  order.paymentStatus="pending";
+
+  order.paymentRecord =
+    createPaymentRecord(
+      order,
+      order.paymentMethod
+    );
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  return order.paymentRecord;
+
+}
+
+
+/* ---------- COD ---------- */
+
+function markCODCollected(orderId){
+
+  const order =
+    db.orders.find(function(o){
+      return o.id===orderId;
+    });
+
+  if(!order){
+    toast("Order नहीं मिला।");
+    return false;
+  }
+
+  order.codCollected=true;
+  order.codCollectedAt=
+    new Date().toISOString();
+
+  order.paymentStatus="paid";
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  toast("💵 COD payment collected.");
+  return true;
+
+}
+
+
+/* ---------- SETTLEMENT ---------- */
+
+function getWeekKey(){
+
+  const d=new Date();
+
+  const first =
+    new Date(
+      d.getFullYear(),
+      0,
+      1
+    );
+
+  const week =
+    Math.ceil(
+      (((d-first)/86400000)+first.getDay()+1)/7
+    );
+
+  return (
+    d.getFullYear()+
+    "-W"+
+    String(week).padStart(2,"0")
+  );
+
+}
+
+function createSellerSettlement(order){
+
+  if(!order)return null;
+
+  return {
+    id:"SET-SEL-"+Date.now(),
+    orderId:order.id,
+   sellerId:order.sellerID || "",
+    period:getWeekKey(),
+    gross:Number(order.amount || 0),
+    status:"pending",
+    createdAt:new Date().toISOString()
+  };
+
+}
+
+function createDeliverySettlement(order){
+
+  if(!order)return null;
+
+  return {
+    id:"SET-DEL-"+Date.now(),
+    orderId:order.id,
+    deliveryId:order.deliveryID || "",
+    period:getWeekKey(),
+    earning:Number(order.riderEarning || 0),
+    status:"pending",
+    createdAt:new Date().toISOString()
+  };
+
+}
+
+
+/* ---------- PAYOUT ACCOUNT PROFILE ---------- */
+
+function maskBankAccount(account){
+
+  const value =
+    String(account || "").replace(/\s/g,"");
+
+  if(value.length<4){
+    return "****";
+  }
+
+  return (
+    "**** **** "+
+    value.slice(-4)
+  );
+
+}
+
+function createPayoutAccountPreview(data){
+
+  return {
+
+    accountHolderName:
+      String(data.accountHolderName || "").trim(),
+
+    bankName:
+      String(data.bankName || "").trim(),
+
+    maskedAccountNumber:
+      maskBankAccount(data.accountNumber),
+
+    ifsc:
+      String(data.ifsc || "").trim().toUpperCase(),
+
+    upiId:
+      String(data.upiId || "").trim(),
+
+    status:"pending",
+
+    updatedAt:new Date().toISOString()
+
+  };
+
+}
+
+
+/* ---------- NATIONAL COURIER ---------- */
+
+function createCourierShipment(order){
+
+  if(!order)return null;
+
+  return {
+
+    id:"SHIP-"+Date.now(),
+
+    orderId:order.id,
+
+    fulfillmentType:
+      "NATIONAL_COURIER",
+
+    status:"pending",
+
+    awb:"",
+
+    courierName:"",
+
+    trackingUrl:"",
+
+    createdAt:
+      new Date().toISOString()
+
+  };
+
+}
+
+function attachAWB(orderId, awb, courierName){
+
+  const order =
+    db.orders.find(function(o){
+      return o.id===orderId;
+    });
+
+  if(!order){
+    toast("Order नहीं मिला।");
+    return false;
+  }
+
+  order.awb =
+    String(awb || "").trim();
+
+  order.courierName =
+    String(courierName || "").trim();
+
+  order.courierStatus="booked";
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  toast("📦 Courier tracking update हुआ।");
+
+  return true;
+
+}
+
+
+/* ---------- RTO ---------- */
+
+function initiateRTO(orderId, reason){
+
+  const order =
+    db.orders.find(function(o){
+      return o.id===orderId;
+    });
+
+  if(!order)return false;
+
+  order.status="RTO";
+  order.rto=true;
+  order.rtoReason=
+    String(reason || "Delivery failed");
+
+  order.rtoCreatedAt=
+    new Date().toISOString();
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  toast("↩️ RTO initiated.");
+
+  return true;
+
+}
+
+
+/* ---------- REVERSE PICKUP ---------- */
+
+function createReversePickup(orderId){
+
+  const order =
+    db.orders.find(function(o){
+      return o.id===orderId;
+    });
+
+  if(!order)return null;
+
+  order.reversePickup={
+    id:"REV-"+Date.now(),
+    status:"requested",
+    createdAt:new Date().toISOString()
+  };
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  return order.reversePickup;
+
+}
+
+
+/* ---------- DELIVERY PROOF ---------- */
+
+function createDeliveryProof(orderId){
+
+  return {
+
+    orderId:orderId,
+
+    type:"delivery_proof",
+
+    otpVerified:false,
+
+    customerConfirmed:false,
+
+    photoUploaded:false,
+
+    createdAt:new Date().toISOString()
+
+  };
+
+}
+
+
+/* ---------- MIXED CART FULFILLMENT ---------- */
+
+function getFulfillmentType(product){
+
+  if(!product){
+    return "NATIONAL_COURIER";
+  }
+
+  if(
+    ["खाना","चाय","Snacks"]
+    .includes(product.category)
+  ){
+    return "HOT_FOOD_LOCAL";
+  }
+
+  if(
+    product.delivery==="Delivery Only"
+  ){
+    return "LOCAL_NON_FOOD";
+  }
+
+  return "LOCAL_OR_NATIONAL";
+
+}
+
+function buildFulfillmentGroup(items){
+
+  const groups={};
+
+  (items || []).forEach(function(item){
+
+    const type =
+      getFulfillmentType(item.product);
+
+    if(!groups[type]){
+      groups[type]=[];
+    }
+
+    groups[type].push(item);
+
+  });
+
+  return groups;
+
+}
+
+
+/* ---------- ORDER AUDIT ---------- */
+
+function addOrderAudit(order, action, note){
+
+  if(!order)return;
+
+  if(!Array.isArray(order.audit)){
+    order.audit=[];
+  }
+
+  order.audit.push({
+
+    action:action,
+
+    note:
+      String(note || ""),
+
+    at:
+      new Date().toISOString()
+
+  });
+
+}
+
+
+/* ---------- PLATFORM MARGIN PREVIEW ---------- */
+
+function calculatePlatformMargin(order){
+
+  if(!order)return 0;
+
+  const deliveryFee =
+    Number(order.deliveryFee || 0);
+
+  const rider =
+    Number(order.riderEarning || 0);
+
+  const platformFee =
+    Number(order.platformFee || 0);
+
+  return (
+    deliveryFee +
+    platformFee -
+    rider
+  );
+
+}
+
+
+/* ---------- FEATURES ---------- */
+
+window.AD_PART6.features={
+
+  paymentFoundation:true,
+
+  codCollection:true,
+
+  sellerSettlement:true,
+
+  deliverySettlement:true,
+
+  weeklyPayoutPeriod:true,
+
+  courierRecord:true,
+
+  awbSupport:true,
+
+  rtoSupport:true,
+
+  reversePickup:true,
+
+  deliveryProof:true,
+
+  mixedFulfillment:true,
+
+  orderAudit:true,
+
+  marginPreview:true
+
+};
+
+console.log(
+  "AD Brand Market - Part 6 loaded"
+);
+
+</script><script>
+/* =========================================================
+   AD BRAND MARKET - PART 7
+   QR / SCANNER / SECURE FUNCTION HOOKS / PROOF
+   ========================================================= */
+
+window.AD_PART7 = window.AD_PART7 || {};
+
+
+/* ---------- QR PAYLOAD ---------- */
+
+function createOrderQRPayload(order){
+
+  if(!order)return "";
+
+  return JSON.stringify({
+
+    app:"AD_BRAND_MARKET",
+
+    orderId:order.id || "",
+
+    orderCode:
+      order.orderCode || "",
+
+    pickupCode:
+      order.pickupCode || "",
+
+    sellerId:
+      order.sellerId || "",
+
+    productId:
+      order.productId || "",
+
+    quantity:
+      Number(order.quantity || 1)
+
+  });
+
+}
+
+
+/* ---------- QR LIBRARY ---------- */
+
+function loadQRCodeLibrary(){
+
+  if(window.QRCode){
+    return Promise.resolve();
+  }
+
+  return new Promise(function(resolve,reject){
+
+    const script=
+      document.createElement("script");
+
+    script.src=
+      "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js";
+
+    script.onload=resolve;
+
+    script.onerror=reject;
+
+    document.head.appendChild(script);
+
+  });
+
+}
+
+
+/* ---------- QR RENDER ---------- */
+
+async function renderADOrderQR(order, elementId){
+
+  const box=$(elementId);
+
+  if(!box || !order){
+    return;
+  }
+
+  try{
+
+    await loadQRCodeLibrary();
+
+    box.innerHTML="";
+
+    const canvas=
+      document.createElement("canvas");
+
+    box.appendChild(canvas);
+
+    await QRCode.toCanvas(
+      canvas,
+      createOrderQRPayload(order),
+      {
+        width:220,
+        margin:2
+      }
+    );
+
+  }catch(error){
+
+    console.error(
+      "QR render error:",
+      error
+    );
+
+    box.innerHTML=
+      "<div class='notice'>QR अभी load नहीं हुआ। Pickup Code इस्तेमाल करें।</div>";
+
+  }
+
+}
+
+
+/* ---------- QR VALIDATION ---------- */
+
+function validateADOrderQR(rawText, expectedOrder){
+
+  if(!rawText || !expectedOrder){
+    return {
+      ok:false,
+      reason:"Invalid QR"
+    };
+  }
+
+  try{
+
+    const data=
+      JSON.parse(rawText);
+
+    if(
+      data.app!=="AD_BRAND_MARKET"
+    ){
+      return {
+        ok:false,
+        reason:"Wrong app QR"
+      };
+    }
+
+    if(
+      String(data.orderId)!==
+      String(expectedOrder.id)
+    ){
+      return {
+        ok:false,
+        reason:"Wrong order"
+      };
+    }
+
+    if(
+      expectedOrder.orderCode &&
+      data.orderCode!==expectedOrder.orderCode
+    ){
+      return {
+        ok:false,
+        reason:"Wrong order code"
+      };
+    }
+
+    return {
+      ok:true,
+      data:data
+    };
+
+  }catch(error){
+
+    return {
+      ok:false,
+      reason:"QR format invalid"
+    };
+
+  }
+
+}
+
+
+/* ---------- SECURE FUNCTION HOOK ---------- */
+
+async function ADSecureFunction(functionName, payload){
+
+  if(!supabaseClient){
+
+    return {
+      ok:false,
+      error:"Supabase client unavailable"
+    };
+
+  }
+
+  try{
+
+    const result =
+      await supabaseClient.functions.invoke(
+        functionName,
+        {
+          body:payload || {}
+        }
+      );
+
+    if(result.error){
+
+      console.error(
+        "Secure function error:",
+        result.error
+      );
+
+      return {
+        ok:false,
+        error:result.error.message
+      };
+
+    }
+
+    return {
+      ok:true,
+      data:result.data
+    };
+
+  }catch(error){
+
+    console.error(
+      "Secure function exception:",
+      error
+    );
+
+    return {
+      ok:false,
+      error:error.message
+    };
+
+  }
+
+}
+
+
+/* ---------- SECURE DELIVERY OTP ---------- */
+
+async function requestSecureDeliveryOTP(orderId){
+
+  return ADSecureFunction(
+    "delivery-otp",
+    {
+      action:"request",
+      orderId:orderId
+    }
+  );
+
+}
+
+async function verifySecureDeliveryOTP(orderId, otp){
+
+  return ADSecureFunction(
+    "delivery-otp",
+    {
+      action:"verify",
+      orderId:orderId,
+      otp:String(otp || "")
+    }
+  );
+
+}
+
+
+/* ---------- SECURE PAYMENT ---------- */
+
+async function createSecurePayment(orderId, amount, method){
+
+  return ADSecureFunction(
+    "payment",
+    {
+      action:"create",
+      orderId:orderId,
+      amount:Number(amount || 0),
+      method:method || "UPI"
+    }
+  );
+
+}
+
+async function verifySecurePayment(paymentId){
+
+  return ADSecureFunction(
+    "payment",
+    {
+      action:"verify",
+      paymentId:paymentId
+    }
+  );
+
+}
+
+
+/* ---------- SECURE REFUND ---------- */
+
+async function createSecureRefund(orderId, amount, reason){
+
+  return ADSecureFunction(
+    "refund",
+    {
+      action:"create",
+      orderId:orderId,
+      amount:Number(amount || 0),
+      reason:reason || "Customer return"
+    }
+  );
+
+}
+
+
+/* ---------- SECURE COURIER ---------- */
+
+async function createSecureCourierShipment(orderId){
+
+  return ADSecureFunction(
+    "courier",
+    {
+      action:"create",
+      orderId:orderId
+    }
+  );
+
+}
+
+
+/* ---------- SECURE PAYOUT ---------- */
+
+async function createSecurePayout(payoutData){
+
+  return ADSecureFunction(
+    "payout",
+    payoutData || {}
+  );
+
+}
+
+
+/* ---------- PRIVATE PROOF ---------- */
+
+async function saveOrderProofSecure(orderId, file){
+
+  if(!file){
+    return {
+      ok:false,
+      error:"File missing"
+    };
+  }
+
+  if(
+    file.type &&
+    !(
+      file.type.startsWith("image/") ||
+      file.type.startsWith("video/")
+    )
+  ){
+
+    return {
+      ok:false,
+      error:"Only image/video allowed"
+    };
+
+  }
+
+  if(file.size > 20 * 1024 * 1024){
+
+    return {
+      ok:false,
+      error:"File 20MB से बड़ा है"
+    };
+
+  }
+
+  if(
+    typeof uploadPrivateDocument ===
+    "function"
+  ){
+
+    return uploadPrivateDocument(
+      file,
+      "order-proof"
+    );
+
+  }
+
+  return {
+    ok:false,
+    error:"Private storage helper unavailable"
+  };
+
+}
+
+
+/* ---------- PRODUCT PROOF ---------- */
+
+function compareProductProof(product, proof){
+
+  if(!product || !proof){
+    return {
+      matched:false,
+      reason:"Product proof missing"
+    };
+  }
+
+  const productIdMatch =
+    !proof.productId ||
+    String(proof.productId)===
+    String(product.id);
+
+  return {
+
+    matched:productIdMatch,
+
+    productIdMatch:productIdMatch,
+
+    reason:
+      productIdMatch
+      ? "Basic product identity matched"
+      : "Wrong product"
+
+  };
+
+}
+
+
+/* ---------- SELLER PACKING ---------- */
+
+function verifySellerPacking(order){
+
+  if(!order){
+    return false;
+  }
+
+  order.packingVerified=true;
+
+  order.packingVerifiedAt=
+    new Date().toISOString();
+
+  if(typeof addOrderAudit==="function"){
+
+    addOrderAudit(
+      order,
+      "PACKING_VERIFIED",
+      "Seller packing proof recorded"
+    );
+
+  }
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  return true;
+
+}
+
+
+/* ---------- PICKUP VERIFICATION ---------- */
+
+function verifyDeliveryPickup(order, pickupCode){
+
+  if(!order){
+    return {
+      ok:false,
+      reason:"Order missing"
+    };
+  }
+
+  const expected=
+    String(order.pickupCode || "");
+
+  const supplied=
+    String(pickupCode || "").trim();
+
+  if(!expected || expected!==supplied){
+
+    return {
+      ok:false,
+      reason:"Pickup code गलत है"
+    };
+
+  }
+
+  order.pickupVerified=true;
+
+  order.pickupVerifiedAt=
+    new Date().toISOString();
+
+  order.status="Picked Up";
+
+  if(typeof addOrderAudit==="function"){
+
+    addOrderAudit(
+      order,
+      "PICKUP_VERIFIED",
+      "Delivery partner verified pickup code"
+    );
+
+  }
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  return {
+    ok:true
+  };
+
+}
+
+
+/* ---------- DELIVERY COMPLETION GUARD ---------- */
+
+function canCompleteDelivery(order){
+
+  if(!order){
+    return false;
+  }
+
+  if(
+    order.fulfillmentType===
+    "NATIONAL_COURIER"
+  ){
+
+    return true;
+
+  }
+
+  return (
+    order.otpVerified===true &&
+    order.customerConfirmed===true
+  );
+
+}
+
+
+/* ---------- SECURE DELIVERY COMPLETE ---------- */
+
+async function completeDeliverySecure(orderId){
+
+  const order =
+    db.orders.find(function(o){
+      return o.id===orderId;
+    });
+
+  if(!order){
+
+    toast("Order नहीं मिला।");
+
+    return false;
+
+  }
+
+  if(!canCompleteDelivery(order)){
+
+    toast(
+      "पहले Customer OTP और delivery confirmation पूरा करें।"
+    );
+
+    return false;
+
+  }
+
+  const result =
+    await ADSecureFunction(
+      "delivery-complete",
+      {
+        orderId:orderId
+      }
+    );
+
+  if(!result.ok){
+
+    toast(
+      "Secure delivery confirmation अभी उपलब्ध नहीं है।"
+    );
+
+    return false;
+
+  }
+
+  order.status="Delivered";
+
+  order.deliveredAt=
+    new Date().toISOString();
+
+  if(typeof saveDB==="function"){
+    saveDB();
+  }
+
+  return true;
+
+}
+
+
+/* ---------- SECURE PAYOUT ACCOUNT ---------- */
+
+async function saveSecurePayoutAccount(data){
+
+  return ADSecureFunction(
+    "payout-account",
+    {
+      action:"save",
+      accountHolderName:
+        data.accountHolderName || "",
+      bankName:
+        data.bankName || "",
+      accountNumber:
+        data.accountNumber || "",
+      ifsc:
+        data.ifsc || "",
+      upiId:
+        data.upiId || ""
+    }
+  );
+
+}
+
+
+/* ---------- ADMIN DASHBOARD HOOK ---------- */
+
+async function loadSecureAdminDashboard(){
+
+  if(
+    window.__adBrandAdminAuthorized!==true
+  ){
+
+    toast(
+      "Admin access केवल authorized Admin के लिए है।"
+    );
+
+    return null;
+
+  }
+
+  return ADSecureFunction(
+    "admin-dashboard",
+    {
+      action:"summary"
+    }
+  );
+
+}
+
+
+/* ---------- FRONTEND SECURITY CHECK ---------- */
+
+function runADSecurityCheck(){
+
+  const forbiddenPatterns=[
+
+    "service_role",
+
+    "SUPABASE_SERVICE_ROLE_KEY",
+
+    "RAZORPAY_SECRET",
+
+    "STRIPE_SECRET",
+
+    "DELHIVERY_SECRET",
+
+    "SHIPROCKET_SECRET",
+
+    "BANK_API_SECRET"
+
+  ];
+
+  const source=
+    document.documentElement.innerHTML;
+
+  const found=
+    forbiddenPatterns.filter(
+      function(pattern){
+
+        return source
+          .toLowerCase()
+          .includes(pattern.toLowerCase());
+
+      }
+    );
+
+  if(found.length){
+
+    console.warn(
+      "Possible secret-like text found:",
+      found
+    );
+
+    return false;
+
+  }
+
+  return true;
+
+}
+
+
+/* ---------- PUBLIC ADMIN CLEANUP ---------- */
+
+function finalPublicAdminCleanup(){
+
+  if(
+    window.__adBrandAdminAuthorized===true
+  ){
+    return;
+  }
+
+  document
+    .querySelectorAll(
+      "button,a"
+    )
+    .forEach(function(el){
+
+      const text=
+        String(
+          el.textContent || ""
+        ).trim().toLowerCase();
+
+      if(
+        text.includes("admin login") ||
+        text==="admin"
+      ){
+
+        el.remove();
+
+      }
+
+    });
+
+}
+
+
+/* ---------- FOOD SAFETY ---------- */
+
+function finalFoodSafetyCheck(order){
+
+  if(!order){
+    return false;
+  }
+
+  const food =
+    ["खाना","चाय","Snacks"]
+    .includes(order.category);
+
+  if(food){
+
+    if(
+      order.deliveryType==="self_pickup"
+    ){
+
+      return false;
+
+    }
+
+    if(
+      Number(order.deliveryDistanceKm || 0)>7
+    ){
+
+      return false;
+
+    }
+
+  }
+
+  return true;
+
+}
+
+
+/* ---------- DUPLICATE ORDER GUARD ---------- */
+
+function isDuplicateOrder(order){
+
+  if(!order || !Array.isArray(db.orders)){
+    return false;
+  }
+
+  return db.orders.some(function(old){
+
+    return (
+      old.customerID &&
+      order.customerID &&
+      old.customerID===order.customerID &&
+      old.productID===order.productID &&
+      old.created &&
+      order.created &&
+      Math.abs(
+        new Date(old.created) -
+        new Date(order.created)
+      ) < 30000
+    );
+
+  });
+
+}
+
+
+ 
+
+
+/* ---------- FINAL ORDER VALIDATION ---------- */
+
+function canCompleteDelivery(order){
+
+  if(!order){
+    return false;
+  }
+
+  if(
+    order.fulfillmentType ===
+    "NATIONAL_COURIER"
+  ){
+
+    return true;
+
+  }
+
+  return (
+    order.otpVerified === true ||
+    order.customerReceived === true
+  );
+
+}
+
+  if(!finalFoodSafetyCheck(order)){
+
+    return {
+      ok:false,
+      reason:"Food delivery rule failed"
+    };
+
+  }
+
+  if(isDuplicateOrder(order)){
+
+    return {
+      ok:false,
+      reason:"Possible duplicate order"
+    };
+
+  }
+
+  return {
+    ok:true
+  };
+
+}
+  "AD Brand Market - Part 7 loaded"
+);
+
+</script>
 
 </body>
 </html>
