@@ -5273,24 +5273,41 @@ function canCompleteDelivery(order){
     order.customerReceived === true
   );
 
-}
+}function validateFinalOrder(order){
+
+  if(!order){
+    return {
+      ok:false,
+      reason:"Order missing"
+    };
+  }
+
+  if(!order.customerID){
+    return {
+      ok:false,
+      reason:"Customer missing"
+    };
+  }
+
+  if(!order.productID){
+    return {
+      ok:false,
+      reason:"Product missing"
+    };
+  }
 
   if(!finalFoodSafetyCheck(order)){
-
     return {
       ok:false,
       reason:"Food delivery rule failed"
     };
-
   }
 
   if(isDuplicateOrder(order)){
-
     return {
       ok:false,
       reason:"Possible duplicate order"
     };
-
   }
 
   return {
@@ -5298,6 +5315,10 @@ function canCompleteDelivery(order){
   };
 
 }
+
+ 
+
+  
   "AD Brand Market - Part 7 loaded"
 );
 
