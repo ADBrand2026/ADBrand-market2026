@@ -3583,6 +3583,35 @@ function saveDelivery(){
     return;
   }
 
+  /* =====================================================
+     DELIVERY DUPLICATE MOBILE PROTECTION
+     ===================================================== */
+
+  const duplicate =
+    db.delivery.find(function(d){
+
+      const existingMobile =
+        String(d.mobile || "")
+          .replace(/\D/g,"");
+
+      return (
+        existingMobile === mobile &&
+        d.id !== id
+      );
+
+    });
+
+  if(duplicate){
+
+    alert(
+      "यह Mobile Number पहले से Delivery Account में registered है।\n\n" +
+      "दूसरा Delivery Account नहीं बनाया जा सकता।\n" +
+      "कृपया उसी account से Login करें।"
+    );
+
+    return;
+  }
+
   const aadhaarNumber =
     $("deliveryAadhaarNumber").value
       .replace(/\D/g,"");
