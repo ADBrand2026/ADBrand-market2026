@@ -2047,6 +2047,36 @@ function saveSeller(){
     alert("सही 10-digit Indian Mobile Number डालें।");
     return;
   }
+
+  /* =====================================================
+     SELLER DUPLICATE MOBILE PROTECTION
+     ===================================================== */
+
+  const duplicate =
+    db.sellers.find(function(s){
+
+      const existingMobile =
+        String(s.mobile || "")
+          .replace(/\D/g,"");
+
+      return (
+        existingMobile === mobile &&
+        s.id !== id
+      );
+
+    });
+
+  if(duplicate){
+
+    alert(
+      "यह Mobile Number पहले से Seller Account में registered है।\n\n" +
+      "दूसरा Seller Account नहीं बनाया जा सकता।\n" +
+      "कृपया उसी account से Login करें।"
+    );
+
+    return;
+  }
+
   const aadhaarNumber =
     $("sellerAadhaarNumber").value
       .replace(/\D/g,"");
@@ -2065,6 +2095,7 @@ function saveSeller(){
     alert("सही PAN Number डालें। उदाहरण: ABCDE1234F");
     return;
   }
+
   const seller = {
 
     id:id,
@@ -2089,11 +2120,13 @@ function saveSeller(){
 
     face:
       !!$("sellerFace").files.length,
-aadhaarNumber:
-  aadhaarNumber,
 
-panNumber:
-  panNumber,
+    aadhaarNumber:
+      aadhaarNumber,
+
+    panNumber:
+      panNumber,
+
     aadhaar:
       !!$("sellerAadhaar").files.length,
 
@@ -2131,7 +2164,9 @@ panNumber:
 
   }else{
 
-    db.sellers.push(seller);
+    db.sellers.push(
+      seller
+    );
 
   }
 
