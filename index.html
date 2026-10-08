@@ -526,19 +526,19 @@ footer{
 
 <div class="roles">
 
-<button class="role customer" onclick="openPanel('customer')">
+<button class="role customer" onclick="openAccountAccess('customer')">
 🛍️
 <br>Customer
 <br><small>सामान खरीदें</small>
 </button>
 
-<button class="role seller" onclick="openPanel('seller')">
+<button class="role seller" onclick="openAccountAccess('seller')">
 🏪
 <br>Seller
 <br><small>सामान बेचें</small>
 </button>
 
-<button class="role delivery" onclick="openPanel('delivery')">
+<button class="role delivery" onclick="openAccountAccess('delivery')">
 🛵
 <br>Delivery Boy
 <br><small>Order Deliver करें</small>
@@ -1848,7 +1848,37 @@ async function adminLogin(){
    }
  }
 }
+function openAccountAccess(role){
 
+  const roleSelect =
+    $("accountLoginRole");
+
+  if(roleSelect){
+    roleSelect.value = role;
+  }
+
+  const mobileInput =
+    $("accountLoginMobile");
+
+  if(mobileInput){
+    mobileInput.value = "";
+  }
+
+  const message =
+    $("accountLoginMessage");
+
+  if(message){
+    message.textContent = "";
+  }
+
+  const modal =
+    $("accountLoginModal");
+
+  if(modal){
+    modal.classList.add("active");
+  }
+
+}
 async function accountLogin(){
 
   const mobile =
