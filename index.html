@@ -1210,7 +1210,79 @@ Orders
 </div>
 </div>
 
+<!-- =====================================================
+     CUSTOMER / SELLER / DELIVERY LOGIN MODAL
+     ===================================================== -->
 
+<div id="accountLoginModal"
+     class="modal"
+     onclick="closeModalOnBackdrop(event,'accountLoginModal')">
+
+  <div class="modalBox">
+
+    <button class="close"
+            onclick="closeModal('accountLoginModal')">
+      ×
+    </button>
+
+    <h2>🔐 AD Brand Market Login</h2>
+
+    <p class="small">
+      अपना Mobile Number डालकर Login / Account Access करें।
+    </p>
+
+    <div class="field">
+
+      <label>Mobile Number</label>
+
+      <input
+        id="accountLoginMobile"
+        type="tel"
+        inputmode="numeric"
+        maxlength="10"
+        placeholder="10 digit Mobile Number">
+
+    </div>
+
+    <br>
+
+    <div class="field">
+
+      <label>Account Type</label>
+
+      <select id="accountLoginRole">
+
+        <option value="customer">
+          Customer — सामान खरीदें
+        </option>
+
+        <option value="seller">
+          Seller — सामान बेचें
+        </option>
+
+        <option value="delivery">
+          Delivery Boy — Order Deliver करें
+        </option>
+
+      </select>
+
+    </div>
+
+    <br>
+
+    <button
+      class="btn primary"
+      onclick="accountLogin()">
+
+      🔐 Login
+    </button>
+
+    <p id="accountLoginMessage"
+       class="small">
+    </p>
+
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 
 
