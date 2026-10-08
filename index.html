@@ -1849,7 +1849,141 @@ async function adminLogin(){
  }
 }
 
+async function accountLogin(){
 
+  const mobile =
+    $("accountLoginMobile").value
+      .trim()
+      .replace(/\D/g,"");
+
+  const role =
+    $("accountLoginRole").value;
+
+  const message =
+    $("accountLoginMessage");
+
+  if(!/^[6-9]\d{9}$/.test(mobile)){
+
+    if(message){
+      message.textContent =
+        "सही 10-digit Indian Mobile Number डालें।";
+    }
+
+    return;
+  }
+
+  if(message){
+    message.textContent =
+      "🔄 Account check हो रहा है...";
+  }
+
+  try{
+
+    let account = null;
+
+    if(role === "customer"){
+
+      account =
+        db.customers.find(function(c){
+
+          return String(c.mobile || "")
+            .replace(/\D/g,"") === mobile;
+
+        });
+
+    }
+
+    if(role === "seller"){
+
+      account =
+        db.sellers.find(function(s){
+
+          return String(s.mobile || "")
+            .replace(/\D/g,"") === mobile;
+
+        });
+
+    }
+
+    if(role === "delivery"){
+
+      account =
+        db.delivery.find(function(d){
+
+          return String(d.mobile || "")
+            .replace(/\D/g,"") === mobile;
+
+        });
+
+    }
+
+    if(!account){
+
+      if(message){
+        message.textContent =
+          "❌ इस Mobile Number से कोई " +
+          role +
+          " Account नहीं मिला। पहले Account बनाएं।";
+      }
+
+      return;
+    }
+
+    window.__adBrandLoggedIn = true;
+    window.__adBrandLoggedInRole = role;
+    window.__adBrandLoggedInMobile = mobile;
+    window.__adBrandLoggedInAccountId =
+      account.id;
+
+    localStorage.setItem(
+      "adBrandLoggedInRole",
+      role
+    );
+
+    localStorage.setItem(
+      "adBrandLoggedInMobile",
+      mobile
+    );
+
+    localStorage.setItem(
+      "adBrandLoggedInAccountId",
+      account.id
+    );
+
+    closeModal("accountLoginModal");
+
+    toast(
+      "✅ Login Successful"
+    );
+
+    if(role === "customer"){
+
+      openPanel("customer");
+
+    }else if(role === "seller"){
+
+      openPanel("seller");
+
+    }else if(role === "delivery"){
+
+      openPanel("delivery");
+
+    }
+
+  }catch(error){
+
+    console.error(
+      "Account Login Error:",
+      error
+    );
+
+    if(message){
+      message.textContent =
+        "❌ Login में technical error आया।";
+    }
+
+  }
+}
 /* =========================================================
    MODALS
    ========================================================= */
