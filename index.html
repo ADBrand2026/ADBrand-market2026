@@ -734,7 +734,35 @@ onclick="customerSupport()">
 <input id="sellerFace" type="file" accept="image/*">
 </div>
 
+<div class="field"><div class="field">
+<label>Aadhaar Number</label>
+<input
+  id="sellerAadhaarNumber"
+  type="text"
+  inputmode="numeric"
+  maxlength="12"
+  placeholder="12 digit Aadhaar Number">
+</div>
+
 <div class="field">
+<label>PAN Number</label>
+<input
+  id="sellerPanNumber"
+  type="text"
+  maxlength="10"
+  style="text-transform:uppercase"
+  placeholder="ABCDE1234F">
+</div>
+
+<div class="field">
+<label>Aadhaar Card</label>
+<input id="sellerAadhaar" type="file">
+</div>
+
+<div class="field">
+<label>PAN Card</label>
+<input id="sellerPan" type="file">
+</div> 
 <label>Aadhaar Card</label>
 <input id="sellerAadhaar" type="file">
 </div>
@@ -964,7 +992,25 @@ Production में इन्हें Supabase private storage में र�
 </div>
 
 <div class="field">
-<label>Aadhaar Card</label>
+<label>Aadhaar Card</label><div class="field">
+<label>Aadhaar Number</label>
+<input
+  id="deliveryAadhaarNumber"
+  type="text"
+  inputmode="numeric"
+  maxlength="12"
+  placeholder="12 digit Aadhaar Number">
+</div>
+
+<div class="field">
+<label>PAN Number</label>
+<input
+  id="deliveryPanNumber"
+  type="text"
+  maxlength="10"
+  style="text-transform:uppercase"
+  placeholder="ABCDE1234F">
+</div>
 <input id="deliveryAadhaar" type="file">
 </div>
 
@@ -1840,58 +1886,95 @@ function loadCustomer(){
 
 function saveCustomer(){
 
- const id =
-   $("customerId").value;
+  const id =
+    $("customerId").value;
 
- const mobile =
-   $("customerMobile").value.trim();
+  const name =
+    $("customerName").value.trim();
 
- if(!$("customerName").value.trim()){
-   alert("Customer नाम डालें।");
-   return;
- }
+  const rawMobile =
+    $("customerMobile").value.trim();
 
- if(!mobile){
-   alert("Mobile Number डालें।");
-   return;
- }
+  const mobile =
+    rawMobile.replace(/\D/g,"");
 
- const customer={
+  if(!name){
+    alert("Customer नाम डालें।");
+    return;
+  }
 
-   id:id,
+  if(!/^[6-9]\d{9}$/.test(mobile)){
+    alert("सही 10-digit Indian Mobile Number डालें।");
+    return;
+  }
 
-   name:
-     $("customerName").value.trim(),
+  const duplicate =
+    db.customers.find(function(c){
 
-   mobile:mobile,
+      const existingMobile =
+        String(c.mobile || "")
+        .replace(/\D/g,"");
 
-   address:
-     $("customerAddress").value.trim(),
+      return (
+        existingMobile === mobile &&
+        c.id !== id
+      );
 
-   location:
-     $("customerLocation").value
+    });
 
- };
+  if(duplicate){
 
- const index =
-   db.customers.findIndex(
-     function(x){
-       return x.id===id;
-     }
-   );
+    alert(
+      "यह Mobile Number पहले से Customer Account में registered है।\n\n" +
+      "दूसरा Customer Account नहीं बनाया जा सकता।\n" +
+      "कृपया उसी account से Login करें।"
+    );
 
- if(index>=0){
-   db.customers[index]=customer;
- }else{
-   db.customers.push(customer);
- }
+    return;
+  }
 
- saveDB();
+  const customer = {
 
- toast("✅ Customer Account Save हो गया।");
+    id:id,
+
+    name:name,
+
+    mobile:mobile,
+
+    address:
+      $("customerAddress").value.trim(),
+
+    location:
+      $("customerLocation").value.trim()
+
+  };
+
+  const index =
+    db.customers.findIndex(
+      function(x){
+        return x.id === id;
+      }
+    );
+
+  if(index >= 0){
+
+    db.customers[index] =
+      customer;
+
+  }else{
+
+    db.customers.push(
+      customer
+    );
+
+  }
+
+  saveDB();
+
+  toast(
+    "✅ Customer Account Save हो गया।"
+  );
 }
-
-
 /* =========================================================
    SELLER
    ========================================================= */
@@ -1936,68 +2019,128 @@ function loadSeller(){
 }
 function saveSeller(){
 
- if(!$("sellerName").value.trim()){
-   alert("Seller Name डालें।");
-   return;
- }
+  const id =
+    $("sellerId").value;
 
- if(!$("shopName").value.trim()){
-   alert("Shop Name डालें।");
-   return;
- }
+  const name =
+    $("sellerName").value.trim();
 
- const seller={
+  const shopName =
+    $("shopName").value.trim();
 
-   id:$("sellerId").value,
+  const mobile =
+    $("sellerMobile").value
+      .trim()
+      .replace(/\D/g,"");
 
-   name:
-     $("sellerName").value.trim(),
+  if(!name){
+    alert("Seller नाम डालें।");
+    return;
+  }
 
-   mobile:
-     $("sellerMobile").value.trim(),
+  if(!shopName){
+    alert("Shop Name डालें।");
+    return;
+  }
 
-   shop:
-     $("shopName").value.trim(),
+  if(!/^[6-9]\d{9}$/.test(mobile)){
+    alert("सही 10-digit Indian Mobile Number डालें।");
+    return;
+  }
+  const aadhaarNumber =
+    $("sellerAadhaarNumber").value
+      .replace(/\D/g,"");
 
-   address:
-     $("shopAddress").value.trim(),
+  const panNumber =
+    $("sellerPanNumber").value
+      .trim()
+      .toUpperCase();
 
-   location:
-     $("shopLocation").value,
+  if(!/^\d{12}$/.test(aadhaarNumber)){
+    alert("Aadhaar Number ठीक 12 digits का होना चाहिए।");
+    return;
+  }
 
-   face:
-     $("sellerFace").files.length>0,
+  if(!/^[A-Z]{5}\d{4}[A-Z]$/.test(panNumber)){
+    alert("सही PAN Number डालें। उदाहरण: ABCDE1234F");
+    return;
+  }
+  const seller = {
 
-   aadhaar:
-     $("sellerAadhaar").files.length>0,
+    id:id,
 
-   pan:
-     $("sellerPan").files.length>0,
+    name:name,
 
-   document:
-     $("sellerDocument").files.length>0,
+    shopName:shopName,
 
-   shopPhoto:
-     $("shopPhoto").files.length>0
+    mobile:mobile,
 
- };
+    address:
+      $("sellerAddress").value.trim(),
 
- const index =
-   db.sellers.findIndex(
-     function(x){
-       return x.id===seller.id;
-     }
-   );
+    city:
+      $("sellerCity").value.trim(),
 
- if(index>=0){
-   db.sellers[index]=seller;
- }else{
-   db.sellers.push(seller);
- }saveDB();
+    state:
+      $("sellerState").value.trim(),
 
- toast("✅ Seller Account Save हो गया।");
+    pincode:
+      $("sellerPincode").value.trim(),
+
+    face:
+      !!$("sellerFace").files.length,
+aadhaarNumber:
+  aadhaarNumber,
+
+panNumber:
+  panNumber,
+    aadhaar:
+      !!$("sellerAadhaar").files.length,
+
+    pan:
+      !!$("sellerPan").files.length,
+
+    document:
+      !!$("sellerDocument").files.length,
+
+    shopPhoto:
+      !!$("shopPhoto").files.length,
+
+    location:
+      $("shopLocation").value.trim(),
+
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+  const index =
+    db.sellers.findIndex(
+      function(x){
+        return x.id === id;
+      }
+    );
+
+  if(index >= 0){
+
+    db.sellers[index] =
+      {
+        ...db.sellers[index],
+        ...seller
+      };
+
+  }else{
+
+    db.sellers.push(seller);
+
+  }
+
+  saveDB();
+
+  toast(
+    "✅ Seller Account Save हो गया।"
+  );
 }
-
 function toggleSellerStatus(){
 
  db.sellerOpen =
@@ -3384,64 +3527,112 @@ function loadDelivery(){
 
 function saveDelivery(){
 
- if(!$("deliveryName").value.trim()){
-   alert("Delivery Boy Name डालें।");
-   return;
- }
+  const id =
+    $("deliveryId").value;
 
- const delivery={
+  const name =
+    $("deliveryName").value.trim();
 
-   id:$("deliveryId").value,
+  const mobile =
+    $("deliveryMobile").value
+      .trim()
+      .replace(/\D/g,"");
 
-   name:
-     $("deliveryName").value.trim(),
+  if(!name){
+    alert("Delivery Boy Name डालें।");
+    return;
+  }
 
-   mobile:
-     $("deliveryMobile").value.trim(),
+  if(!/^[6-9]\d{9}$/.test(mobile)){
+    alert("सही 10-digit Indian Mobile Number डालें।");
+    return;
+  }
 
-   address:
-     $("deliveryAddress").value.trim(),
+  const aadhaarNumber =
+    $("deliveryAadhaarNumber").value
+      .replace(/\D/g,"");
 
-   face:
-     $("deliveryFace").files.length>0,
+  const panNumber =
+    $("deliveryPanNumber").value
+      .trim()
+      .toUpperCase();
 
-   aadhaar:
-     $("deliveryAadhaar").files.length>0,
+  if(!/^\d{12}$/.test(aadhaarNumber)){
+    alert("Aadhaar Number ठीक 12 digits का होना चाहिए।");
+    return;
+  }
 
-   pan:
-     $("deliveryPan").files.length>0,
+  if(!/^[A-Z]{5}\d{4}[A-Z]$/.test(panNumber)){
+    alert("सही PAN Number डालें। उदाहरण: ABCDE1234F");
+    return;
+  }
 
-   location:
-     $("deliveryLocation").value,
+  const delivery={
 
-   vehicle:
-     $("vehicleType").value,
+    id:id,
 
-   vehicleNumber:
-     $("vehicleNumber").value.trim()
+    name:name,
 
- };
+    mobile:mobile,
 
- const index =
-   db.delivery.findIndex(
-     function(x){
-       return x.id===delivery.id;
-     }
-   );
+    address:
+      $("deliveryAddress").value.trim(),
 
- if(index>=0){
-   db.delivery[index]=delivery;
- }else{
-   db.delivery.push(delivery);
- }
+    face:
+      $("deliveryFace").files.length>0,
 
- saveDB();
+    aadhaarNumber:
+      aadhaarNumber,
 
- toast(
-   "✅ Delivery Account Save हो गया।"
- );
+    panNumber:
+      panNumber,
+
+    aadhaar:
+      $("deliveryAadhaar").files.length>0,
+
+    pan:
+      $("deliveryPan").files.length>0,
+
+    location:
+      $("deliveryLocation").value,
+
+    vehicle:
+      $("vehicleType").value,
+
+    vehicleNumber:
+      $("vehicleNumber").value.trim()
+
+  };
+
+  const index =
+    db.delivery.findIndex(
+      function(x){
+        return x.id===delivery.id;
+      }
+    );
+
+  if(index>=0){
+
+    db.delivery[index]=
+      {
+        ...db.delivery[index],
+        ...delivery
+      };
+
+  }else{
+
+    db.delivery.push(
+      delivery
+    );
+
+  }
+
+  saveDB();
+
+  toast(
+    "✅ Delivery Account Save हो गया।"
+  );
 }
-
 function toggleDeliveryOnline(){
 
  db.deliveryOnline =
