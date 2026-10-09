@@ -1888,7 +1888,14 @@ async function accountLogin(){
 
   const role =
     $("accountLoginRole").value;
-
+if(
+  role !== "customer" &&
+  role !== "seller" &&
+  role !== "delivery"
+){
+  alert("सही Account Type चुनें।");
+  return;
+}
   const message =
     $("accountLoginMessage");
 
