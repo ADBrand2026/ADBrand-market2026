@@ -1680,30 +1680,6 @@ async function goHome(){
 document.addEventListener(
  "keydown",
  
-let logoClicks=0;
-let logoTimer=null;
-
-$("brandHeader").addEventListener(
- "click",
- function(){
-
-   logoClicks++;
-
-   clearTimeout(logoTimer);
-
-   logoTimer=setTimeout(
-     function(){
-       logoClicks=0;
-     },
-     1800
-   );
-
-   if(logoClicks>=5){
-     logoClicks=0;
-     openAdminLogin();
-   }
- }
-);
 
 function openAdminLogin(){
 
