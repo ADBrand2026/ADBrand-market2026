@@ -12168,3 +12168,5365 @@ body {
 
 <!-- END PAGE 5 -->
 ```
+```html
+<!-- =====================================================
+ AD BRAND MARKET — PAGE 6
+ DELIVERY CASH CONTROL • FOOD COMPLAINTS • RETURNS
+ Demo interface; production enforcement requires backend.
+===================================================== -->
+
+<style>
+#adbm6, #adbm6 * { box-sizing:border-box; }
+#adbm6 {
+  color:#f5f7ff;
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  margin:18px auto;
+  max-width:1440px;
+}
+#adbm6 .m6-shell {
+  padding:clamp(14px,3vw,28px);
+  border:1px solid #273754;
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 0 0,#263a72 0,transparent 34%),
+    linear-gradient(145deg,#101a31,#080d19);
+  box-shadow:0 18px 55px #0005;
+}
+#adbm6 .m6-header {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px; margin-bottom:20px;
+}
+#adbm6 h2 { margin:0; font-size:clamp(22px,4vw,34px); }
+#adbm6 h3 { margin:0 0 8px; font-size:17px; }
+#adbm6 p { line-height:1.55; }
+#adbm6 .m6-sub { color:#aebbd6; font-size:12px; }
+#adbm6 .m6-grid {
+  display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:14px;
+}
+#adbm6 .m6-card {
+  grid-column:span 6; min-width:0; padding:18px;
+  border:1px solid #2c3b58; border-radius:18px;
+  background:linear-gradient(145deg,#16233b,#0e1729);
+  animation:m6-rise .4s ease both;
+}
+#adbm6 .m6-third { grid-column:span 4; }
+#adbm6 .m6-full { grid-column:span 12; }
+#adbm6 .m6-stat {
+  font-size:clamp(26px,4vw,38px); font-weight:900;
+  margin:9px 0;
+}
+#adbm6 .m6-chip {
+  display:inline-flex; padding:5px 9px; border-radius:999px;
+  font-size:11px; font-weight:800; background:#273859; color:#dce7ff;
+}
+#adbm6 .m6-green { background:#123e37; color:#7af1c9; }
+#adbm6 .m6-orange { background:#49321d; color:#ffd09a; }
+#adbm6 .m6-red { background:#4a2434; color:#ffb8c7; }
+#adbm6 .m6-btn {
+  min-height:42px; padding:10px 13px; border:0; border-radius:11px;
+  color:white; font-weight:800; font-size:12px; cursor:pointer;
+  background:linear-gradient(135deg,#507cff,#7955e8);
+  transition:transform .2s,filter .2s;
+}
+#adbm6 .m6-btn:hover { transform:translateY(-2px); filter:brightness(1.12); }
+#adbm6 .m6-btn-green { background:linear-gradient(135deg,#13b98c,#087d6c); }
+#adbm6 .m6-btn-orange { color:#281708; background:linear-gradient(135deg,#ffd16f,#ff964b); }
+#adbm6 .m6-btn-red { background:linear-gradient(135deg,#ff637d,#d93159); }
+#adbm6 .m6-btn-plain { border:1px solid #354562; background:#152039; }
+#adbm6 .m6-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+#adbm6 .m6-field { display:grid; gap:6px; margin:12px 0; }
+#adbm6 .m6-field label { font-size:12px; font-weight:800; color:#cbd6ed; }
+#adbm6 input, #adbm6 select, #adbm6 textarea {
+  width:100%; min-height:42px; padding:10px 12px;
+  color:#fff; background:#0b1426; border:1px solid #344461;
+  border-radius:10px; font:inherit; font-size:13px;
+}
+#adbm6 textarea { min-height:90px; resize:vertical; }
+#adbm6 option { background:#0b1426; }
+#adbm6 .m6-row {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:10px; padding:12px 0;
+  border-bottom:1px solid #263650;
+}
+#adbm6 .m6-row:last-child { border-bottom:0; }
+#adbm6 .m6-row strong { display:block; font-size:13px; }
+#adbm6 .m6-row small { display:block; color:#aebbd6; margin-top:4px; }
+#adbm6 .m6-notice {
+  display:none; margin-top:14px; padding:12px;
+  border-radius:11px; border:1px solid #347565;
+  background:#10362f; color:#b7ffe7; font-size:12px;
+}
+#adbm6 .m6-notice.show { display:block; }
+#adbm6 .m6-warning {
+  padding:12px; margin-top:12px; border-radius:12px;
+  border:1px solid #79542c; background:#342719;
+  color:#ffe0b3; font-size:12px;
+}
+#adbm6 .m6-progress {
+  height:9px; border-radius:999px; overflow:hidden;
+  background:#263650; margin:12px 0;
+}
+#adbm6 .m6-progress span {
+  display:block; height:100%; width:0;
+  background:linear-gradient(90deg,#20d5a1,#ffbf55);
+  transition:width .3s;
+}
+@keyframes m6-rise {
+  from { opacity:0; transform:translateY(8px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@media(max-width:760px) {
+  #adbm6 .m6-card, #adbm6 .m6-third { grid-column:span 12; }
+  #adbm6 .m6-btn { flex:1 1 auto; }
+}
+@media(prefers-reduced-motion:reduce) {
+  #adbm6 *,#adbm6 *::before,#adbm6 *::after {
+    animation:none!important; transition:none!important;
+  }
+}
+</style>
+
+<section id="adbm6">
+<div class="m6-shell">
+
+  <header class="m6-header">
+    <div>
+      <h2>🛵 Delivery Operations Center</h2>
+      <div class="m6-sub">Cash control • Customer support • Food complaints</div>
+    </div>
+    <span class="m6-chip m6-orange">DEMO MODE</span>
+  </header>
+
+  <div class="m6-warning">
+    ध्यान दें: इस स्क्रीन के बदलाव सिर्फ इसी browser के demo records हैं।
+    COD जमा होने की असली पुष्टि, payout, order assignment और penalties
+    backend से verify होने चाहिए।
+  </div>
+
+  <div class="m6-grid">
+
+    <!-- CASH CONTROL -->
+    <article class="m6-card m6-third">
+      <h3>💰 Delivery Boy Cash Limit</h3>
+      <p class="m6-sub">
+        COD cash collected को rider की कमाई न समझें।
+        यह ग्राहक से लिया गया platform/seller का पैसा है।
+      </p>
+      <div class="m6-sub">Demo outstanding COD</div>
+      <div class="m6-stat">₹<span id="m6-cash">0</span></div>
+      <div class="m6-progress"><span id="m6-cash-progress"></span></div>
+      <div class="m6-row">
+        <span class="m6-sub">Configured limit</span>
+        <strong>₹<span id="m6-limit-label">600</span></strong>
+      </div>
+      <div class="m6-field">
+        <label for="m6-limit">Cash limit (₹500–₹600)</label>
+        <select id="m6-limit">
+          <option value="500">₹500</option>
+          <option value="550">₹550</option>
+          <option value="600" selected>₹600</option>
+        </select>
+      </div>
+      <div class="m6-field">
+        <label for="m6-add-cash">Collected COD amount to simulate (₹)</label>
+        <input id="m6-add-cash" type="number" min="1" max="10000"
+          placeholder="उदाहरण: 150">
+      </div>
+      <div class="m6-actions">
+        <button class="m6-btn" type="button" id="m6-add-btn">
+          Add demo collection
+        </button>
+        <button class="m6-btn m6-btn-green" type="button" id="m6-deposit-btn">
+          Simulate deposit
+        </button>
+      </div>
+      <div class="m6-row">
+        <span class="m6-sub">Order eligibility (demo)</span>
+        <span id="m6-cash-status" class="m6-chip m6-green">Eligible</span>
+      </div>
+      <p class="m6-sub">
+        Limit तक पहुँचने पर demo में नए COD assignments रोकने का status
+        दिखेगा। असली रोक backend में होनी चाहिए।
+      </p>
+    </article>
+
+    <!-- NO ANSWER -->
+    <article class="m6-card m6-third">
+      <h3>📞 Customer Not Answering</h3>
+      <p class="m6-sub">
+        Delivery partner contact attempts दर्ज करे; ग्राहक को एक call
+        miss करने पर अपने-आप दोषी न माना जाए।
+      </p>
+      <div class="m6-field">
+        <label for="m6-order-id">Order ID</label>
+        <input id="m6-order-id" maxlength="80" placeholder="उदाहरण: ADM-1024">
+      </div>
+      <div class="m6-field">
+        <label for="m6-order-value">Order value (₹)</label>
+        <input id="m6-order-value" type="number" min="0" max="100000"
+          placeholder="उदाहरण: 250">
+      </div>
+      <div class="m6-stat" id="m6-timer">15:00</div>
+      <div class="m6-sub" id="m6-contact-state">Contact workflow शुरू नहीं हुआ।</div>
+      <div class="m6-actions">
+        <button class="m6-btn" type="button" id="m6-start-contact">
+          Start 15-minute window
+        </button>
+        <button class="m6-btn m6-btn-orange" type="button" id="m6-call-attempt">
+          Record call attempt
+        </button>
+        <button class="m6-btn m6-btn-plain" type="button" id="m6-stop-contact">
+          Stop timer
+        </button>
+      </div>
+      <div class="m6-row">
+        <span class="m6-sub">Recorded call attempts</span>
+        <strong id="m6-call-count">0</strong>
+      </div>
+      <div class="m6-warning">
+        15 मिनट बाद भी ग्राहक unavailable हो तो support/Admin review,
+        seller return या अन्य सुरक्षित resolution चुनें। सामान छोड़ने का
+        निर्णय स्वतः न लें।
+      </div>
+    </article>
+
+    <!-- RETURN POLICY -->
+    <article class="m6-card m6-third">
+      <h3>🍲 Food Complaint & Return</h3>
+      <p class="m6-sub">
+        Food को सामान्य change-of-mind return से अलग रखें; गलत,
+        खराब, अधूरा या unsafe food complaint review के योग्य है।
+      </p>
+      <div class="m6-field">
+        <label for="m6-food-issue">Complaint type</label>
+        <select id="m6-food-issue">
+          <option value="wrong">Wrong food delivered</option>
+          <option value="missing">Item missing</option>
+          <option value="quality">Quality / safety concern</option>
+          <option value="spilled">Spilled / damaged packaging</option>
+          <option value="late">Delivery too late</option>
+          <option value="change">Customer changed mind</option>
+          <option value="unreachable">Customer unavailable</option>
+        </select>
+      </div>
+      <div class="m6-field">
+        <label for="m6-food-evidence">Evidence / details</label>
+        <textarea id="m6-food-evidence" maxlength="1500"
+          placeholder="Order details, photos available, call attempts, time..."></textarea>
+      </div>
+      <div class="m6-actions">
+        <button class="m6-btn" type="button" id="m6-food-review">
+          Submit for review
+        </button>
+      </div>
+      <div class="m6-row">
+        <span class="m6-sub">Review status</span>
+        <span class="m6-chip m6-orange" id="m6-food-status">Not submitted</span>
+      </div>
+      <p class="m6-sub">
+        यह demo कोई refund या return approve नहीं करता। असली फैसला
+        प्रकाशित policy, applicable consumer rules और evidence पर निर्भर है।
+      </p>
+    </article>
+
+    <!-- DISPUTES -->
+    <article class="m6-card m6-full">
+      <h3>⚖️ Complaint Investigation & Fair Penalty Review</h3>
+      <p class="m6-sub">
+        Customer, Seller या Delivery Partner—तीनों की बात और उपलब्ध सबूत
+        देखकर ही जिम्मेदारी तय हो।
+      </p>
+
+      <div class="m6-grid">
+        <div class="m6-card m6-third">
+          <h3>1. Complaint source</h3>
+          <div class="m6-field">
+            <label for="m6-complainant">Complaint raised by</label>
+            <select id="m6-complainant">
+              <option>Customer</option>
+              <option>Seller</option>
+              <option>Delivery Partner</option>
+              <option>Support Team</option>
+            </select>
+          </div>
+          <div class="m6-field">
+            <label for="m6-party-issue">Reported issue</label>
+            <select id="m6-party-issue">
+              <option>Wrong or missing item</option>
+              <option>Food quality or safety</option>
+              <option>Customer unreachable</option>
+              <option>Cash mismatch</option>
+              <option>Late delivery</option>
+              <option>False delivery confirmation</option>
+              <option>Seller unavailable / out of stock</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="m6-card m6-third">
+          <h3>2. Evidence checklist</h3>
+          <label class="m6-row">
+            <span class="m6-sub">Order details checked</span>
+            <input type="checkbox" id="m6-ev-order">
+          </label>
+          <label class="m6-row">
+            <span class="m6-sub">Contact / timeline checked</span>
+            <input type="checkbox" id="m6-ev-contact">
+          </label>
+          <label class="m6-row">
+            <span class="m6-sub">Photos / proof checked where relevant</span>
+            <input type="checkbox" id="m6-ev-photo">
+          </label>
+          <label class="m6-row">
+            <span class="m6-sub">Both sides heard</span>
+            <input type="checkbox" id="m6-ev-both">
+          </label>
+        </div>
+
+        <div class="m6-card m6-third">
+          <h3>3. Authorized review</h3>
+          <div class="m6-field">
+            <label for="m6-decision">Decision</label>
+            <select id="m6-decision">
+              <option value="pending">Pending investigation</option>
+              <option value="customer">Customer issue confirmed</option>
+              <option value="seller">Seller issue confirmed</option>
+              <option value="delivery">Delivery issue confirmed</option>
+              <option value="shared">Shared responsibility</option>
+              <option value="none">No fault established</option>
+            </select>
+          </div>
+          <div class="m6-field">
+            <label for="m6-review-note">Review note</label>
+            <textarea id="m6-review-note" maxlength="1000"
+              placeholder="Evidence and reason for the decision"></textarea>
+          </div>
+          <button class="m6-btn m6-btn-orange" type="button" id="m6-submit-review">
+            Record demo review
+          </button>
+        </div>
+      </div>
+
+      <div class="m6-warning">
+        किसी की कमाई काटने, account रोकने या penalty लगाने से पहले
+        अधिकृत reviewer, documented reason और appeal/dispute process चाहिए।
+        यह public demo screen किसी पर वास्तविक penalty नहीं लगा सकती।
+      </div>
+    </article>
+
+    <!-- OPERATING RULES -->
+    <article class="m6-card m6-full">
+      <h3>📋 AD Brand Market — Proposed Operating Rules</h3>
+
+      <div class="m6-row">
+        <div>
+          <strong>COD collection limit</strong>
+          <small>₹500–₹600 configurable threshold; reconciliation required.</small>
+        </div>
+        <span class="m6-chip m6-orange">Cash Control</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Cash deposit and new orders</strong>
+          <small>Reached limit पर new COD assignment pause; verified deposit/adjustment के बाद resume.</small>
+        </div>
+        <span class="m6-chip">Backend required</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Food order customer unreachable</strong>
+          <small>15-minute contact workflow, timestamped attempts, support escalation and documented outcome.</small>
+        </div>
+        <span class="m6-chip m6-orange">15 minutes</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>High-value undelivered food order</strong>
+          <small>Default: contact support and return to seller when safe and feasible; record food safety and refund outcome.</small>
+        </div>
+        <span class="m6-chip">Review</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Low-value undelivered food order</strong>
+          <small>₹20–₹50 का order भी बिना ग्राहक की अनुमति और documented policy के स्वतः छोड़ना नहीं है।</small>
+        </div>
+        <span class="m6-chip">No auto-drop</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Delivery partner compensation</strong>
+          <small>Payment should follow actual route, approved fee schedule and recorded outcome—not an arbitrary automatic cut.</small>
+        </div>
+        <span class="m6-chip m6-green">Transparent</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Food return / refund</strong>
+          <small>Change-of-mind अलग; wrong, damaged, missing or unsafe items के लिए complaint review उपलब्ध रहे।</small>
+        </div>
+        <span class="m6-chip m6-green">Fair review</span>
+      </div>
+
+      <div class="m6-row">
+        <div>
+          <strong>Clothes, footwear and other goods</strong>
+          <small>Published return, exchange, defect and refund policy checkout से पहले दिखे।</small>
+        </div>
+        <span class="m6-chip">Clear policy</span>
+      </div>
+    </article>
+  </div>
+
+  <div id="m6-notice" class="m6-notice" role="status" aria-live="polite"></div>
+</div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  var root = document.getElementById("adbm6");
+  if (!root || root.dataset.initialized === "yes") return;
+  root.dataset.initialized = "yes";
+
+  var cash = 0;
+  var limit = 600;
+  var calls = 0;
+  var remaining = 900;
+  var timer = null;
+
+  function id(name) {
+    return document.getElementById("m6-" + name);
+  }
+
+  function notice(message) {
+    var box = id("notice");
+    box.textContent = message;
+    box.classList.add("show");
+  }
+
+  function formatTime(seconds) {
+    var m = Math.floor(seconds / 60);
+    var s = seconds % 60;
+    return String(m).padStart(2, "0") + ":" +
+      String(s).padStart(2, "0");
+  }
+
+  function renderCash() {
+    id("cash").textContent = cash.toFixed(2);
+    id("limit-label").textContent = String(limit);
+
+    var percent = Math.min(100, (cash / limit) * 100);
+    id("cash-progress").style.width = percent + "%";
+
+    var reached = cash >= limit;
+    var status = id("cash-status");
+    status.textContent = reached
+      ? "COD orders paused (demo)"
+      : "Eligible (demo)";
+    status.className = "m6-chip " +
+      (reached ? "m6-red" : "m6-green");
+  }
+
+  id("limit").addEventListener("change", function () {
+    limit = Number(id("limit").value);
+    renderCash();
+    notice("Demo cash limit updated. Production limit must be enforced on the server.");
+  });
+
+  id("add-btn").addEventListener("click", function () {
+    var amount = Number(id("add-cash").value);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      notice("कृपया सही collected COD amount दर्ज करें।");
+      return;
+    }
+
+    cash = Math.round((cash + amount) * 100) / 100;
+    id("add-cash").value = "";
+    renderCash();
+
+    if (cash >= limit) {
+      notice("Demo: COD threshold reached. New COD assignments should pause until reconciliation.");
+    } else {
+      notice("Demo collection recorded. Actual cash collection needs verified backend records.");
+    }
+  });
+
+  id("deposit-btn").addEventListener("click", function () {
+    if (cash <= 0) {
+      notice("Demo ledger में जमा करने के लिए outstanding amount नहीं है।");
+      return;
+    }
+
+    var confirmed = window.confirm(
+      "यह सिर्फ demo ledger reset करेगा—यह असली bank deposit verify नहीं करेगा। जारी रखें?"
+    );
+
+    if (!confirmed) return;
+
+    cash = 0;
+    renderCash();
+    notice("Demo ledger reset हुआ। Real orders resume करने से पहले verified deposit reconciliation जरूरी है।");
+  });
+
+  function stopTimer() {
+    if (timer !== null) {
+      window.clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  function renderTimer() {
+    id("timer").textContent = formatTime(remaining);
+  }
+
+  id("start-contact").addEventListener("click", function () {
+    stopTimer();
+    remaining = 900;
+    calls = 0;
+    id("call-count").textContent = "0";
+
+    var orderId = id("order-id").value.trim();
+    if (!orderId) {
+      notice("पहले Order ID दर्ज करें।");
+      return;
+    }
+
+    renderTimer();
+    id("contact-state").textContent =
+      "Demo contact window active for order " + orderId + ".";
+
+    timer = window.setInterval(function () {
+      remaining = Math.max(0, remaining - 1);
+      renderTimer();
+
+      if (remaining === 0) {
+        stopTimer();
+        id("contact-state").textContent =
+          "15-minute window complete. Escalate to support; do not auto-penalize.";
+        notice("Contact window complete. Review call attempts and order value before deciding the next step.");
+      }
+    }, 1000);
+
+    notice("Demo timer started. This does not place phone calls or notify the customer.");
+  });
+
+  id("call-attempt").addEventListener("click", function () {
+    if (!id("order-id").value.trim()) {
+      notice("Call attempt रिकॉर्ड करने से पहले Order ID दर्ज करें।");
+      return;
+    }
+
+    calls++;
+    id("call-count").textContent = String(calls);
+    id("contact-state").textContent =
+      calls + " demo call attempt(s) recorded. Actual call logs need secure persistence.";
+    notice("Demo attempt count updated. कोई वास्तविक call नहीं किया गया।");
+  });
+
+  id("stop-contact").addEventListener("click", function () {
+    stopTimer();
+    id("contact-state").textContent =
+      "Timer stopped manually. Record the reason in the order support log.";
+    notice("Timer stopped. Actual order disposition must be recorded in the backend.");
+  });
+
+  id("food-review").addEventListener("click", function () {
+    var evidence = id("food-evidence").value.trim();
+
+    if (!evidence) {
+      notice("कृपया complaint की details दर्ज करें।");
+      return;
+    }
+
+    id("food-status").textContent = "Demo: Pending review";
+    id("food-status").className = "m6-chip m6-orange";
+
+    notice("Demo complaint तैयार है। यह अपने-आप refund, return या penalty approve नहीं करती।");
+  });
+
+  id("submit-review").addEventListener("click", function () {
+    var checks = [
+      "ev-order", "ev-contact", "ev-photo", "ev-both"
+    ];
+
+    var checked = checks.filter(function (key) {
+      return id(key).checked;
+    }).length;
+
+    var decision = id("decision").value;
+    var note = id("review-note").value.trim();
+
+    if (decision !== "pending" && (checked < 4 || !note)) {
+      notice("Final demo decision से पहले सभी evidence checks और review note भरें।");
+      return;
+    }
+
+    if (decision === "pending") {
+      notice("Review pending दर्ज किया गया (demo)। किसी पर दोष या penalty तय नहीं हुई।");
+      return;
+    }
+
+    notice(
+      "Demo review दर्ज: " + decision +
+      ". Checked items: " + checked +
+      "/4. वास्तविक फैसला authorized backend/Admin review से होना चाहिए।"
+    );
+  });
+
+  renderCash();
+  renderTimer();
+
+  window.ADBM6 = {
+    version: "6.0.0",
+    mode: "demo",
+    getCashStatus: function () {
+      return {
+        outstanding: cash,
+        limit: limit,
+        codAssignmentShouldPause: cash >= limit
+      };
+    },
+    stopContactTimer: stopTimer
+  };
+
+  console.info("AD Brand Market Page 6 demo operations panel ready.");
+})();
+</script>
+
+<!-- END PAGE 6 -->
+```
+```html
+<!-- =========================================================
+ AD BRAND MARKET — PAGE 7
+ DELIVERY EARNINGS • COD LIMIT • INCENTIVES • FEE RULES
+ Standalone demo module. Real payouts require server validation.
+========================================================= -->
+
+<section id="adbm7" class="adbm7">
+  <style>
+    #adbm7 {
+      --bg:#101322;--card:#191e32;--line:#343b57;
+      --text:#f4f6ff;--muted:#aeb7d3;--gold:#ffd166;
+      --green:#5de0a1;--blue:#82aaff;--red:#ff8585;
+      color:var(--text);background:var(--bg);
+      border:1px solid var(--line);border-radius:22px;
+      padding:18px;margin:18px 0;
+      font-family:Arial,sans-serif;
+    }
+    #adbm7 * {box-sizing:border-box}
+    #adbm7 h2,#adbm7 h3 {margin:0 0 12px}
+    #adbm7 p {color:var(--muted);line-height:1.55}
+    #adbm7 .m7grid {
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;margin:16px 0;
+    }
+    #adbm7 .m7card {
+      background:var(--card);border:1px solid var(--line);
+      padding:15px;border-radius:16px;min-width:0;
+    }
+    #adbm7 .m7wide {grid-column:1/-1}
+    #adbm7 .m7value {font-size:25px;font-weight:800;color:var(--gold)}
+    #adbm7 .m7muted {font-size:12px;color:var(--muted)}
+    #adbm7 label {
+      display:block;font-size:13px;color:var(--muted);
+      margin:12px 0 6px;
+    }
+    #adbm7 input,#adbm7 select,#adbm7 textarea {
+      width:100%;padding:11px;border-radius:10px;
+      border:1px solid var(--line);background:#101426;
+      color:var(--text);font-size:14px;
+    }
+    #adbm7 button {
+      border:0;border-radius:11px;padding:11px 14px;
+      margin:7px 5px 0 0;font-weight:700;cursor:pointer;
+      background:var(--gold);color:#151525;
+    }
+    #adbm7 button.secondary {background:#303a5c;color:white}
+    #adbm7 .m7status {
+      border-radius:12px;padding:12px;background:#222a43;
+      margin-top:12px;line-height:1.5;
+    }
+    #adbm7 .m7good {color:var(--green)}
+    #adbm7 .m7bad {color:var(--red)}
+    #adbm7 .m7table {width:100%;border-collapse:collapse}
+    #adbm7 .m7table td,#adbm7 .m7table th {
+      border-bottom:1px solid var(--line);padding:10px 5px;
+      text-align:left;font-size:13px;vertical-align:top;
+    }
+    #adbm7 .m7table th {color:var(--gold)}
+    #adbm7 .m7note {font-size:12px;color:var(--muted)}
+    @media(max-width:560px) {
+      #adbm7 {padding:12px}
+      #adbm7 .m7grid {grid-template-columns:1fr}
+      #adbm7 .m7wide {grid-column:auto}
+      #adbm7 .m7value {font-size:22px}
+    }
+  </style>
+
+  <h2>🚚 Delivery Partner Earnings Center</h2>
+  <p>
+    कैश लिमिट, डिलीवरी फीस, इंसेंटिव और कमाई का हिसाब।
+    नीचे की गणना अभी demo है; यह असली COD या बैंक बैलेंस नहीं है।
+  </p>
+
+  <div class="m7grid">
+    <div class="m7card">
+      <div class="m7muted">अनुमानित COD लिमिट</div>
+      <div class="m7value" id="m7Limit">₹600</div>
+      <div class="m7muted">अनुभव और verification के आधार पर</div>
+    </div>
+    <div class="m7card">
+      <div class="m7muted">Demo COD जमा राशि</div>
+      <div class="m7value" id="m7Cash">₹0</div>
+      <div class="m7muted">यह वास्तविक जमा प्रमाण नहीं है</div>
+    </div>
+    <div class="m7card">
+      <div class="m7muted">डिलीवरी से कमाई</div>
+      <div class="m7value" id="m7Base">₹0</div>
+    </div>
+    <div class="m7card">
+      <div class="m7muted">कुल अनुमानित इंसेंटिव</div>
+      <div class="m7value" id="m7Bonus">₹0</div>
+    </div>
+  </div>
+
+  <div class="m7grid">
+    <div class="m7card m7wide">
+      <h3>1. Delivery Partner की पात्रता</h3>
+
+      <label for="m7Days">काम के पूरे दिन</label>
+      <input id="m7Days" type="number" min="0" max="10000" value="7">
+
+      <label for="m7Active">अकाउंट स्थिति</label>
+      <select id="m7Active">
+        <option value="yes">सक्रिय और सत्यापित (demo)</option>
+        <option value="no">निष्क्रिय / verification बाकी</option>
+      </select>
+
+      <label for="m7Reconciled">पुराने COD का हिसाब</label>
+      <select id="m7Reconciled">
+        <option value="yes">हिसाब मिल चुका है (demo)</option>
+        <option value="no">हिसाब बाकी है</option>
+      </select>
+
+      <label for="m7CashInput">अभी जमा न हुआ COD कैश (₹)</label>
+      <input id="m7CashInput" type="number" min="0" value="0">
+
+      <button type="button" id="m7Calculate">कमाई और लिमिट निकालें</button>
+
+      <div class="m7status" id="m7CashStatus" aria-live="polite">
+        गणना की प्रतीक्षा है।
+      </div>
+    </div>
+
+    <div class="m7card m7wide">
+      <h3>2. इंसेंटिव कैलकुलेटर</h3>
+      <p>
+        शुरुआती उदाहरण: हर पूरी डिलीवरी पर बेस कमाई ₹25।
+        बोनस तभी जोड़ें जब ऑर्डर पूरा और पात्रता सत्यापित हो।
+      </p>
+
+      <label for="m7Deliveries">पूरी हुई पात्र डिलीवरी</label>
+      <input id="m7Deliveries" type="number" min="0" value="0">
+
+      <label for="m7Peak">पात्र पीक-टाइम डिलीवरी</label>
+      <input id="m7Peak" type="number" min="0" value="0">
+
+      <label for="m7Quality">पात्र क्वालिटी बोनस (₹)</label>
+      <input id="m7Quality" type="number" min="0" value="0">
+
+      <label for="m7PeakRate">प्रति पीक डिलीवरी बोनस (₹)</label>
+      <input id="m7PeakRate" type="number" min="0" value="5">
+
+      <button type="button" id="m7EarnCalculate">इंसेंटिव जोड़ें</button>
+
+      <div class="m7status" id="m7EarnStatus" aria-live="polite">
+        अपनी पात्र डिलीवरी की संख्या भरें।
+      </div>
+    </div>
+
+    <div class="m7card m7wide">
+      <h3>3. कैटेगरी के हिसाब से फीस</h3>
+      <p>
+        ये शुरुआती प्रस्तावित दरें हैं। शहर, दूरी, ऑर्डर साइज और
+        वास्तविक लागत देखकर इन्हें Admin की स्वीकृति से बदलना होगा।
+      </p>
+
+      <label for="m7Category">ऑर्डर कैटेगरी</label>
+      <select id="m7Category">
+        <option value="clothes">कपड़े / जूते / चप्पल</option>
+        <option value="food">फूड / चाय / स्नैक्स</option>
+      </select>
+
+      <label for="m7SellerFee">सेलर सर्विस फीस (₹)</label>
+      <input id="m7SellerFee" type="number" min="0" value="30">
+
+      <label for="m7CustomerFee">ग्राहक डिलीवरी फीस (₹)</label>
+      <input id="m7CustomerFee" type="number" min="0" value="20">
+
+      <label for="m7FoodPlatformFee">फूड सेलर प्लेटफॉर्म फीस (₹)</label>
+      <input id="m7FoodPlatformFee" type="number" min="0" value="12">
+
+      <button type="button" id="m7FeeCalculate">फीस का हिसाब देखें</button>
+
+      <div class="m7status" id="m7FeeStatus" aria-live="polite"></div>
+    </div>
+
+    <div class="m7card m7wide">
+      <h3>4. प्रस्तावित नियम</h3>
+      <table class="m7table">
+        <thead>
+          <tr><th>नियम</th><th>प्रस्ताव</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>पहले 30 दिन</td>
+            <td>अधिकतम ₹600 COD सीमा, verification और हिसाब सही होने पर।</td>
+          </tr>
+          <tr>
+            <td>30 दिन पूरे होने पर</td>
+            <td>अधिकतम ₹1,200 की समीक्षा-आधारित सीमा; अपने-आप वृद्धि नहीं।</td>
+          </tr>
+          <tr>
+            <td>COD सीमा पूरी</td>
+            <td>नई COD डिलीवरी अस्थायी रूप से रोकें; जमा की पुष्टि के बाद ही खोलें।</td>
+          </tr>
+          <tr>
+            <td>कपड़े और जूते</td>
+            <td>उदाहरण: ₹30 सेलर + ₹20 ग्राहक। वास्तविक दूरी की लागत अलग से जाँचें।</td>
+          </tr>
+          <tr>
+            <td>फूड</td>
+            <td>ग्राहक से डिलीवरी फीस; सेलर से प्रस्तावित ₹10–₹15 सर्विस फीस।</td>
+          </tr>
+          <tr>
+            <td>इंसेंटिव</td>
+            <td>पात्र पूरी डिलीवरी, घोषित पीक बोनस और पारदर्शी क्वालिटी नियम।</td>
+          </tr>
+          <tr>
+            <td>शिकायत या नुकसान</td>
+            <td>सबूत, दोनों पक्षों का जवाब और समीक्षा के बाद ही कोई उचित कार्रवाई।</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="m7note">
+    सुरक्षा: इस demo में डाले गए दिन, कैश और इंसेंटिव यूज़र स्वयं बदल सकता है।
+    इसलिए इन आंकड़ों को असली भुगतान, COD अनुमति, कर्मचारी सत्यापन या अंतिम
+    कमाई का प्रमाण न मानें।
+  </p>
+
+  <script>
+  (function () {
+    "use strict";
+
+    const root = document.getElementById("adbm7");
+    if (!root || root.dataset.initialized === "yes") return;
+    root.dataset.initialized = "yes";
+
+    const $ = function (id) {
+      return root.querySelector("#" + id);
+    };
+
+    const rupees = function (value) {
+      return "₹" + Math.round(value).toLocaleString("en-IN");
+    };
+
+    const number = function (id) {
+      const value = Number($(id).value);
+      return Number.isFinite(value) ? Math.max(0, value) : 0;
+    };
+
+    function calculateCash() {
+      const days = number("m7Days");
+      const cash = number("m7CashInput");
+      const active = $("m7Active").value === "yes";
+      const reconciled = $("m7Reconciled").value === "yes";
+
+      // A month is treated as 30 completed days.
+      const limit = days >= 30 ? 1200 : 600;
+
+      $("m7Limit").textContent = rupees(limit);
+      $("m7Cash").textContent = rupees(cash);
+
+      const eligible = active && reconciled && cash < limit;
+      const status = $("m7CashStatus");
+
+      if (!active) {
+        status.innerHTML =
+          '<span class="m7bad">नई COD डिलीवरी रोकें:</span> ' +
+          'अकाउंट की सक्रियता/verification जाँचें।';
+      } else if (!reconciled) {
+        status.innerHTML =
+          '<span class="m7bad">नई COD डिलीवरी रोकें:</span> ' +
+          'पहले पिछली COD राशि का हिसाब और जमा प्रमाण मिलाएँ।';
+      } else if (cash >= limit) {
+        status.innerHTML =
+          '<span class="m7bad">COD सीमा पूरी:</span> ' +
+          'नई COD डिलीवरी रोकने का demo संकेत। ' +
+          'वास्तविक जमा पुष्टि के बाद ही सीमा दोबारा खोलें।';
+      } else {
+        status.innerHTML =
+          '<span class="m7good">Demo स्थिति: पात्र</span><br>' +
+          'शेष अनुमानित सीमा: ' + rupees(limit - cash) +
+          '. असली अनुमति सर्वर पर तय होनी चाहिए।';
+      }
+
+      $("m7Base").textContent = rupees(number("m7Deliveries") * 25);
+      return { limit, cash, eligible };
+    }
+
+    function calculateEarnings() {
+      const deliveries = Math.floor(number("m7Deliveries"));
+      const peak = Math.floor(number("m7Peak"));
+      const quality = number("m7Quality");
+      const peakRate = number("m7PeakRate");
+
+      if (peak > deliveries) {
+        $("m7EarnStatus").textContent =
+          "पीक डिलीवरी की संख्या कुल पूरी हुई डिलीवरी से अधिक नहीं हो सकती।";
+        return;
+      }
+
+      const base = deliveries * 25;
+      const peakBonus = peak * peakRate;
+      const totalBonus = peakBonus + quality;
+
+      $("m7Base").textContent = rupees(base);
+      $("m7Bonus").textContent = rupees(totalBonus);
+
+      $("m7EarnStatus").innerHTML =
+        "बेस डिलीवरी कमाई: <strong>" + rupees(base) + "</strong><br>" +
+        "पीक बोनस: <strong>" + rupees(peakBonus) + "</strong><br>" +
+        "क्वालिटी बोनस: <strong>" + rupees(quality) + "</strong><br>" +
+        "कुल अनुमानित कमाई: <strong>" +
+        rupees(base + totalBonus) + "</strong><br>" +
+        '<span class="m7note">ईंधन, दूरी, प्रतीक्षा, कर, समायोजन और ' +
+        'अनुमोदित कटौतियाँ इसमें शामिल नहीं हैं।</span>';
+    }
+
+    function calculateFees() {
+      const category = $("m7Category").value;
+      const sellerFee = number("m7SellerFee");
+      const customerFee = number("m7CustomerFee");
+      const foodFee = number("m7FoodPlatformFee");
+      const status = $("m7FeeStatus");
+
+      if (category === "clothes") {
+        status.innerHTML =
+          "सेलर से प्रस्तावित फीस: <strong>" + rupees(sellerFee) +
+          "</strong><br>ग्राहक से डिलीवरी फीस: <strong>" +
+          rupees(customerFee) + "</strong><br>" +
+          "कुल दिखाई गई फीस: <strong>" +
+          rupees(sellerFee + customerFee) + "</strong><br>" +
+          '<span class="m7note">यह कुल प्लेटफॉर्म का मुनाफा नहीं है; ' +
+          'इसमें राइडर भुगतान और अन्य लागतें शामिल हो सकती हैं।</span>';
+      } else {
+        status.innerHTML =
+          "ग्राहक से प्रस्तावित डिलीवरी फीस: <strong>" +
+          rupees(customerFee) + "</strong><br>" +
+          "फूड सेलर की प्रस्तावित सर्विस फीस: <strong>" +
+          rupees(foodFee) + "</strong><br>" +
+          "कुल दिखाई गई फीस: <strong>" +
+          rupees(customerFee + foodFee) + "</strong><br>" +
+          '<span class="m7note">फूड के लिए ग्राहक डिलीवरी फीस का ' +
+          'पूरा हिस्सा अपने-आप राइडर की कमाई न मानें। दूरी, राइडर भुगतान, ' +
+          'पैकिंग और प्लेटफॉर्म लागत अलग हिसाब से दर्ज हों।</span>';
+      }
+    }
+
+    $("m7Calculate").addEventListener("click", calculateCash);
+    $("m7EarnCalculate").addEventListener("click", calculateEarnings);
+    $("m7FeeCalculate").addEventListener("click", calculateFees);
+
+    $("m7Category").addEventListener("change", function () {
+      if ($("m7Category").value === "clothes") {
+        $("m7SellerFee").value = "30";
+        $("m7CustomerFee").value = "20";
+      } else {
+        $("m7SellerFee").value = "0";
+        $("m7CustomerFee").value = "30";
+        $("m7FoodPlatformFee").value = "12";
+      }
+      calculateFees();
+    });
+
+    calculateCash();
+    calculateEarnings();
+    calculateFees();
+  })();
+  </script>
+</section>
+<!-- END ADBM7 -->
+```
+  ```html
+<!-- ==========================================================
+ AD BRAND MARKET — PAGE 8
+ ORDER LIFECYCLE • OTP • COD • ONLINE PAYMENT • SCAN CODE
+ SELLER PACKING • DELIVERY ALERTS • CUSTOMER PROXIMITY
+ Standalone demonstration module.
+========================================================== -->
+
+<section id="adbm8" class="adbm8">
+<style>
+#adbm8 {
+  --b8:#101323;--c8:#191e32;--l8:#353d59;
+  --t8:#f6f7ff;--m8:#aeb8d4;--g8:#ffd166;
+  --gr8:#55e3a1;--bl8:#82aaff;--r8:#ff8585;
+  background:var(--b8);color:var(--t8);
+  border:1px solid var(--l8);border-radius:22px;
+  padding:18px;margin:18px 0;
+  font-family:Arial,sans-serif;
+}
+#adbm8 *{box-sizing:border-box}
+#adbm8 h2,#adbm8 h3{margin:0 0 12px}
+#adbm8 p{color:var(--m8);line-height:1.55}
+#adbm8 .g8{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#adbm8 .card8{background:var(--c8);border:1px solid var(--l8);border-radius:15px;padding:14px;min-width:0}
+#adbm8 .wide8{grid-column:1/-1}
+#adbm8 label{display:block;font-size:13px;color:var(--m8);margin:12px 0 6px}
+#adbm8 input,#adbm8 select,#adbm8 textarea{
+  display:block;width:100%;padding:11px;border-radius:10px;
+  background:#0f1426;color:var(--t8);border:1px solid var(--l8);
+  font-size:14px;max-width:100%
+}
+#adbm8 button{
+  border:0;border-radius:10px;padding:11px 13px;margin:7px 5px 0 0;
+  background:var(--g8);color:#151629;font-weight:700;cursor:pointer
+}
+#adbm8 button.alt8{background:#303a59;color:white}
+#adbm8 button:disabled{opacity:.45;cursor:not-allowed}
+#adbm8 .muted8{font-size:12px;color:var(--m8);line-height:1.5}
+#adbm8 .status8{padding:12px;border-radius:11px;background:#232a42;margin-top:12px;line-height:1.6;overflow-wrap:anywhere}
+#adbm8 .green8{color:var(--gr8)}
+#adbm8 .red8{color:var(--r8)}
+#adbm8 .gold8{color:var(--g8)}
+#adbm8 .code8{font-size:23px;letter-spacing:2px;font-weight:800;overflow-wrap:anywhere;color:var(--g8)}
+#adbm8 .pill8{display:inline-block;padding:5px 8px;background:#303a59;border-radius:20px;font-size:11px;margin:3px}
+#adbm8 .list8{padding-left:19px;line-height:1.7;color:var(--m8)}
+#adbm8 .divider8{height:1px;background:var(--l8);margin:14px 0}
+#adbm8 .feed8{display:grid;gap:8px}
+#adbm8 .event8{background:#101426;border:1px solid var(--l8);padding:10px;border-radius:10px;font-size:13px;line-height:1.5}
+#adbm8 .tablewrap8{overflow-x:auto}
+#adbm8 table{border-collapse:collapse;width:100%;min-width:420px}
+#adbm8 td,#adbm8 th{border-bottom:1px solid var(--l8);padding:9px;text-align:left;font-size:12px;vertical-align:top}
+#adbm8 th{color:var(--g8)}
+@media(max-width:560px){
+  #adbm8{padding:12px}
+  #adbm8 .g8{grid-template-columns:1fr}
+  #adbm8 .wide8{grid-column:auto}
+}
+</style>
+
+<h2>📦 AD Brand Market — Order Control Center</h2>
+<p>
+Customer, Seller और Delivery Partner के लिए एक ही ऑर्डर का
+डेमो फ्लो। हर ऑर्डर का अलग reference code और अलग status रहेगा।
+</p>
+
+<div class="g8">
+  <div class="card8">
+    <div class="muted8">ऑर्डर रेफरेंस</div>
+    <div id="a8OrderCode" class="code8">ADM-NEW</div>
+    <div class="muted8">हर नया डेमो ऑर्डर अपना अलग कोड बनाएगा।</div>
+  </div>
+  <div class="card8">
+    <div class="muted8">मौजूदा स्थिति</div>
+    <h3 id="a8Status">नया ऑर्डर</h3>
+    <span id="a8PayBadge" class="pill8">भुगतान लंबित</span>
+    <span id="a8DeliveryBadge" class="pill8">डिलीवरी लंबित</span>
+  </div>
+</div>
+
+<div class="divider8"></div>
+
+<div class="g8">
+  <div class="card8 wide8">
+    <h3>1. ऑर्डर बनाएँ</h3>
+    <label for="a8Category">प्रोडक्ट की कैटेगरी</label>
+    <select id="a8Category">
+      <option value="food">फूड / चाय / स्नैक्स — Delivery only</option>
+      <option value="fashion">कपड़े / जूते / चप्पल</option>
+      <option value="jewellery">ज्वेलरी / एक्सेसरीज़</option>
+    </select>
+
+    <label for="a8Payment">शुरुआती भुगतान तरीका</label>
+    <select id="a8Payment">
+      <option value="prepaid">Prepaid — पहले से ऑनलाइन भुगतान</option>
+      <option value="cod">COD — डिलीवरी पर भुगतान</option>
+    </select>
+
+    <label for="a8Amount">ऑर्डर की रकम (₹)</label>
+    <input id="a8Amount" type="number" min="1" max="1000000" value="250">
+
+    <label for="a8Customer">ग्राहक का नाम या छोटा reference</label>
+    <input id="a8Customer" maxlength="80" placeholder="जैसे Customer 101">
+
+    <label for="a8Seller">सेलर का नाम या reference</label>
+    <input id="a8Seller" maxlength="80" placeholder="जैसे Seller 201">
+
+    <label for="a8Rider">डिलीवरी पार्टनर का reference</label>
+    <input id="a8Rider" maxlength="80" placeholder="जैसे Rider 301">
+
+    <button id="a8Create" type="button">नया डेमो ऑर्डर बनाएँ</button>
+    <div id="a8CreateStatus" class="status8" aria-live="polite">
+      ऑर्डर बनाने के लिए विवरण भरें।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>2. ऑर्डर की लाइव डेमो टाइमलाइन</h3>
+    <div id="a8Timeline" class="feed8">
+      <div class="event8">अभी कोई ऑर्डर नहीं बनाया गया।</div>
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>3. Seller Studio — पैकिंग और स्कैन</h3>
+    <p>
+      नया ऑर्डर स्वीकार करना, सही सामान पैक करना और कंपनी reference
+      स्कैन करना। फूड के लिए spill-proof पैकिंग और सही seal की जाँच रखें।
+    </p>
+
+    <div class="status8" id="a8SellerAlert">
+      सेलर को अभी कोई नया ऑर्डर नहीं मिला।
+    </div>
+
+    <label for="a8ScanInput">पैकिंग/हैंडओवर reference code</label>
+    <input id="a8ScanInput" maxlength="80" placeholder="ऑर्डर का कोड डालें">
+
+    <label for="a8PackCheck">पैकिंग की स्थिति</label>
+    <select id="a8PackCheck">
+      <option value="unchecked">पैकिंग अभी जाँची नहीं</option>
+      <option value="ok">सामान, मात्रा, पैकिंग और seal जाँची</option>
+      <option value="problem">पैकिंग में समस्या</option>
+    </select>
+
+    <button id="a8Accept" type="button">सेलर ऑर्डर स्वीकार करे</button>
+    <button id="a8Packed" type="button">पैकिंग पूरी करें</button>
+    <button id="a8Handover" type="button">राइडर को सौंपें</button>
+
+    <div id="a8PackStatus" class="status8" aria-live="polite">
+      पहले ऑर्डर बनाएँ।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>4. Customer Confirmation और OTP</h3>
+    <p>
+      ग्राहक डिलीवरी की पुष्टि करेगा। असली सिस्टम में OTP केवल
+      ग्राहक के verified नंबर/ऐप पर सुरक्षित रूप से भेजा जाएगा।
+      OTP को सार्वजनिक ऑर्डर स्क्रीन पर नहीं दिखाना चाहिए।
+    </p>
+
+    <label for="a8ConfirmCode">ऑर्डर reference code</label>
+    <input id="a8ConfirmCode" maxlength="80" placeholder="सही ऑर्डर कोड">
+
+    <label for="a8CustomerConfirm">ग्राहक की पुष्टि</label>
+    <select id="a8CustomerConfirm">
+      <option value="no">अभी पुष्टि नहीं</option>
+      <option value="yes">मैंने डिलीवरी की पुष्टि की है</option>
+    </select>
+
+    <button id="a8ConfirmDelivery" type="button">ग्राहक पुष्टि करें</button>
+
+    <div class="status8" id="a8OtpStatus" aria-live="polite">
+      ग्राहक की पुष्टि के बाद OTP प्रक्रिया शुरू होगी।
+    </div>
+
+    <label for="a8OtpInput">Delivery Partner — OTP दर्ज करें</label>
+    <input id="a8OtpInput" maxlength="8" inputmode="numeric" placeholder="OTP दर्ज करें">
+
+    <button id="a8VerifyOtp" type="button">OTP सत्यापित करें (डेमो)</button>
+
+    <div class="muted8">
+      Demo में OTP स्क्रीन पर दिख सकता है ताकि परीक्षण किया जा सके।
+      Production में OTP को database में plaintext में न रखें, expiry,
+      rate limits, attempt limits और server-side verification लागू करें।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>5. COD से Online Payment</h3>
+    <p>
+      यदि ग्राहक COD ऑर्डर को ऑनलाइन भुगतान करना चाहे, तो सुरक्षित
+      payment link/QR केवल आधिकारिक payment gateway से बनना चाहिए।
+      ग्राहक के screenshot या “OK” लिखने से भुगतान सफल नहीं माना जाएगा।
+    </p>
+
+    <label for="a8OnlineCode">ऑर्डर reference code</label>
+    <input id="a8OnlineCode" maxlength="80" placeholder="सही ऑर्डर कोड">
+
+    <button id="a8RequestOnline" type="button">COD के लिए Online Payment अनुरोध</button>
+
+    <div class="status8" id="a8OnlineStatus" aria-live="polite">
+      कोई online payment अनुरोध नहीं है।
+    </div>
+
+    <label for="a8PaymentReference">Gateway transaction reference</label>
+    <input id="a8PaymentReference" maxlength="120" placeholder="केवल gateway reference">
+
+    <label for="a8PaymentResult">Demo payment result</label>
+    <select id="a8PaymentResult">
+      <option value="pending">Pending</option>
+      <option value="success">Success — demo only</option>
+      <option value="failed">Failed</option>
+    </select>
+
+    <button id="a8PaymentTest" type="button">डेमो पेमेंट स्थिति देखें</button>
+
+    <div class="muted8">
+      यह बटन किसी बैंक से भुगतान verify नहीं करता। असली भुगतान की
+      पुष्टि केवल trusted server-side gateway webhook/API से होगी।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>6. COD Collection और Delivery Completion</h3>
+    <p>
+      COD ऑर्डर में राइडर को सही रकम ग्राहक से प्राप्त करनी होगी।
+      यदि ग्राहक ने ऑनलाइन भुगतान कर दिया है, तो दोबारा COD न लें।
+    </p>
+
+    <label for="a8CodAmount">राइडर द्वारा प्राप्त COD (₹)</label>
+    <input id="a8CodAmount" type="number" min="0" value="0">
+
+    <label for="a8CodConfirm">रकम की स्थिति</label>
+    <select id="a8CodConfirm">
+      <option value="no">रकम अभी प्राप्त नहीं</option>
+      <option value="yes">पूरी रकम प्राप्त — demo</option>
+    </select>
+
+    <button id="a8CollectCod" type="button">COD प्राप्ति दर्ज करें</button>
+
+    <label for="a8CompleteCode">डिलीवरी ऑर्डर reference</label>
+    <input id="a8CompleteCode" maxlength="80" placeholder="सही ऑर्डर कोड">
+
+    <button id="a8Complete" type="button">डिलीवरी पूरी करें (डेमो)</button>
+
+    <div class="status8" id="a8CompleteStatus" aria-live="polite">
+      पहले भुगतान और OTP/डिलीवरी की आवश्यक शर्तें पूरी करें।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>7. Delivery Partner Alerts</h3>
+
+    <div id="a8RiderAlert" class="status8">
+      डिलीवरी पार्टनर के लिए अभी कोई अपडेट नहीं।
+    </div>
+
+    <label for="a8Distance">ग्राहक से अनुमानित दूरी (मीटर) — demo</label>
+    <input id="a8Distance" type="number" min="0" max="100000" value="100">
+
+    <button id="a8DistanceCheck" type="button">दूरी की डेमो जाँच</button>
+    <button id="a8Voice" class="alt8" type="button">आवाज़ में अलर्ट सुनें</button>
+
+    <div id="a8DistanceStatus" class="status8" aria-live="polite">
+      ग्राहक की दूरी की जाँच बाकी है।
+    </div>
+
+    <p class="muted8">
+      वास्तविक 10–15 मीटर अलर्ट के लिए ग्राहक और राइडर की अनुमति से
+      location access, background tracking की सीमाओं का ध्यान,
+      और server-side location event जरूरी होंगे। यहाँ दूरी स्वयं डाली जाती है।
+    </p>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>8. Seller Packing Instructions</h3>
+    <ul class="list8">
+      <li>सही ऑर्डर, सही मात्रा, variant, size और रंग की जाँच करें।</li>
+      <li>फूड को सुरक्षित, leak-resistant पैकिंग और उचित seal में दें।</li>
+      <li>कपड़े, जूते और ज्वेलरी में सामान की स्थिति और accessories जाँचें।</li>
+      <li>ऑर्डर का reference code स्कैन/मिलान करके ही राइडर को सौंपें।</li>
+      <li>गलत पैकिंग या missing item पर प्रमाण और घटना का रिकॉर्ड रखें।</li>
+    </ul>
+    <div class="muted8">
+      जिम्मेदारी तय करने से पहले शिकायत, फोटो/रिकॉर्ड, पैकिंग जाँच और
+      दोनों पक्षों का जवाब देखें। स्वतः जुर्माना न लगाएँ।
+    </div>
+  </div>
+
+  <div class="card8 wide8">
+    <h3>9. सुरक्षा और असली सिस्टम के लिए जरूरी काम</h3>
+    <ul class="list8">
+      <li>Supabase Auth से ग्राहक, सेलर और राइडर की पहचान सत्यापित करना।</li>
+      <li>हर ऑर्डर के लिए अलग, अनुमान न लगाया जा सकने वाला reference बनाना।</li>
+      <li>OTP generation, expiry, attempts और verification server पर करना।</li>
+      <li>Payment gateway webhook से COD-to-online payment की पुष्टि करना।</li>
+      <li>RLS और server-side checks से दूसरे यूज़र के ऑर्डर बदलने से रोकना।</li>
+      <li>डिलीवरी, भुगतान, COD जमा और refund का audit log रखना।</li>
+      <li>QR/barcode में केवल सुरक्षित order token रखना, निजी ग्राहक जानकारी नहीं।</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const root = document.getElementById("adbm8");
+  if (!root || root.dataset.ready === "yes") return;
+  root.dataset.ready = "yes";
+
+  const $ = id => root.querySelector("#" + id);
+  const money = value => "₹" + Math.round(value).toLocaleString("en-IN");
+
+  let order = null;
+  let sequence = 0;
+  let demoOtp = null;
+  let customerConfirmed = false;
+  let otpVerified = false;
+  let codCollected = false;
+  let onlineRequest = false;
+  let demoPaymentSuccess = false;
+  let riderHasOrder = false;
+  let packed = false;
+  let accepted = false;
+  let handedOver = false;
+  let timeline = [];
+
+  function safeText(value, max = 100) {
+    return String(value || "").trim().slice(0, max);
+  }
+
+  function makeReference() {
+    sequence++;
+    let random = "";
+    try {
+      const bytes = new Uint32Array(2);
+      crypto.getRandomValues(bytes);
+      random = Array.from(bytes, n => n.toString(36)).join("").toUpperCase();
+    } catch (error) {
+      random = Math.random().toString(36).slice(2, 12).toUpperCase();
+    }
+    return "ADBM-" + Date.now().toString(36).toUpperCase() +
+      "-" + sequence + "-" + random.slice(0, 8);
+  }
+
+  function logEvent(message) {
+    const time = new Date().toLocaleTimeString("en-IN", {
+      hour: "2-digit", minute: "2-digit"
+    });
+    timeline.unshift({ time, message: safeText(message, 240) });
+    timeline = timeline.slice(0, 15);
+
+    $("a8Timeline").replaceChildren();
+    timeline.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "event8";
+      const strong = document.createElement("strong");
+      strong.textContent = item.time + " — ";
+      div.append(strong, document.createTextNode(item.message));
+      $("a8Timeline").appendChild(div);
+    });
+  }
+
+  function show(id, message) {
+    $(id).textContent = message;
+  }
+
+  function requireOrder() {
+    if (!order) {
+      show("a8CreateStatus", "पहले नया डेमो ऑर्डर बनाएँ।");
+      return false;
+    }
+    return true;
+  }
+
+  function readOrderCode(id) {
+    return safeText($(id).value, 80) === order.code;
+  }
+
+  function validateCode(id, statusId) {
+    if (!requireOrder()) return false;
+    if (!readOrderCode(id)) {
+      show(statusId, "गलत ऑर्डर reference। सही ऑर्डर कोड डालें।");
+      return false;
+    }
+    return true;
+  }
+
+  function updateHeader() {
+    if (!order) return;
+
+    $("a8OrderCode").textContent = order.code;
+    $("a8Status").textContent = order.status;
+
+    $("a8PayBadge").textContent =
+      order.payment === "prepaid" ? "Prepaid" :
+      demoPaymentSuccess ? "Online paid (demo)" :
+      "COD";
+
+    $("a8DeliveryBadge").textContent =
+      order.delivered ? "Delivered (demo)" :
+      handedOver ? "Rider assigned" :
+      "In progress";
+  }
+
+  function newOrder() {
+    const amount = Number($("a8Amount").value);
+    if (!Number.isFinite(amount) || amount <= 0 || amount > 1000000) {
+      show("a8CreateStatus", "ऑर्डर की रकम ₹1 से ₹10,00,000 के बीच रखें।");
+      return;
+    }
+
+    const category = $("a8Category").value;
+    const payment = $("a8Payment").value;
+
+    order = {
+      code: makeReference(),
+      category,
+      payment,
+      amount,
+      customer: safeText($("a8Customer").value, 80) || "Customer",
+      seller: safeText($("a8Seller").value, 80) || "Seller",
+      rider: safeText($("a8Rider").value, 80) || "Rider",
+      status: "नया ऑर्डर",
+      delivered: false
+    };
+
+    demoOtp = null;
+    customerConfirmed = false;
+    otpVerified = false;
+    codCollected = false;
+    onlineRequest = false;
+    demoPaymentSuccess = false;
+    riderHasOrder = false;
+    packed = false;
+    accepted = false;
+    handedOver = false;
+
+    $("a8ScanInput").value = order.code;
+    $("a8ConfirmCode").value = order.code;
+    $("a8OnlineCode").value = order.code;
+    $("a8CompleteCode").value = order.code;
+
+    show("a8CreateStatus",
+      "डेमो ऑर्डर बन गया। Reference: " + order.code +
+      ". यह वास्तविक ऑर्डर या भुगतान नहीं है।");
+
+    show("a8SellerAlert",
+      "नया ऑर्डर आया है: " + order.code +
+      ". Seller " + order.seller +
+      " सही सामान और पैकिंग की जाँच करे।");
+
+    show("a8PackStatus", "सेलर की कार्रवाई बाकी है।");
+    show("a8OtpStatus", "ग्राहक की पुष्टि के बाद ही demo OTP बनेगा।");
+    show("a8OnlineStatus", "अभी online payment request नहीं बनाई गई।");
+    show("a8RiderAlert",
+      "ऑर्डर बना है। Seller handover के बाद ही rider assignment का demo status बदलेगा।");
+    show("a8CompleteStatus", "डिलीवरी अभी पूरी नहीं हुई।");
+
+    logEvent("नया डेमो ऑर्डर बनाया गया: " + order.code);
+    updateHeader();
+  }
+
+  $("a8Create").addEventListener("click", newOrder);
+
+  $("a8Accept").addEventListener("click", function () {
+    if (!requireOrder()) return;
+    if (!validateCode("a8ScanInput", "a8PackStatus")) return;
+
+    accepted = true;
+    order.status = "सेलर ने ऑर्डर स्वीकार किया";
+    show("a8SellerAlert",
+      "ऑर्डर स्वीकार हुआ। " + order.code +
+      " — सही सामान, quantity और पैकिंग पूरी करें।");
+
+    show("a8PackStatus", "ऑर्डर स्वीकार हुआ। अब पैकिंग जाँचें।");
+    logEvent("Seller ने ऑर्डर स्वीकार किया।");
+    updateHeader();
+  });
+
+  $("a8Packed").addEventListener("click", function () {
+    if (!requireOrder()) return;
+    if (!validateCode("a8ScanInput", "a8PackStatus")) return;
+
+    if (!accepted) {
+      show("a8PackStatus", "पहले Seller ऑर्डर स्वीकार करे।");
+      return;
+    }
+
+    if ($("a8PackCheck").value !== "ok") {
+      show("a8PackStatus",
+        "पैकिंग पूरी दर्ज नहीं हुई। सामान, मात्रा और seal की जाँच करें।");
+      return;
+    }
+
+    packed = true;
+    order.status = "पैकिंग पूरी";
+    show("a8PackStatus",
+      "पैकिंग जाँच पूरी (demo)। अब राइडर को सही reference के साथ सौंपें।");
+
+    logEvent("Seller ने पैकिंग जाँच पूरी की।");
+    updateHeader();
+  });
+
+  $("a8Handover").addEventListener("click", function () {
+    if (!requireOrder()) return;
+    if (!validateCode("a8ScanInput", "a8PackStatus")) return;
+
+    if (!accepted || !packed) {
+      show("a8PackStatus",
+        "Handover से पहले ऑर्डर स्वीकार और पैकिंग जाँच पूरी होनी चाहिए।");
+      return;
+    }
+
+    handedOver = true;
+    riderHasOrder = true;
+    order.status = "डिलीवरी पार्टनर को सौंपा गया";
+
+    show("a8RiderAlert",
+      "नया ऑर्डर मिला: " + order.code +
+      ". Seller ने handover दर्ज किया है। यह demo assignment है।");
+
+    show("a8PackStatus", "Handover दर्ज हुआ (demo)।");
+    logEvent("ऑर्डर राइडर को सौंपा गया (demo)।");
+    updateHeader();
+  });
+
+  $("a8ConfirmDelivery").addEventListener("click", function () {
+    if (!validateCode("a8ConfirmCode", "a8OtpStatus")) return;
+
+    if ($("a8CustomerConfirm").value !== "yes") {
+      show("a8OtpStatus",
+        "OTP जारी करने से पहले ग्राहक की पुष्टि आवश्यक है।");
+      return;
+    }
+
+    if (!handedOver || !riderHasOrder) {
+      show("a8OtpStatus",
+        "राइडर को ऑर्डर सौंपे जाने के बाद ही delivery confirmation शुरू करें।");
+      return;
+    }
+
+    customerConfirmed = true;
+
+    // Demo-only OTP: never expose OTP this way in production.
+    demoOtp = String(Math.floor(100000 + Math.random() * 900000));
+    otpVerified = false;
+
+    show("a8OtpStatus",
+      "ग्राहक की पुष्टि दर्ज हुई (demo)। परीक्षण OTP: " + demoOtp +
+      ". असली सिस्टम में OTP ग्राहक को verified private channel पर भेजें।");
+
+    logEvent("ग्राहक की delivery confirmation दर्ज हुई (demo)।");
+  });
+
+  $("a8VerifyOtp").addEventListener("click", function () {
+    if (!validateCode("a8ConfirmCode", "a8OtpStatus")) return;
+
+    if (!customerConfirmed || !demoOtp) {
+      show("a8OtpStatus",
+        "ग्राहक की पुष्टि और OTP जारी होना आवश्यक है।");
+      return;
+    }
+
+    const entered = safeText($("a8OtpInput").value, 8);
+    if (entered !== demoOtp) {
+      show("a8OtpStatus", "OTP मेल नहीं खाता। दोबारा जाँचें।");
+      return;
+    }
+
+    otpVerified = true;
+    show("a8OtpStatus",
+      "OTP demo में सही मिला। अब भुगतान की शर्तें भी पूरी होनी चाहिए।");
+
+    logEvent("Demo OTP सत्यापित हुआ।");
+  });
+
+  $("a8RequestOnline").addEventListener("click", function () {
+    if (!validateCode("a8OnlineCode", "a8OnlineStatus")) return;
+
+    if (order.payment !== "cod" || codCollected) {
+      show("a8OnlineStatus",
+        "यह बदलाव केवल उस COD ऑर्डर के लिए है जिसकी रकम अभी जमा नहीं हुई।");
+      return;
+    }
+
+    onlineRequest = true;
+    demoPaymentSuccess = false;
+    show("a8OnlineStatus",
+      "Online payment अनुरोध demo में दर्ज हुआ। असली QR/payment link gateway से बनना चाहिए।");
+
+    logEvent("COD से online payment अनुरोध दर्ज हुआ (demo)।");
+  });
+
+  $("a8PaymentTest").addEventListener("click", function () {
+    if (!validateCode("a8OnlineCode", "a8OnlineStatus")) return;
+
+    if (!onlineRequest) {
+      show("a8OnlineStatus", "पहले COD के लिए online payment अनुरोध बनाएँ।");
+      return;
+    }
+
+    const result = $("a8PaymentResult").value;
+
+    if (result === "success") {
+      const reference = safeText($("a8PaymentReference").value, 120);
+      if (!reference) {
+        show("a8OnlineStatus",
+          "Demo परीक्षण के लिए transaction reference भरें। इससे असली भुगतान verify नहीं होगा।");
+        return;
+      }
+
+      demoPaymentSuccess = true;
+      order.payment = "prepaid";
+
+      show("a8OnlineStatus",
+        "Demo में भुगतान सफल चुना गया। Reference: " + reference +
+        ". यह बैंक/गेटवे की वास्तविक पुष्टि नहीं है।");
+
+      logEvent("Demo online payment success चुना गया; वास्तविक gateway verification नहीं।");
+    } else if (result === "failed") {
+      demoPaymentSuccess = false;
+      show("a8OnlineStatus",
+        "Demo payment failed। COD status वापस लागू करने का निर्णय वास्तविक सिस्टम की server policy करेगी।");
+      logEvent("Demo online payment failed।");
+    } else {
+      demoPaymentSuccess = false;
+      show("a8OnlineStatus",
+        "Payment pending। असली भुगतान की server confirmation आने तक भुगतान पूरा न मानें।");
+    }
+
+    updateHeader();
+  });
+
+  $("a8CollectCod").addEventListener("click", function () {
+    if (!requireOrder()) return;
+
+    if (order.payment !== "cod" || demoPaymentSuccess) {
+      show("a8CompleteStatus",
+        "ऑर्डर online/prepaid है। COD दोबारा collect नहीं करना चाहिए।");
+      return;
+    }
+
+    const collected = Number($("a8CodAmount").value);
+    if (!Number.isFinite(collected) || collected !== order.amount) {
+      show("a8CompleteStatus",
+        "COD रकम ऑर्डर की कुल रकम " + money(order.amount) +
+        " के बराबर होनी चाहिए।");
+      return;
+    }
+
+    if ($("a8CodConfirm").value !== "yes") {
+      show("a8CompleteStatus", "COD प्राप्ति की पुष्टि अभी नहीं हुई।");
+      return;
+    }
+
+    codCollected = true;
+    show("a8CompleteStatus",
+      "COD प्राप्ति demo में दर्ज हुई: " + money(collected) +
+      ". वास्तविक सिस्टम में rider ledger और जमा reconciliation आवश्यक है।");
+
+    logEvent("COD प्राप्ति दर्ज हुई (demo)।");
+    updateHeader();
+  });
+
+  $("a8Complete").addEventListener("click", function () {
+    if (!validateCode("a8CompleteCode", "a8CompleteStatus")) return;
+
+    if (!handedOver) {
+      show("a8CompleteStatus", "ऑर्डर राइडर को सौंपा जाना आवश्यक है।");
+      return;
+    }
+
+    if (!otpVerified) {
+      show("a8CompleteStatus",
+        "डेमो नियम के अनुसार ग्राहक का सही OTP सत्यापित होना जरूरी है।");
+      return;
+    }
+
+    const paid = order.payment === "prepaid" && demoPaymentSuccess;
+    if (!paid && !codCollected) {
+      show("a8CompleteStatus",
+        "पहले online payment की demo success स्थिति या पूरी COD प्राप्ति दर्ज करें।");
+      return;
+    }
+
+    order.delivered = true;
+    order.status = "डिलीवरी पूरी (demo)";
+
+    show("a8CompleteStatus",
+      "डेमो डिलीवरी पूरी हुई। असली सिस्टम में OTP, payment/COD और order status की जाँच server पर होगी।");
+
+    show("a8RiderAlert", "डेमो ऑर्डर पूरा हुआ: " + order.code);
+    logEvent("डिलीवरी पूरी हुई (demo)।");
+    updateHeader();
+  });
+
+  $("a8DistanceCheck").addEventListener("click", function () {
+    if (!requireOrder()) return;
+
+    if (!handedOver) {
+      show("a8DistanceStatus",
+        "दूरी अलर्ट से पहले ऑर्डर राइडर को assign होना चाहिए।");
+      return;
+    }
+
+    const distance = Number($("a8Distance").value);
+    if (!Number.isFinite(distance) || distance < 0 || distance > 100000) {
+      show("a8DistanceStatus", "दूरी 0 से 100000 मीटर के बीच भरें।");
+      return;
+    }
+
+    if (distance <= 15) {
+      show("a8DistanceStatus",
+        "ग्राहक के पास 15 मीटर या उससे कम दूरी (demo)। वास्तविक GPS से पुष्टि नहीं हुई।");
+      show("a8RiderAlert",
+        "पास पहुँचने का demo alert: " + order.code +
+        ". ग्राहक को सुरक्षित delivery confirmation के लिए तैयार करें।");
+      logEvent("15 मीटर proximity alert demo में दिखाया गया।");
+    } else if (distance <= 100) {
+      show("a8DistanceStatus",
+        "राइडर लगभग 100 मीटर के भीतर (demo)। यह वास्तविक location नहीं है।");
+    } else {
+      show("a8DistanceStatus",
+        "राइडर अभी " + distance +
+        " मीटर दूर (demo input)। वास्तविक दूरी सत्यापित नहीं है।");
+    }
+  });
+
+  $("a8Voice").addEventListener("click", function () {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+      show("a8RiderAlert",
+        "इस ब्राउज़र में voice feature उपलब्ध नहीं है।");
+      return;
+    }
+
+    const message = !order
+      ? "ए डी ब्रांड मार्केट। अभी कोई ऑर्डर नहीं है।"
+      : "ए डी ब्रांड मार्केट। ऑर्डर " + order.code +
+        ". " + order.status + ".";
+
+    const utterance = new SpeechSynthesisUtterance(message);
+    utterance.lang = "hi-IN";
+    utterance.rate = 0.9;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  });
+
+  updateHeader();
+})();
+</script>
+</section>
+<!-- END ADBM8 -->
+```
+  ```html
+<!-- =========================================================
+ AD BRAND MARKET — PAGE 9
+ LOCATION RULES • ROLE ACCOUNTS • RETURNS • REFUNDS • WALLET
+ FRONTEND DEMO — secure backend integration required
+========================================================= -->
+
+<section id="adbm9">
+<style>
+#adbm9{
+ --bg:#101322;--card:#191e32;--line:#343b59;
+ --text:#f6f7ff;--muted:#abb6d3;--gold:#ffd166;
+ --green:#55e3a1;--blue:#82aaff;--red:#ff8989;
+ background:var(--bg);color:var(--text);
+ border:1px solid var(--line);border-radius:22px;
+ padding:18px;margin:18px 0;font-family:Arial,sans-serif
+}
+#adbm9 *{box-sizing:border-box}
+#adbm9 h2,#adbm9 h3{margin:0 0 12px}
+#adbm9 p{color:var(--muted);line-height:1.55}
+#adbm9 .g9{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#adbm9 .c9{background:var(--card);border:1px solid var(--line);padding:14px;border-radius:15px;min-width:0}
+#adbm9 .w9{grid-column:1/-1}
+#adbm9 label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+#adbm9 input,#adbm9 select,#adbm9 textarea{
+ width:100%;padding:11px;background:#101426;color:var(--text);
+ border:1px solid var(--line);border-radius:10px;font-size:14px
+}
+#adbm9 button{
+ border:0;border-radius:10px;padding:11px 14px;margin:7px 5px 0 0;
+ background:var(--gold);color:#151629;font-weight:700;cursor:pointer
+}
+#adbm9 .b9{background:#303a59;color:white}
+#adbm9 .s9{background:#222a43;border-radius:11px;padding:12px;margin-top:12px;line-height:1.6;overflow-wrap:anywhere}
+#adbm9 .mut9{font-size:12px;color:var(--muted);line-height:1.5}
+#adbm9 .ok9{color:var(--green)}
+#adbm9 .bad9{color:var(--red)}
+#adbm9 .money9{font-size:24px;color:var(--gold);font-weight:800}
+#adbm9 .line9{height:1px;background:var(--line);margin:15px 0}
+#adbm9 .item9{padding:10px;border:1px solid var(--line);border-radius:10px;margin:7px 0;overflow-wrap:anywhere}
+@media(max-width:560px){
+ #adbm9{padding:12px}
+ #adbm9 .g9{grid-template-columns:1fr}
+ #adbm9 .w9{grid-column:auto}
+}
+</style>
+
+<h2>🇮🇳 AD Brand Market — Account & Returns Center</h2>
+<p>
+स्थानीय फूड, पूरे भारत के फैशन ऑर्डर, अलग-अलग रोल,
+रिटर्न और रिफंड की डेमो व्यवस्था।
+</p>
+
+<div class="g9">
+  <div class="c9 w9">
+    <h3>1. सही क्षेत्र के Seller दिखाएँ</h3>
+    <p>
+      फूड स्थानीय सेवा क्षेत्र तक सीमित रहेगा। कपड़े, जूते,
+      चप्पल और ज्वेलरी के लिए pan-India shipping की अनुमति
+      तभी होगी जब सेलर की shipping व्यवस्था उपलब्ध हो।
+    </p>
+
+    <label for="a9CustomerCity">ग्राहक का शहर</label>
+    <input id="a9CustomerCity" maxlength="70" value="Lucknow">
+
+    <label for="a9CustomerPin">ग्राहक का PIN code</label>
+    <input id="a9CustomerPin" inputmode="numeric" maxlength="6" placeholder="6 अंकों का PIN code">
+
+    <label for="a9Category">क्या खरीदना है?</label>
+    <select id="a9Category">
+      <option value="food">फूड / चाय / स्नैक्स</option>
+      <option value="fashion">कपड़े / जूते / चप्पल</option>
+      <option value="jewellery">ज्वेलरी / एक्सेसरीज़</option>
+    </select>
+
+    <label for="a9SellerCity">Seller का शहर</label>
+    <input id="a9SellerCity" maxlength="70" value="Lucknow">
+
+    <label for="a9SellerPin">Seller का PIN code</label>
+    <input id="a9SellerPin" inputmode="numeric" maxlength="6" placeholder="6 अंकों का PIN code">
+
+    <label for="a9ServiceArea">क्या Seller ग्राहक के PIN code में सेवा देता है?</label>
+    <select id="a9ServiceArea">
+      <option value="yes">हाँ — सेवा क्षेत्र उपलब्ध है (demo)</option>
+      <option value="no">नहीं — सेवा क्षेत्र उपलब्ध नहीं</option>
+    </select>
+
+    <label for="a9Shipping">Fashion / Jewellery shipping</label>
+    <select id="a9Shipping">
+      <option value="yes">भारत में shipping उपलब्ध (demo)</option>
+      <option value="no">इस PIN code पर shipping उपलब्ध नहीं</option>
+    </select>
+
+    <button id="a9CheckLocation" type="button">Seller की पात्रता जाँचें</button>
+    <div class="s9" id="a9LocationResult" aria-live="polite">
+      जाँच की प्रतीक्षा है।
+    </div>
+  </div>
+
+  <div class="c9 w9">
+    <h3>2. Customer / Seller / Delivery Partner Registration</h3>
+    <p>
+      हर रोल का अलग प्रोफ़ाइल पेज होगा। Login के बाद सर्वर
+      सत्यापित करेगा कि उपयोगकर्ता को उस रोल का अधिकार है।
+    </p>
+
+    <label for="a9Role">कौन-सा अकाउंट बनाना है?</label>
+    <select id="a9Role">
+      <option value="customer">Customer — सामान खरीदें</option>
+      <option value="seller">Seller — सामान बेचें</option>
+      <option value="delivery">Delivery Partner — ऑर्डर पहुँचाएँ</option>
+    </select>
+
+    <label for="a9FullName">पूरा नाम</label>
+    <input id="a9FullName" maxlength="100" autocomplete="name" placeholder="अपना नाम">
+
+    <label for="a9Mobile">मोबाइल नंबर</label>
+    <input id="a9Mobile" type="tel" maxlength="10" inputmode="numeric" autocomplete="tel" placeholder="10 अंकों का मोबाइल नंबर">
+
+    <label for="a9City">शहर</label>
+    <input id="a9City" maxlength="70" placeholder="जैसे Lucknow">
+
+    <label for="a9Area">एरिया / मोहल्ला</label>
+    <input id="a9Area" maxlength="100" placeholder="एरिया का नाम">
+
+    <label for="a9Pin">PIN code</label>
+    <input id="a9Pin" inputmode="numeric" maxlength="6" placeholder="6 अंकों का PIN code">
+
+    <label for="a9Email">ईमेल (यदि उपलब्ध हो)</label>
+    <input id="a9Email" type="email" maxlength="160" autocomplete="email" placeholder="name@example.com">
+
+    <label for="a9Password">पासवर्ड</label>
+    <input id="a9Password" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder="कम-से-कम 8 अक्षर">
+
+    <label for="a9Consent">सहमति</label>
+    <select id="a9Consent">
+      <option value="no">पहले जानकारी पढ़नी है</option>
+      <option value="yes">मैं लागू नियम और Privacy Notice पढ़कर सहमत हूँ</option>
+    </select>
+
+    <button id="a9RegisterDemo" type="button">Registration Demo जाँचें</button>
+    <button id="a9LoginInfo" class="b9" type="button">मौजूदा अकाउंट से Login</button>
+
+    <div class="s9" id="a9AccountResult" aria-live="polite">
+      अभी कोई Registration या Login नहीं हुआ।
+    </div>
+
+    <div class="mut9">
+      यह फॉर्म असली अकाउंट नहीं बनाता, OTP नहीं भेजता और पासवर्ड सेव नहीं करता।
+      Production में Supabase Auth से Registration/Login करें; पासवर्ड
+      स्वयं database या localStorage में न रखें।
+    </div>
+  </div>
+
+  <div class="c9 w9">
+    <h3>3. Seller और Delivery Partner की Verification</h3>
+    <p>
+      ग्राहक के लिए अनावश्यक सरकारी दस्तावेज़ न माँगें।
+      Seller और delivery partner की ज़रूरी verification अलग
+      और restricted access में रखें।
+    </p>
+
+    <label for="a9VerificationRole">किसकी verification?</label>
+    <select id="a9VerificationRole">
+      <option value="seller">Seller</option>
+      <option value="delivery">Delivery Partner</option>
+    </select>
+
+    <label for="a9VerificationStatus">Verification स्थिति</label>
+    <select id="a9VerificationStatus">
+      <option value="pending">Pending</option>
+      <option value="verified">Authorized provider से verified</option>
+      <option value="rejected">Rejected — समीक्षा आवश्यक</option>
+    </select>
+
+    <label for="a9DuplicateCheck">पहले से verified पहचान का मिलान</label>
+    <select id="a9DuplicateCheck">
+      <option value="unchecked">अभी जाँच नहीं हुई</option>
+      <option value="match">पहले से verified रिकॉर्ड मिला</option>
+      <option value="clear">Provider ने duplicate match नहीं बताया</option>
+    </select>
+
+    <button id="a9VerificationDemo" type="button">Verification नियम समझें</button>
+
+    <div class="s9" id="a9VerificationResult" aria-live="polite">
+      वास्तविक verification provider से पुष्टि आवश्यक है।
+    </div>
+
+    <div class="mut9">
+      यहाँ Aadhaar/PAN नंबर, फोटो, बैंक अकाउंट या दस्तावेज़ अपलोड न करें।
+      यह demo किसी सरकारी पहचान को verify नहीं करता। असली पहचान की
+      duplicate रोक provider-backed verification, server-side uniqueness
+      और restricted access से बनेगी। केवल कानूनी आधार और आवश्यक सहमति
+      होने पर ही संवेदनशील दस्तावेज़ प्रोसेस करें।
+    </div>
+  </div>
+
+  <div class="c9 w9">
+    <h3>4. कपड़े / जूते / ज्वेलरी Return Request</h3>
+    <p>
+      ग्राहक कारण चुनेगा, आवश्यक विवरण देगा और फिर उपलब्ध refund
+      विकल्प चुनेगा। अंतिम पात्रता लागू return policy, उत्पाद की
+      स्थिति और जाँच के आधार पर तय होगी।
+    </p>
+
+    <label for="a9ReturnOrder">ऑर्डर reference</label>
+    <input id="a9ReturnOrder" maxlength="80" placeholder="Order ID">
+
+    <label for="a9ReturnCategory">उत्पाद कैटेगरी</label>
+    <select id="a9ReturnCategory">
+      <option value="fashion">कपड़े / जूते / चप्पल</option>
+      <option value="jewellery">ज्वेलरी / एक्सेसरीज़</option>
+    </select>
+
+    <label for="a9ReturnReason">रिटर्न का कारण</label>
+    <select id="a9ReturnReason">
+      <option value="">कारण चुनें</option>
+      <option value="wrong_item">गलत सामान मिला</option>
+      <option value="wrong_size">साइज़ गलत है</option>
+      <option value="damaged">सामान टूटा / खराब है</option>
+      <option value="missing">सामान या accessory गायब है</option>
+      <option value="not_as_described">फोटो/विवरण से अलग है</option>
+      <option value="quality">Quality की समस्या</option>
+      <option value="counterfeit">प्रामाणिकता को लेकर चिंता</option>
+      <option value="changed_mind">मन बदल गया</option>
+      <option value="other">अन्य कारण</option>
+    </select>
+
+    <label for="a9ReturnDetails">समस्या का विवरण</label>
+    <textarea id="a9ReturnDetails" rows="3" maxlength="1200" placeholder="क्या समस्या हुई?"></textarea>
+
+    <label for="a9Evidence">सबूत / फोटो की स्थिति</label>
+    <select id="a9Evidence">
+      <option value="none">अभी कोई सबूत नहीं</option>
+      <option value="photo">फोटो उपलब्ध</option>
+      <option value="video">वीडियो उपलब्ध</option>
+      <option value="package">पैकेजिंग / लेबल उपलब्ध</option>
+    </select>
+
+    <label for="a9RefundAmount">अनुमानित refund राशि (₹)</label>
+    <input id="a9RefundAmount" type="number" min="0" max="1000000" value="150">
+
+    <label for="a9RefundMethod">Refund कहाँ चाहिए?</label>
+    <select id="a9RefundMethod">
+      <option value="wallet">AD Brand Wallet</option>
+      <option value="upi">UPI</option>
+      <option value="bank">Bank account</option>
+    </select>
+
+    <button id="a9SubmitReturn" type="button">डेमो Return Request बनाएँ</button>
+    <div id="a9ReturnResult" class="s9" aria-live="polite">
+      अभी कोई Return Request नहीं बनी।
+    </div>
+
+    <div class="mut9">
+      रिफंड तुरंत जारी नहीं होता। पहले order/payment सत्यापन, return
+      eligibility और आवश्यक inspection होगा। Wallet चुनने से केवल demo
+      entry बनती है; कोई असली wallet balance या भुगतान नहीं बदलता।
+    </div>
+  </div>
+
+  <div class="c9 w9">
+    <h3>5. AD Brand Wallet — Demo Ledger</h3>
+    <div class="money9" id="a9WalletBalance">₹0</div>
+    <p>यह केवल इस ब्राउज़र पेज का परीक्षण बैलेंस है, असली पैसा नहीं।</p>
+
+    <label for="a9WalletOrder">Wallet उपयोग के लिए नया ऑर्डर reference</label>
+    <input id="a9WalletOrder" maxlength="80" placeholder="नया Order ID">
+
+    <label for="a9WalletUse">इस ऑर्डर में wallet से कितने रुपये लगाने हैं?</label>
+    <input id="a9WalletUse" type="number" min="1" value="150">
+
+    <label for="a9NewOrderTotal">नए ऑर्डर की कुल रकम (₹)</label>
+    <input id="a9NewOrderTotal" type="number" min="1" value="250">
+
+    <button id="a9UseWallet" type="button">Wallet का Demo उपयोग करें</button>
+    <div id="a9WalletResult" class="s9" aria-live="polite">
+      Wallet का उपयोग करने के लिए राशि भरें।
+    </div>
+
+    <div class="line9"></div>
+    <h3>Wallet Ledger</h3>
+    <div id="a9WalletLedger">
+      <div class="item9 mut9">अभी कोई demo entry नहीं है।</div>
+    </div>
+
+    <div class="mut9">
+      वास्तविक wallet में हर credit/debit के लिए server-side ledger,
+      transaction ID, idempotency, refund approval और audit log चाहिए।
+      ग्राहक के ब्राउज़र से balance बढ़ाना या घटाना सुरक्षित नहीं है।
+    </div>
+  </div>
+
+  <div class="c9 w9">
+    <h3>6. ऑर्डर नीति — Food और Pan-India Fashion</h3>
+    <ul class="mut9">
+      <li>फूड: केवल उपलब्ध स्थानीय seller, सेवा क्षेत्र, खुलने का समय और अनुमानित delivery time जाँचें।</li>
+      <li>फूड में self-pickup बंद रखें, जैसा तुम्हारी business policy है।</li>
+      <li>कपड़े/जूते/ज्वेलरी: पूरे भारत में listing तभी दिखाएँ जब shipping उपलब्ध हो।</li>
+      <li>दूर के fashion orders के लिए tracking, estimated delivery, cancellation और return window स्पष्ट दिखाएँ।</li>
+      <li>हर return में कारण, तारीख, order reference, evidence और decision history रखें।</li>
+      <li>राइडर की कमाई, COD collection और ग्राहक का refund अलग ledgers में रखें।</li>
+      <li>किसी शिकायत पर जुर्माना लगाने से पहले evidence और संबंधित पक्ष का जवाब लें।</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const root=document.getElementById("adbm9");
+  if(!root || root.dataset.initialized==="yes") return;
+  root.dataset.initialized="yes";
+
+  const $=id=>root.querySelector("#"+id);
+  const rupees=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+
+  let demoWalletBalance=0;
+  let walletLedger=[];
+  let returnSequence=0;
+
+  function clean(value,max=1200){
+    return String(value||"").trim().slice(0,max);
+  }
+
+  function validPin(pin){
+    return /^[1-9][0-9]{5}$/.test(pin);
+  }
+
+  function validMobile(mobile){
+    return /^[6-9][0-9]{9}$/.test(mobile);
+  }
+
+  function show(id,message){
+    $(id).textContent=message;
+  }
+
+  function checkLocation(){
+    const category=$("a9Category").value;
+    const customerCity=clean($("a9CustomerCity").value,70).toLowerCase();
+    const sellerCity=clean($("a9SellerCity").value,70).toLowerCase();
+    const customerPin=clean($("a9CustomerPin").value,6);
+    const sellerPin=clean($("a9SellerPin").value,6);
+    const service=$("a9ServiceArea").value==="yes";
+    const shipping=$("a9Shipping").value==="yes";
+
+    if(!customerCity || !sellerCity){
+      show("a9LocationResult","ग्राहक और seller का शहर भरें।");
+      return;
+    }
+
+    if(!validPin(customerPin)||!validPin(sellerPin)){
+      show("a9LocationResult",
+        "दोनों PIN code सही 6 अंकों के होने चाहिए।");
+      return;
+    }
+
+    if(category==="food"){
+      if(customerCity!==sellerCity){
+        show("a9LocationResult",
+          "फूड ऑर्डर के लिए अलग शहर का seller उपलब्ध नहीं होगा। " +
+          "इस demo में ग्राहक और seller के शहर मेल नहीं खाते।");
+        return;
+      }
+
+      if(!service){
+        show("a9LocationResult",
+          "Seller ग्राहक के PIN code में सेवा नहीं देता।");
+        return;
+      }
+
+      show("a9LocationResult",
+        "Demo में स्थानीय food seller पात्र है। वास्तविक सिस्टम में " +
+        "शहर के साथ verified service polygon, PIN coverage, opening hours, " +
+        "stock और delivery ETA जाँचना होगा।");
+      return;
+    }
+
+    if(!shipping){
+      show("a9LocationResult",
+        "Fashion/Jewellery seller की shipping इस PIN code पर उपलब्ध नहीं है।");
+      return;
+    }
+
+    show("a9LocationResult",
+      "Pan-India shipping demo में उपलब्ध है। असली order से पहले " +
+      "courier coverage, product restrictions, seller dispatch और ETA सत्यापित करें।");
+  }
+
+  $("a9CheckLocation").addEventListener("click",checkLocation);
+
+  $("a9RegisterDemo").addEventListener("click",function(){
+    const role=$("a9Role").value;
+    const name=clean($("a9FullName").value,100);
+    const mobile=clean($("a9Mobile").value,10);
+    const city=clean($("a9City").value,70);
+    const area=clean($("a9Area").value,100);
+    const pin=clean($("a9Pin").value,6);
+    const email=clean($("a9Email").value,160);
+    const password=$("a9Password").value;
+
+    if(!name || !validMobile(mobile) || !city || !area || !validPin(pin)){
+      show("a9AccountResult",
+        "नाम, सही मोबाइल नंबर, शहर, एरिया और 6 अंकों का PIN code भरें।");
+      return;
+    }
+
+    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      show("a9AccountResult","ईमेल का प्रारूप सही नहीं है।");
+      return;
+    }
+
+    if(password.length<8){
+      show("a9AccountResult","पासवर्ड कम-से-कम 8 अक्षरों का रखें।");
+      return;
+    }
+
+    if($("a9Consent").value!=="yes"){
+      show("a9AccountResult",
+        "आगे बढ़ने से पहले Privacy Notice और नियम पढ़ें।");
+      return;
+    }
+
+    // Never store the password, phone number, identity documents,
+    // or account credentials in localStorage/sessionStorage.
+    show("a9AccountResult",
+      "फॉर्म की बुनियादी जाँच पूरी हुई (demo)। " +
+      "रोल: "+role+"। कोई account बनाया नहीं गया, OTP नहीं भेजा गया " +
+      "और पासवर्ड सेव नहीं हुआ। वास्तविक Registration के लिए Supabase Auth " +
+      "और server-side profile creation जोड़ना होगा।");
+
+    $("a9Password").value="";
+  });
+
+  $("a9LoginInfo").addEventListener("click",function(){
+    show("a9AccountResult",
+      "Login के लिए Supabase Auth signInWithPassword / OTP flow जोड़ें। " +
+      "इस demo में login नहीं होता और कोई password collect नहीं किया जाता।");
+  });
+
+  $("a9VerificationDemo").addEventListener("click",function(){
+    const role=$("a9VerificationRole").value;
+    const status=$("a9VerificationStatus").value;
+    const duplicate=$("a9DuplicateCheck").value;
+
+    if(duplicate==="match"){
+      show("a9VerificationResult",
+        "समान verified identity का match मिला (demo)। नई registration रोककर " +
+        "authorized review करें; केवल match देखकर किसी की पहचान को गलत घोषित न करें।");
+      return;
+    }
+
+    if(status!=="verified"){
+      show("a9VerificationResult",
+        role+" verification pending/rejected है। वास्तविक अनुमति मिलने तक " +
+        "role-specific संवेदनशील कार्य सीमित रखें।");
+      return;
+    }
+
+    if(duplicate!=="clear"){
+      show("a9VerificationResult",
+        "Verification पूर्ण मानने से पहले अधिकृत provider से duplicate check करें।");
+      return;
+    }
+
+    show("a9VerificationResult",
+      "यह केवल demo चयन है। असली "+role+
+      " account के लिए provider response, consent, verified identity reference " +
+      "और database uniqueness policy की server-side जाँच आवश्यक है।");
+  });
+
+  $("a9SubmitReturn").addEventListener("click",function(){
+    const order=clean($("a9ReturnOrder").value,80);
+    const reason=$("a9ReturnReason").value;
+    const details=clean($("a9ReturnDetails").value,1200);
+    const evidence=$("a9Evidence").value;
+    const method=$("a9RefundMethod").value;
+    const amount=Number($("a9RefundAmount").value);
+
+    if(!order || !reason){
+      show("a9ReturnResult","Order reference और return reason जरूरी हैं।");
+      return;
+    }
+
+    if(!Number.isFinite(amount)||amount<0||amount>1000000){
+      show("a9ReturnResult","Refund amount सही भरें।");
+      return;
+    }
+
+    returnSequence++;
+    const reference="RET-DEMO-"+Date.now().toString(36).toUpperCase()+
+      "-"+returnSequence;
+
+    const methodLabel={
+      wallet:"AD Brand Wallet",
+      upi:"UPI",
+      bank:"Bank account"
+    }[method];
+
+    show("a9ReturnResult",
+      "Demo Return ID: "+reference+
+      ". Order: "+order+
+      ". कारण: "+reason+
+      ". Evidence: "+evidence+
+      ". Refund preference: "+methodLabel+
+      ". अनुमानित राशि: "+rupees(amount)+
+      ". विवरण: "+(details||"नहीं दिया गया")+
+      ". स्थिति: REVIEW PENDING। कोई असली refund जारी नहीं हुआ।");
+  });
+
+  function drawLedger(){
+    $("a9WalletBalance").textContent=rupees(demoWalletBalance);
+    const target=$("a9WalletLedger");
+    target.replaceChildren();
+
+    if(walletLedger.length===0){
+      const empty=document.createElement("div");
+      empty.className="item9 mut9";
+      empty.textContent="अभी कोई demo entry नहीं है।";
+      target.appendChild(empty);
+      return;
+    }
+
+    walletLedger.forEach(entry=>{
+      const div=document.createElement("div");
+      div.className="item9";
+      div.textContent=entry.type+" — "+entry.order+
+        " — "+rupees(entry.amount)+
+        " — शेष demo balance: "+rupees(entry.balance);
+      target.appendChild(div);
+    });
+  }
+
+  $("a9UseWallet").addEventListener("click",function(){
+    const order=clean($("a9WalletOrder").value,80);
+    const amount=Number($("a9WalletUse").value);
+    const total=Number($("a9NewOrderTotal").value);
+
+    if(!order){
+      show("a9WalletResult","नए ऑर्डर का reference भरें।");
+      return;
+    }
+
+    if(!Number.isFinite(amount)||!Number.isFinite(total)||
+       amount<=0||total<=0){
+      show("a9WalletResult","ऑर्डर और wallet की राशि शून्य से अधिक होनी चाहिए।");
+      return;
+    }
+
+    if(amount>total){
+      show("a9WalletResult",
+        "Wallet से कटने वाली रकम ऑर्डर की कुल रकम से अधिक नहीं हो सकती।");
+      return;
+    }
+
+    if(amount>demoWalletBalance){
+      show("a9WalletResult",
+        "Demo wallet में इतनी राशि उपलब्ध नहीं है। वास्तविक सिस्टम में " +
+        "balance server ledger से पढ़ा जाएगा।");
+      return;
+    }
+
+    demoWalletBalance-=amount;
+    walletLedger.unshift({
+      type:"Demo debit",
+      order,
+      amount,
+      balance:demoWalletBalance
+    });
+
+    show("a9WalletResult",
+      "Demo wallet से "+rupees(amount)+" घटाए गए। " +
+      "नए ऑर्डर में बाकी भुगतान "+rupees(total-amount)+
+      " होगा। कोई वास्तविक पैसा नहीं बदला।");
+
+    drawLedger();
+  });
+
+  drawLedger();
+})();
+</script>
+</section>
+<!-- END ADBM9 -->
+```
+  <!-- =====================================================
+ AD BRAND MARKET - LOCATION & DELIVERY ASSIGNMENT DEMO
+ Add before the final </body> tag in index.html
+===================================================== -->
+
+<section id="adbm10" class="adbm10">
+  <style>
+    #adbm10 {
+      --bg:#101827;
+      --card:#192438;
+      --line:#34445d;
+      --text:#f4f7ff;
+      --muted:#b9c5d9;
+      --green:#16c784;
+      color:var(--text);
+      background:var(--bg);
+      padding:20px;
+      margin:24px auto;
+      max-width:1100px;
+      border-radius:18px;
+      font-family:Arial,sans-serif;
+    }
+    #adbm10 * { box-sizing:border-box; }
+    #adbm10 h2,#adbm10 h3 { margin-top:0; }
+    #adbm10 .a10-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+    }
+    #adbm10 .a10-card {
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:13px;
+      padding:16px;
+      min-width:0;
+    }
+    #adbm10 label {
+      display:block;
+      margin:12px 0 6px;
+      font-size:14px;
+      color:var(--muted);
+    }
+    #adbm10 input,#adbm10 select {
+      width:100%;
+      padding:11px;
+      border:1px solid var(--line);
+      border-radius:9px;
+      background:#0e1726;
+      color:white;
+      font-size:15px;
+    }
+    #adbm10 button {
+      border:0;
+      border-radius:9px;
+      padding:12px 15px;
+      margin-top:12px;
+      background:var(--green);
+      color:#062117;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    #adbm10 .a10-muted { color:var(--muted); font-size:13px; }
+    #adbm10 .a10-result {
+      background:#0c342a;
+      border:1px solid #176e52;
+      padding:14px;
+      border-radius:10px;
+      margin-top:15px;
+      overflow-wrap:anywhere;
+    }
+    #adbm10 .a10-list {
+      padding:0;
+      list-style:none;
+      margin:0;
+    }
+    #adbm10 .a10-list li {
+      padding:10px 0;
+      border-bottom:1px solid var(--line);
+    }
+  </style>
+
+  <h2>AD Brand Market — लोकेशन और डिलीवरी</h2>
+  <p class="a10-muted">
+    Demo module: शहर, जोन, PIN और rider availability के आधार पर
+    ऑर्डर का संभावित मिलान।
+  </p>
+
+  <div class="a10-grid">
+    <div class="a10-card">
+      <h3>ग्राहक का पता</h3>
+
+      <label for="a10-state">State</label>
+      <select id="a10-state">
+        <option value="UP">उत्तर प्रदेश</option>
+        <option value="DL">दिल्ली</option>
+      </select>
+
+      <label for="a10-city">City</label>
+      <select id="a10-city">
+        <option value="Lucknow">लखनऊ</option>
+        <option value="Delhi">दिल्ली</option>
+      </select>
+
+      <label for="a10-zone">Zone / Area</label>
+      <select id="a10-zone"></select>
+
+      <label for="a10-pin">PIN Code</label>
+      <input id="a10-pin" inputmode="numeric"
+        maxlength="6" placeholder="6 अंकों का PIN कोड">
+
+      <label for="a10-address">पूरा पता</label>
+      <input id="a10-address" placeholder="मकान, सड़क, लैंडमार्क">
+    </div>
+
+    <div class="a10-card">
+      <h3>ऑर्डर का प्रकार</h3>
+
+      <label for="a10-kind">Category</label>
+      <select id="a10-kind">
+        <option value="food">Food / खाना / चाय / Snacks</option>
+        <option value="fashion">Fashion / कपड़े / जूते / चप्पल</option>
+      </select>
+
+      <label for="a10-seller">Demo Seller</label>
+      <select id="a10-seller">
+        <option value="mohan">मोहन की फूड दुकान</option>
+        <option value="delhiFood">दिल्ली फूड दुकान</option>
+        <option value="fashionShop">फैशन दुकान</option>
+      </select>
+
+      <label for="a10-order">Order Reference</label>
+      <input id="a10-order" placeholder="उदाहरण: ADM-10245">
+
+      <button type="button" id="a10-match">
+        उपलब्धता और Rider मिलाएँ
+      </button>
+
+      <div id="a10-result" class="a10-result" aria-live="polite">
+        ऑर्डर की जानकारी भरकर बटन दबाएँ।
+      </div>
+    </div>
+
+    <div class="a10-card">
+      <h3>Demo Delivery Partners</h3>
+      <p class="a10-muted">
+        ये नमूना रिकॉर्ड हैं, वास्तविक राइडर नहीं।
+      </p>
+
+      <ul id="a10-riders" class="a10-list"></ul>
+
+      <p class="a10-muted">
+        असली दूरी और लोकेशन के लिए अनुमति-आधारित GPS तथा
+        सर्वर पर सुरक्षित असाइनमेंट आवश्यक है।
+      </p>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    const root = document.getElementById("adbm10");
+    if (!root || root.dataset.ready === "yes") return;
+    root.dataset.ready = "yes";
+
+    const $ = id => root.querySelector("#" + id);
+
+    const zones = {
+      Lucknow: [
+        { name:"अलीगंज", pins:["226024","226022"] },
+        { name:"महानगर", pins:["226006","226016"] },
+        { name:"हजरतगंज", pins:["226001","226018"] },
+        { name:"गोमती नगर", pins:["226010","226019"] }
+      ],
+      Delhi: [
+        { name:"करोल बाग", pins:["110005","110060"] },
+        { name:"द्वारका", pins:["110075","110078"] },
+        { name:"रोहिणी", pins:["110085","110086"] },
+        { name:"लाजपत नगर", pins:["110024","110048"] }
+      ]
+    };
+
+    const sellers = {
+      mohan: {
+        name:"मोहन की फूड दुकान",
+        type:"food",
+        city:"Lucknow",
+        zone:"अलीगंज",
+        pins:["226024","226022"],
+        open:true
+      },
+      delhiFood: {
+        name:"दिल्ली फूड दुकान",
+        type:"food",
+        city:"Delhi",
+        zone:"करोल बाग",
+        pins:["110005","110060"],
+        open:true
+      },
+      fashionShop: {
+        name:"फैशन दुकान",
+        type:"fashion",
+        city:"Lucknow",
+        zone:"महानगर",
+        pins:["226006","226016"],
+        open:true
+      }
+    };
+
+    const riders = [
+      {
+        name:"राहुल",
+        city:"Lucknow",
+        zone:"अलीगंज",
+        pins:["226024","226022"],
+        online:true,
+        busy:false,
+        distanceKm:1.2,
+        idleMinutes:18
+      },
+      {
+        name:"अमन",
+        city:"Lucknow",
+        zone:"अलीगंज",
+        pins:["226024","226022"],
+        online:true,
+        busy:false,
+        distanceKm:2.4,
+        idleMinutes:35
+      },
+      {
+        name:"सोनू",
+        city:"Lucknow",
+        zone:"महानगर",
+        pins:["226006","226016"],
+        online:true,
+        busy:false,
+        distanceKm:1.0,
+        idleMinutes:8
+      },
+      {
+        name:"विकास",
+        city:"Delhi",
+        zone:"करोल बाग",
+        pins:["110005","110060"],
+        online:true,
+        busy:false,
+        distanceKm:1.5,
+        idleMinutes:25
+      },
+      {
+        name:"दीपक",
+        city:"Lucknow",
+        zone:"अलीगंज",
+        pins:["226024","226022"],
+        online:false,
+        busy:false,
+        distanceKm:0.5,
+        idleMinutes:50
+      }
+    ];
+
+    function renderZones() {
+      const city = $("a10-city").value;
+      $("a10-zone").innerHTML = "";
+
+      (zones[city] || []).forEach(zone => {
+        const option = document.createElement("option");
+        option.value = zone.name;
+        option.textContent = zone.name;
+        $("a10-zone").appendChild(option);
+      });
+
+      const state = $("a10-state");
+      state.value = city === "Delhi" ? "DL" : "UP";
+    }
+
+    function renderRiders() {
+      $("a10-riders").innerHTML = "";
+
+      riders.forEach(rider => {
+        const li = document.createElement("li");
+        li.textContent =
+          rider.name + " — " +
+          rider.city + " / " +
+          rider.zone + " — " +
+          (rider.online ? "Online" : "Offline") + " — " +
+          (rider.busy ? "Busy" : "Available") +
+          " — " + rider.idleMinutes + " मिनट से ऑर्डर नहीं";
+        $("a10-riders").appendChild(li);
+      });
+    }
+
+    function runMatch() {
+      const city = $("a10-city").value;
+      const zone = $("a10-zone").value;
+      const pin = $("a10-pin").value.trim();
+      const kind = $("a10-kind").value;
+      const seller = sellers[$("a10-seller").value];
+      const orderRef = $("a10-order").value.trim();
+      const address = $("a10-address").value.trim();
+      const result = $("a10-result");
+
+      function show(message) {
+        result.textContent = message;
+      }
+
+      if (!/^\d{6}$/.test(pin)) {
+        show("पहले 6 अंकों का PIN Code भरें।");
+        return;
+      }
+
+      if (!address) {
+        show("ग्राहक का पूरा पता भरें।");
+        return;
+      }
+
+      if (!orderRef) {
+        show("हर ऑर्डर के लिए अलग Order Reference भरें।");
+        return;
+      }
+
+      if (!seller) {
+        show("Seller उपलब्ध नहीं है।");
+        return;
+      }
+
+      if (seller.type !== kind) {
+        show("चुना गया Seller इस Category का नहीं है।");
+        return;
+      }
+
+      if (!seller.open) {
+        show("यह दुकान अभी बंद है।");
+        return;
+      }
+
+      if (kind === "food") {
+        if (seller.city !== city) {
+          show("Food rule: ग्राहक और फूड Seller का शहर अलग है।");
+          return;
+        }
+
+        if (seller.zone !== zone) {
+          show("Food rule: यह Seller चुने गए Zone में उपलब्ध नहीं है।");
+          return;
+        }
+
+        if (!seller.pins.includes(pin)) {
+          show("Food rule: इस Demo PIN पर Seller की सेवा उपलब्ध नहीं है।");
+          return;
+        }
+      }
+
+      const selectedZone = (zones[city] || [])
+        .find(item => item.name === zone);
+
+      if (!selectedZone || !selectedZone.pins.includes(pin)) {
+        show("यह PIN चुने गए Demo Zone से मेल नहीं खाता।");
+        return;
+      }
+
+      const candidates = riders.filter(rider =>
+        rider.online &&
+        !rider.busy &&
+        rider.city === city &&
+        rider.zone === zone &&
+        rider.pins.includes(pin)
+      );
+
+      if (!candidates.length) {
+        show(
+          "अभी इस Zone में उपलब्ध Demo Rider नहीं है। " +
+          "ऑर्डर को Pending रखें; दूसरे शहर का Rider अपने-आप न चुनें।"
+        );
+        return;
+      }
+
+      /*
+       * Demo priority:
+       * 1. Nearest rider
+       * 2. If distances are equal, longest idle time
+       *
+       * Production assignment must be atomic on the server,
+       * and must consider live GPS, travel time, workload,
+       * acceptance, expiry, and reassignment rules.
+       */
+      candidates.sort((a, b) =>
+        a.distanceKm - b.distanceKm ||
+        b.idleMinutes - a.idleMinutes
+      );
+
+      const chosen = candidates[0];
+
+      show(
+        "DEMO MATCH SUCCESS\n" +
+        "Order: " + orderRef + "\n" +
+        "Seller: " + seller.name + "\n" +
+        "Customer city: " + city + "\n" +
+        "Zone: " + zone + "\n" +
+        "PIN: " + pin + "\n" +
+        "Suggested rider: " + chosen.name + "\n" +
+        "Demo distance: " + chosen.distanceKm + " km\n" +
+        "Idle time: " + chosen.idleMinutes + " minutes\n\n" +
+        "ध्यान दें: यह केवल चयन का Demo है। " +
+        "इससे वास्तविक ऑर्डर या राइडर रिकॉर्ड नहीं बनता।"
+      );
+    }
+
+    $("a10-city").addEventListener("change", renderZones);
+    $("a10-match").addEventListener("click", runMatch);
+
+    $("a10-seller").addEventListener("change", function () {
+      const seller = sellers[this.value];
+      if (!seller) return;
+
+      $("a10-kind").value = seller.type;
+    });
+
+    renderZones();
+    renderRiders();
+  })();
+  </script>
+</section>
+<!-- END ADBM10 -->
+  ```html
+<!-- ==================================================
+ ADBM11: CATEGORY STORE, SEARCH, FILTERS, ADS & SCANNER
+ Demo module - insert before final </body>
+================================================== -->
+<section id="adbm11">
+<style>
+#adbm11{font-family:Arial,sans-serif;color:#172033;background:#f4f7fb;padding:18px;border-radius:16px;margin:20px auto;max-width:1200px}
+#adbm11 *{box-sizing:border-box}
+#adbm11 .a11-head{background:linear-gradient(120deg,#152746,#235b80);color:white;padding:22px;border-radius:14px}
+#adbm11 .a11-search{display:flex;gap:8px;margin:16px 0;flex-wrap:wrap}
+#adbm11 input,#adbm11 select{padding:12px;border:1px solid #ccd5e2;border-radius:9px;min-width:0}
+#adbm11 .a11-search input{flex:1;min-width:180px}
+#adbm11 button{padding:11px 14px;border:0;border-radius:9px;background:#087d58;color:white;font-weight:bold;cursor:pointer}
+#adbm11 .a11-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+#adbm11 .a11-tabs button{background:#e1e9f2;color:#172033}
+#adbm11 .a11-tabs button.active{background:#087d58;color:white}
+#adbm11 .a11-filters{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+#adbm11 .a11-filters select{flex:1;min-width:140px;background:white}
+#adbm11 .a11-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin:16px 0}
+#adbm11 .a11-card{background:white;border:1px solid #e0e6ee;border-radius:13px;overflow:hidden}
+#adbm11 .a11-photo{height:130px;display:grid;place-items:center;font-size:54px;background:#e9eff7}
+#adbm11 .a11-info{padding:13px}
+#adbm11 .a11-price{font-size:19px;font-weight:bold;margin:8px 0}
+#adbm11 .a11-muted{font-size:13px;color:#667085}
+#adbm11 .a11-ad{border:2px dashed #bd8b27;background:#fff8e5;border-radius:12px;padding:16px;margin:14px 0}
+#adbm11 .a11-box{background:white;border:1px solid #e0e6ee;border-radius:12px;padding:15px;margin-top:14px}
+#adbm11 .a11-hidden{display:none!important}
+#adbm11 #a11-camera{width:100%;max-width:420px;background:#111;border-radius:10px}
+</style>
+
+<div class="a11-head">
+  <h2>AD Brand Market</h2>
+  <p>खाना भी, फैशन भी — अपने शहर से पूरे भारत तक।</p>
+  <p id="a11-location-note">डिलीवरी PIN डालकर उपलब्धता जाँचें।</p>
+</div>
+
+<div class="a11-search">
+  <input id="a11-query" placeholder="जूते, चप्पल, पिज्जा, चाय, ज्वेलरी खोजें">
+  <input id="a11-pin" inputmode="numeric" maxlength="6" placeholder="डिलीवरी PIN">
+  <button id="a11-search-btn">सर्च करें</button>
+</div>
+
+<div class="a11-tabs" id="a11-tabs">
+  <button class="active" data-cat="all">सभी</button>
+  <button data-cat="food">खाना-पीना</button>
+  <button data-cat="fashion">कपड़े</button>
+  <button data-cat="shoes">जूते-चप्पल</button>
+  <button data-cat="jewellery">ज्वेलरी</button>
+  <button data-cat="home">घर का सामान</button>
+</div>
+
+<div class="a11-ad">
+  <strong>📢 विज्ञापन / Featured Store</strong>
+  <p id="a11-ad-text">यहाँ प्रायोजित प्रोडक्ट या दुकान का विज्ञापन दिख सकता है।</p>
+  <span class="a11-muted">यह केवल विज्ञापन स्लॉट है; कोई पेड कैंपेन अभी सक्रिय नहीं है।</span>
+</div>
+
+<div class="a11-filters">
+  <select id="a11-sort">
+    <option value="relevance">सबसे प्रासंगिक</option>
+    <option value="low">कीमत: कम से ज्यादा</option>
+    <option value="high">कीमत: ज्यादा से कम</option>
+    <option value="rating">रेटिंग</option>
+  </select>
+  <select id="a11-delivery">
+    <option value="all">डिलीवरी के सभी विकल्प</option>
+    <option value="local">स्थानीय डिलीवरी</option>
+    <option value="shipping">कुरियर शिपिंग</option>
+  </select>
+  <select id="a11-max">
+    <option value="all">सभी कीमतें</option>
+    <option value="100">₹100 तक</option>
+    <option value="500">₹500 तक</option>
+    <option value="1000">₹1,000 तक</option>
+  </select>
+</div>
+
+<div class="a11-box">
+  <strong id="a11-count">प्रोडक्ट</strong>
+  <div id="a11-products" class="a11-grid"></div>
+  <p id="a11-empty" class="a11-hidden">इस सर्च में कोई नमूना प्रोडक्ट नहीं मिला। दूसरा शब्द या कैटेगरी आज़माएँ।</p>
+</div>
+
+<div class="a11-box">
+  <h3>📷 बारकोड स्कैनर</h3>
+  <p class="a11-muted">कैमरा अनुमति देने पर समर्थित ब्राउज़र में बारकोड पढ़ने की कोशिश होगी। यह QR भुगतान या ऑर्डर सत्यापन नहीं करता।</p>
+  <button id="a11-scan-start">कैमरा चालू करें</button>
+  <button id="a11-scan-stop">कैमरा बंद करें</button>
+  <video id="a11-camera" class="a11-hidden" autoplay playsinline></video>
+  <p id="a11-scan-result" aria-live="polite">स्कैन शुरू नहीं हुआ।</p>
+  <label for="a11-manual-code">बारकोड नंबर स्वयं भरें</label>
+  <input id="a11-manual-code" placeholder="उत्पाद का बारकोड">
+  <button id="a11-manual-search">नंबर से खोजें</button>
+</div>
+
+<div class="a11-box">
+  <h3>🛍️ मेरी पसंद</h3>
+  <p>Wishlist: <strong id="a11-wishlist-count">0</strong> प्रोडक्ट</p>
+  <p>कार्ट: <strong id="a11-cart-count">0</strong> प्रोडक्ट</p>
+  <button id="a11-show-wishlist">Wishlist देखें</button>
+  <button id="a11-show-cart">कार्ट देखें</button>
+  <div id="a11-personal-result"></div>
+</div>
+
+<div class="a11-box">
+  <h3>📲 ऐप इंस्टॉल करें</h3>
+  <p class="a11-muted">यदि वेबसाइट PWA के रूप में सेटअप है और ब्राउज़र इंस्टॉल सुविधा देता है, तो यहाँ इंस्टॉल का विकल्प आएगा।</p>
+  <button id="a11-install">AD Brand Market इंस्टॉल करें</button>
+  <p id="a11-install-note" aria-live="polite"></p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const root=document.getElementById("adbm11");
+  if(!root || root.dataset.ready==="1") return;
+  root.dataset.ready="1";
+  const $=id=>root.querySelector("#"+id);
+
+  const products=[
+    {id:"f1",name:"वेज पिज्जा",cat:"food",price:149,rating:4.3,city:"Lucknow",pin:["226024","226022"],delivery:"local",emoji:"🍕",seller:"मोहन फूड्स",stock:12},
+    {id:"f2",name:"समोसा और चाय",cat:"food",price:50,rating:4.2,city:"Lucknow",pin:["226024","226022"],delivery:"local",emoji:"☕",seller:"मोहन फूड्स",stock:25},
+    {id:"f3",name:"दिल्ली स्टाइल पिज्जा",cat:"food",price:199,rating:4.5,city:"Delhi",pin:["110005","110060"],delivery:"local",emoji:"🍕",seller:"दिल्ली फूड कॉर्नर",stock:8},
+    {id:"c1",name:"कॉटन टी-शर्ट",cat:"fashion",price:299,rating:4.1,city:"Lucknow",pin:[],delivery:"shipping",emoji:"👕",seller:"मोहन फैशन",stock:30},
+    {id:"c2",name:"महिलाओं का कुर्ता",cat:"fashion",price:499,rating:4.4,city:"Delhi",pin:[],delivery:"shipping",emoji:"👗",seller:"दिल्ली फैशन",stock:16},
+    {id:"s1",name:"कैजुअल चप्पल",cat:"shoes",price:199,rating:4.0,city:"Lucknow",pin:[],delivery:"shipping",emoji:"🩴",seller:"आराम फुटवियर",stock:20},
+    {id:"s2",name:"स्पोर्ट्स जूते",cat:"shoes",price:799,rating:4.6,city:"Delhi",pin:[],delivery:"shipping",emoji:"👟",seller:"फिट फुटवियर",stock:9},
+    {id:"j1",name:"फैशन ईयररिंग",cat:"jewellery",price:149,rating:4.2,city:"Delhi",pin:[],delivery:"shipping",emoji:"💎",seller:"शाइन ज्वेलरी",stock:40},
+    {id:"j2",name:"फैशन ब्रेसलेट",cat:"jewellery",price:249,rating:4.1,city:"Lucknow",pin:[],delivery:"shipping",emoji:"📿",seller:"शाइन ज्वेलरी",stock:18},
+    {id:"h1",name:"पानी की बोतल",cat:"home",price:99,rating:4.0,city:"Lucknow",pin:[],delivery:"shipping",emoji:"🧴",seller:"होम स्टोर",stock:50}
+  ];
+
+  let category="all";
+  let wishlist=new Set();
+  let cart=new Set();
+  let stream=null;
+  let detector=null;
+  let scanTimer=null;
+  let installPrompt=null;
+
+  function currentCity(){
+    const pin=$("a11-pin").value.trim();
+    if(pin.startsWith("226")) return "Lucknow";
+    if(pin.startsWith("110")) return "Delhi";
+    return "";
+  }
+
+  function productAvailable(p){
+    if(p.stock<=0) return false;
+    const pin=$("a11-pin").value.trim();
+    const city=currentCity();
+    if(p.cat==="food"){
+      if(!/^\d{6}$/.test(pin)) return false;
+      return p.city===city && p.pin.includes(pin);
+    }
+    if(/^\d{6}$/.test(pin) && city && p.delivery==="shipping"){
+      // Demo-only: real courier PIN serviceability is not verified here.
+      return true;
+    }
+    return p.delivery==="shipping" || !pin;
+  }
+
+  function render(){
+    const query=$("a11-query").value.trim().toLowerCase();
+    const delivery=$("a11-delivery").value;
+    const max=$("a11-max").value;
+    const sort=$("a11-sort").value;
+
+    let list=products.filter(p=>{
+      const text=(p.name+" "+p.seller+" "+p.id+" "+p.cat).toLowerCase();
+      if(category!=="all" && p.cat!==category) return false;
+      if(query && !text.includes(query)) return false;
+      if(delivery!=="all" && p.delivery!==delivery) return false;
+      if(max!=="all" && p.price>Number(max)) return false;
+      return productAvailable(p);
+    });
+
+    if(sort==="low") list.sort((a,b)=>a.price-b.price);
+    if(sort==="high") list.sort((a,b)=>b.price-a.price);
+    if(sort==="rating") list.sort((a,b)=>b.rating-a.rating);
+
+    $("a11-products").innerHTML="";
+    $("a11-count").textContent=list.length+" प्रोडक्ट मिले";
+    $("a11-empty").classList.toggle("a11-hidden",list.length!==0);
+
+    list.forEach(p=>{
+      const card=document.createElement("article");
+      card.className="a11-card";
+      const photo=document.createElement("div");
+      photo.className="a11-photo";
+      photo.textContent=p.emoji;
+      const info=document.createElement("div");
+      info.className="a11-info";
+
+      const title=document.createElement("strong");
+      title.textContent=p.name;
+      const seller=document.createElement("p");
+      seller.className="a11-muted";
+      seller.textContent=p.seller;
+      const price=document.createElement("div");
+      price.className="a11-price";
+      price.textContent="₹"+p.price;
+      const meta=document.createElement("p");
+      meta.className="a11-muted";
+      meta.textContent="★ "+p.rating+" · स्टॉक "+p.stock+" · "+(p.delivery==="local"?"स्थानीय डिलीवरी":"कुरियर शिपिंग");
+
+      const add=document.createElement("button");
+      add.textContent=cart.has(p.id)?"कार्ट में है":"कार्ट में डालें";
+      add.addEventListener("click",()=>{
+        cart.add(p.id);
+        updateCounts();
+        add.textContent="कार्ट में है";
+      });
+
+      const fav=document.createElement("button");
+      fav.style.marginLeft="6px";
+      fav.style.background="#e5edf7";
+      fav.style.color="#172033";
+      fav.textContent=wishlist.has(p.id)?"♥ पसंदीदा":"♡ Wishlist";
+      fav.addEventListener("click",()=>{
+        if(wishlist.has(p.id)) wishlist.delete(p.id);
+        else wishlist.add(p.id);
+        updateCounts();
+        fav.textContent=wishlist.has(p.id)?"♥ पसंदीदा":"♡ Wishlist";
+      });
+
+      info.append(title,seller,price,meta,add,fav);
+      card.append(photo,info);
+      $("a11-products").appendChild(card);
+    });
+
+    $("a11-location-note").textContent=
+      currentCity()
+      ? "PIN के आधार पर Demo शहर: "+currentCity()+". वास्तविक PIN सत्यापन अभी जुड़ा नहीं है।"
+      : "फूड की उपलब्धता जाँचने के लिए समर्थित Demo PIN डालें।";
+  }
+
+  function updateCounts(){
+    $("a11-wishlist-count").textContent=wishlist.size;
+    $("a11-cart-count").textContent=cart.size;
+  }
+
+  $("a11-tabs").addEventListener("click",e=>{
+    const btn=e.target.closest("button[data-cat]");
+    if(!btn) return;
+    category=btn.dataset.cat;
+    root.querySelectorAll("#a11-tabs button").forEach(b=>b.classList.toggle("active",b===btn));
+    render();
+  });
+
+  $("a11-search-btn").addEventListener("click",render);
+  $("a11-query").addEventListener("keydown",e=>{if(e.key==="Enter")render();});
+  ["a11-pin","a11-delivery","a11-max","a11-sort"].forEach(id=>{
+    $(id).addEventListener("change",render);
+  });
+
+  $("a11-show-wishlist").addEventListener("click",()=>{
+    const names=products.filter(p=>wishlist.has(p.id)).map(p=>p.name);
+    $("a11-personal-result").textContent=names.length?names.join(", "):"Wishlist खाली है।";
+  });
+
+  $("a11-show-cart").addEventListener("click",()=>{
+    const chosen=products.filter(p=>cart.has(p.id));
+    const total=chosen.reduce((sum,p)=>sum+p.price,0);
+    $("a11-personal-result").textContent=chosen.length
+      ? chosen.map(p=>p.name).join(", ")+" — Demo कुल ₹"+total
+      : "कार्ट खाली है।";
+  });
+
+  async function stopCamera(){
+    if(scanTimer){clearTimeout(scanTimer);scanTimer=null;}
+    if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+    $("a11-camera").srcObject=null;
+    $("a11-camera").classList.add("a11-hidden");
+    detector=null;
+  }
+
+  $("a11-scan-start").addEventListener("click",async()=>{
+    const video=$("a11-camera");
+    const output=$("a11-scan-result");
+    if(!navigator.mediaDevices?.getUserMedia){
+      output.textContent="इस ब्राउज़र या कनेक्शन में कैमरा उपलब्ध नहीं है। HTTPS पर खोलकर देखें।";
+      return;
+    }
+    if(!("BarcodeDetector" in window)){
+      output.textContent="इस ब्राउज़र में BarcodeDetector उपलब्ध नहीं है। बारकोड नंबर नीचे स्वयं भरें।";
+      return;
+    }
+    try{
+      const supported=await BarcodeDetector.getSupportedFormats();
+      const formats=supported.filter(x=>["qr_code","ean_13","ean_8","upc_a","upc_e","code_128"].includes(x));
+      if(!formats.length){
+        output.textContent="कोई समर्थित बारकोड फॉर्मेट नहीं मिला।";
+        return;
+      }
+      detector=new BarcodeDetector({formats});
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+      video.srcObject=stream;
+      video.classList.remove("a11-hidden");
+      output.textContent="कैमरा चालू है। बारकोड कैमरे के सामने रखें।";
+      const scan=async()=>{
+        if(!stream || !detector) return;
+        try{
+          const codes=await detector.detect(video);
+          if(codes.length){
+            $("a11-manual-code").value=codes[0].rawValue;
+            output.textContent="कोड पढ़ लिया: "+codes[0].rawValue+"। अब नंबर से खोजें दबाएँ।";
+            await stopCamera();
+            return;
+          }
+        }catch(err){}
+        scanTimer=setTimeout(scan,700);
+      };
+      scan();
+    }catch(err){
+      output.textContent="कैमरा अनुमति नहीं मिली या कैमरा उपलब्ध नहीं है।";
+      await stopCamera();
+    }
+  });
+
+  $("a11-scan-stop").addEventListener("click",async()=>{
+    await stopCamera();
+    $("a11-scan-result").textContent="कैमरा बंद कर दिया गया।";
+  });
+
+  $("a11-manual-search").addEventListener("click",()=>{
+    const code=$("a11-manual-code").value.trim();
+    if(!code){
+      $("a11-scan-result").textContent="पहले बारकोड नंबर भरें।";
+      return;
+    }
+    $("a11-query").value=code;
+    render();
+    $("a11-scan-result").textContent=
+      "नंबर सर्च में डाला गया। नमूना कैटलॉग में बारकोड डेटाबेस अभी नहीं है।";
+  });
+
+  window.addEventListener("beforeinstallprompt",e=>{
+    e.preventDefault();
+    installPrompt=e;
+  });
+
+  $("a11-install").addEventListener("click",async()=>{
+    const note=$("a11-install-note");
+    if(!installPrompt){
+      note.textContent="यदि Install विकल्प उपलब्ध नहीं है, तो ब्राउज़र मेन्यू खोलकर 'Add to Home screen' या 'Install app' देखें। PWA manifest और service worker अलग से सेटअप होने चाहिए।";
+      return;
+    }
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt=null;
+  });
+
+  window.addEventListener("pagehide",stopCamera);
+  render();
+})();
+</script>
+</section>
+<!-- END ADBM11 -->
+```
+  ```html
+<!-- =====================================================
+ ADBM12 - FOOTWEAR SELLER ONBOARDING DEMO
+===================================================== -->
+<section id="adbm12">
+<style>
+#adbm12{font-family:Arial,sans-serif;background:#f5f7fb;color:#172033;padding:18px;border-radius:15px;margin:20px auto;max-width:1050px}
+#adbm12 *{box-sizing:border-box}
+#adbm12 .a12-card{background:white;border:1px solid #dce3ed;padding:16px;border-radius:12px;margin:14px 0}
+#adbm12 .a12-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+#adbm12 label{display:block;font-size:14px;margin:10px 0 5px}
+#adbm12 input,#adbm12 select,#adbm12 textarea{width:100%;padding:11px;border:1px solid #ccd5e2;border-radius:8px;font:inherit}
+#adbm12 button{background:#087d58;color:white;border:0;padding:12px 16px;border-radius:9px;cursor:pointer;margin-top:12px;font-weight:bold}
+#adbm12 .a12-note{color:#667085;font-size:13px}
+#adbm12 .a12-check{display:flex;align-items:flex-start;gap:9px;margin:10px 0}
+#adbm12 .a12-check input{width:auto;margin-top:4px}
+#adbm12 #a12-result{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#e8f7ef;border-radius:8px;margin-top:14px}
+</style>
+
+<h2>👟 AD Brand Market — Footwear Seller</h2>
+<p>जूते, चप्पल, सैंडल, स्पोर्ट्स शूज़ और बच्चों के फुटवियर बेचने के लिए दुकान की जानकारी भरें।</p>
+
+<div class="a12-card">
+<h3>1. सेलर और दुकान की जानकारी</h3>
+<div class="a12-grid">
+<div>
+<label for="a12-name">सेलर का पूरा नाम *</label>
+<input id="a12-name" autocomplete="name" required>
+</div>
+<div>
+<label for="a12-shop">दुकान / ब्रांड का नाम *</label>
+<input id="a12-shop" required>
+</div>
+<div>
+<label for="a12-mobile">मोबाइल नंबर *</label>
+<input id="a12-mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 अंकों का नंबर" required>
+</div>
+<div>
+<label for="a12-email">ईमेल</label>
+<input id="a12-email" type="email" autocomplete="email">
+</div>
+<div>
+<label for="a12-state">राज्य *</label>
+<select id="a12-state" required>
+<option value="">राज्य चुनें</option>
+<option>उत्तर प्रदेश</option><option>दिल्ली</option><option>हरियाणा</option>
+<option>राजस्थान</option><option>महाराष्ट्र</option><option>गुजरात</option>
+<option>बिहार</option><option>मध्य प्रदेश</option><option>पंजाब</option>
+<option>उत्तराखंड</option><option>पश्चिम बंगाल</option><option>कर्नाटक</option>
+<option>तमिलनाडु</option><option>तेलंगाना</option><option>आंध्र प्रदेश</option>
+<option>केरल</option><option>ओडिशा</option><option>झारखंड</option>
+<option>छत्तीसगढ़</option><option>हिमाचल प्रदेश</option><option>असम</option>
+<option>गोवा</option><option>जम्मू और कश्मीर</option><option>अन्य राज्य / केंद्रशासित प्रदेश</option>
+</select>
+</div>
+<div>
+<label for="a12-city">शहर *</label>
+<input id="a12-city" required placeholder="जैसे लखनऊ">
+</div>
+<div>
+<label for="a12-area">इलाका / जोन *</label>
+<input id="a12-area" required placeholder="जैसे अलीगंज">
+</div>
+<div>
+<label for="a12-pin">दुकान का PIN Code *</label>
+<input id="a12-pin" inputmode="numeric" maxlength="6" required>
+</div>
+</div>
+
+<label for="a12-address">दुकान का पूरा पता *</label>
+<textarea id="a12-address" rows="2" required placeholder="मकान/दुकान नंबर, सड़क, लैंडमार्क"></textarea>
+</div>
+
+<div class="a12-card">
+<h3>2. कौन-से फुटवियर बेचते हैं?</h3>
+<div class="a12-grid">
+<label class="a12-check"><input type="checkbox" name="a12-type" value="चप्पल"> चप्पल / Flip-flops</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="सैंडल"> सैंडल</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="स्पोर्ट्स शूज़"> स्पोर्ट्स शूज़</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="फॉर्मल शूज़"> फॉर्मल शूज़</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="कैजुअल शूज़"> कैजुअल शूज़</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="महिलाओं के फुटवियर"> महिलाओं के फुटवियर</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="बच्चों के फुटवियर"> बच्चों के फुटवियर</label>
+<label class="a12-check"><input type="checkbox" name="a12-type" value="स्लाइड्स"> Slides / घर की चप्पल</label>
+</div>
+</div>
+
+<div class="a12-card">
+<h3>3. प्रोडक्ट की जानकारी</h3>
+<div class="a12-grid">
+<div><label for="a12-brands">ब्रांड / खुद का ब्रांड</label><input id="a12-brands" placeholder="केवल बेचने के अधिकृत ब्रांड"></div>
+<div><label for="a12-sizes">उपलब्ध साइज़</label><input id="a12-sizes" placeholder="जैसे 5, 6, 7, 8, 9, 10"></div>
+<div><label for="a12-material">मटेरियल</label><input id="a12-material" placeholder="रबर, लेदर, फैब्रिक आदि"></div>
+<div><label for="a12-stock">शुरुआती स्टॉक</label><input id="a12-stock" type="number" min="0" placeholder="कुल जोड़ी"></div>
+<div><label for="a12-price">शुरुआती कीमत ₹</label><input id="a12-price" type="number" min="0"></div>
+<div><label for="a12-return">रिटर्न / एक्सचेंज नीति</label>
+<select id="a12-return"><option value="">नीति चुनें</option><option>साइज़ एक्सचेंज उपलब्ध</option><option>रिटर्न और एक्सचेंज शर्तों के अनुसार</option><option>लागू कानून और प्लेटफॉर्म नीति के अनुसार</option></select></div>
+</div>
+<p class="a12-note">अलग-अलग साइज़, रंग और मॉडल के लिए अलग स्टॉक रखना होगा। गलत, खराब या गलत साइज़ भेजे गए प्रोडक्ट की शिकायत की प्रक्रिया स्पष्ट होनी चाहिए।</p>
+</div>
+
+<div class="a12-card">
+<h3>4. डिलीवरी और शिपिंग</h3>
+<label class="a12-check"><input type="checkbox" id="a12-local"> अपने शहर और आसपास के जोन में डिलीवरी उपलब्ध करा सकता/सकती हूँ।</label>
+<label class="a12-check"><input type="checkbox" id="a12-national"> भारत के दूसरे शहरों में ऑर्डर भेजना चाहता/चाहती हूँ।</label>
+
+<div class="a12-grid">
+<div><label for="a12-service">कुरियर / शिपिंग व्यवस्था</label>
+<select id="a12-service">
+<option value="">विकल्प चुनें</option>
+<option>प्लेटफॉर्म से बाद में जुड़ने वाला कुरियर</option>
+<option>अपनी शिपिंग व्यवस्था</option>
+<option>कुरियर एग्रीगेटर पहले से उपयोग करता/करती हूँ</option>
+</select></div>
+<div><label for="a12-dispatch">ऑर्डर भेजने का समय</label>
+<select id="a12-dispatch">
+<option value="">समय चुनें</option>
+<option>उसी दिन</option><option>1–2 कार्य दिवस</option><option>3–5 कार्य दिवस</option>
+</select></div>
+<div><label for="a12-pickup">दुकान से पार्सल पिकअप</label>
+<select id="a12-pickup">
+<option value="">विकल्प चुनें</option><option>कुरियर पिकअप चाहिए</option><option>स्वयं कुरियर केंद्र पर जमा करूँगा/करूँगी</option><option>अभी तय नहीं</option>
+</select></div>
+</div>
+<p class="a12-note">पूरे भारत में बिक्री का अनुरोध करने से हर PIN पर डिलीवरी की गारंटी नहीं होती। असली शिपिंग तभी उपलब्ध दिखेगी जब कुरियर पार्टनर उस PIN को सर्विस करने की पुष्टि करे।</p>
+</div>
+
+<div class="a12-card">
+<h3>5. पैकिंग और ऑर्डर तैयारी</h3>
+<label class="a12-check"><input type="checkbox" id="a12-pack"> जूते/चप्पल सुरक्षित बॉक्स या उपयुक्त पैकेजिंग में पैक कर सकता/सकती हूँ।</label>
+<label class="a12-check"><input type="checkbox" id="a12-invoice"> सही कीमत और प्रोडक्ट विवरण वाला बिल दे सकता/सकती हूँ।</label>
+<label class="a12-check"><input type="checkbox" id="a12-stock-true"> ऑर्डर स्वीकार करने से पहले स्टॉक और साइज़ जाँचूँगा/जाँचूँगी।</label>
+<label class="a12-check"><input type="checkbox" id="a12-auth"> सूचीबद्ध ब्रांड और उत्पाद बेचने के लिए आवश्यक अधिकार/दस्तावेज उपलब्ध कराऊँगा/कराऊँगी।</label>
+</div>
+
+<div class="a12-card">
+<h3>6. भुगतान और दुकान का संचालन</h3>
+<div class="a12-grid">
+<div><label for="a12-payment">भुगतान व्यवस्था</label>
+<select id="a12-payment"><option value="">चुनें</option><option>प्लेटफॉर्म के माध्यम से, उपलब्ध होने पर</option><option>COD और प्रीपेड, प्लेटफॉर्म नियमों के अनुसार</option></select></div>
+<div><label for="a12-hours">दुकान का समय</label><input id="a12-hours" placeholder="जैसे सुबह 10 से रात 9"></div>
+<div><label for="a12-capacity">प्रतिदिन पैक कर सकने वाले ऑर्डर</label><input id="a12-capacity" type="number" min="0"></div>
+</div>
+<label class="a12-check"><input type="checkbox" id="a12-terms"> मैंने जानकारी सही दी है और प्लेटफॉर्म की लागू शर्तें पढ़कर स्वीकार करूँगा/करूँगी।</label>
+<button type="button" id="a12-submit">जानकारी जाँचें</button>
+<div id="a12-result" aria-live="polite">अभी कोई जानकारी जमा नहीं हुई है।</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const root=document.getElementById("adbm12");
+  if(!root || root.dataset.ready==="1") return;
+  root.dataset.ready="1";
+  const $=id=>root.querySelector("#"+id);
+  $("a12-submit").addEventListener("click",function(){
+    const required=[
+      ["a12-name","सेलर का नाम"],
+      ["a12-shop","दुकान का नाम"],
+      ["a12-mobile","मोबाइल नंबर"],
+      ["a12-state","राज्य"],
+      ["a12-city","शहर"],
+      ["a12-area","इलाका / जोन"],
+      ["a12-pin","PIN Code"],
+      ["a12-address","पूरा पता"]
+    ];
+    for(const [id,label] of required){
+      if(!$(id).value.trim()){
+        $(id).focus();
+        $("a12-result").textContent="कृपया पहले यह जानकारी भरें: "+label;
+        return;
+      }
+    }
+    if(!/^[6-9]\d{9}$/.test($("a12-mobile").value.trim())){
+      $("a12-result").textContent="भारतीय मोबाइल नंबर के 10 अंक सही भरें। यह OTP सत्यापन नहीं है।";
+      return;
+    }
+    if(!/^\d{6}$/.test($("a12-pin").value.trim())){
+      $("a12-result").textContent="PIN Code 6 अंकों का होना चाहिए।";
+      return;
+    }
+    const types=[...root.querySelectorAll('input[name="a12-type"]:checked')].map(x=>x.value);
+    if(!types.length){
+      $("a12-result").textContent="कम-से-कम एक फुटवियर कैटेगरी चुनें।";
+      return;
+    }
+    if(!$("a12-local").checked && !$("a12-national").checked){
+      $("a12-result").textContent="स्थानीय डिलीवरी या राष्ट्रीय शिपिंग में से कम-से-कम एक चुनें।";
+      return;
+    }
+    const checks=["a12-pack","a12-invoice","a12-stock-true","a12-auth","a12-terms"];
+    if(checks.some(id=>!$(id).checked)){
+      $("a12-result").textContent="पैकिंग, बिल, स्टॉक, उत्पाद अधिकार और शर्तों वाले चेकबॉक्स की पुष्टि करें।";
+      return;
+    }
+    const summary={
+      shop:$("a12-shop").value.trim(),
+      state:$("a12-state").value,
+      city:$("a12-city").value.trim(),
+      area:$("a12-area").value.trim(),
+      pin:$("a12-pin").value.trim(),
+      categories:types,
+      localDelivery:$("a12-local").checked,
+      wantsNationalShipping:$("a12-national").checked,
+      shippingMethod:$("a12-service").value||"अभी तय नहीं",
+      dispatchTime:$("a12-dispatch").value||"अभी तय नहीं",
+      pickup:$("a12-pickup").value||"अभी तय नहीं",
+      brands:$("a12-brands").value.trim(),
+      sizes:$("a12-sizes").value.trim(),
+      material:$("a12-material").value.trim(),
+      stock:$("a12-stock").value,
+      price:$("a12-price").value,
+      returnPolicy:$("a12-return").value,
+      openingHours:$("a12-hours").value.trim(),
+      dailyCapacity:$("a12-capacity").value
+    };
+    $("a12-result").textContent=
+      "जानकारी जाँच पूरी हुई — यह केवल ब्राउज़र डेमो है।\n\n"+
+      JSON.stringify(summary,null,2)+
+      "\n\nयह आवेदन Supabase में सेव नहीं हुआ और सेलर सत्यापित नहीं हुआ है।";
+  });
+})();
+</script>
+</section>
+<!-- END ADBM12 -->
+```
+  ```html
+<!-- =====================================================
+ ADBM13 - CUSTOMER ORDERS & SELLER OPERATIONS DEMO
+ Paste after END ADBM12, before final </body>
+===================================================== -->
+<section id="adbm13">
+<style>
+#adbm13{font-family:Arial,sans-serif;background:#f4f7fb;color:#182338;padding:18px;border-radius:15px;margin:20px auto;max-width:1150px}
+#adbm13 *{box-sizing:border-box}
+#adbm13 .a13-card{background:white;border:1px solid #dfe5ed;padding:16px;border-radius:12px;margin:14px 0}
+#adbm13 .a13-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+#adbm13 label{display:block;font-size:14px;margin:10px 0 5px}
+#adbm13 input,#adbm13 select,#adbm13 textarea{width:100%;padding:11px;border:1px solid #ccd5e2;border-radius:8px;font:inherit}
+#adbm13 button{background:#087d58;color:white;border:0;padding:11px 14px;border-radius:9px;cursor:pointer;margin-top:10px;font-weight:bold}
+#adbm13 .a13-muted{font-size:13px;color:#667085}
+#adbm13 .a13-list{display:grid;gap:10px}
+#adbm13 .a13-item{border:1px solid #e0e6ef;border-radius:10px;padding:12px}
+#adbm13 .a13-status{font-weight:bold;color:#087d58}
+#adbm13 .a13-warn{background:#fff5dc;padding:12px;border-radius:8px}
+</style>
+
+<h2>AD Brand Market — Order & Seller Centre</h2>
+<p class="a13-muted">ऑर्डर, इन्वेंटरी, पैकिंग और डिलीवरी नियमों का फ्रंटएंड डेमो।</p>
+
+<div class="a13-card">
+<h3>1. प्रोडक्ट सूची में जोड़ें</h3>
+<div class="a13-grid">
+<div><label for="a13-product">प्रोडक्ट का नाम *</label><input id="a13-product" placeholder="जैसे स्पोर्ट्स शूज़"></div>
+<div><label for="a13-category">कैटेगरी *</label>
+<select id="a13-category">
+<option value="food">खाना / चाय / Snacks</option>
+<option value="clothing">कपड़े</option>
+<option value="footwear">जूते / चप्पल</option>
+<option value="jewellery">ज्वेलरी</option>
+<option value="home">घर का सामान</option>
+</select></div>
+<div><label for="a13-price">कीमत ₹ *</label><input id="a13-price" type="number" min="1"></div>
+<div><label for="a13-stock">स्टॉक *</label><input id="a13-stock" type="number" min="0"></div>
+<div><label for="a13-sizes">साइज़</label><input id="a13-sizes" placeholder="6, 7, 8, 9 या लागू नहीं"></div>
+<div><label for="a13-colours">रंग</label><input id="a13-colours" placeholder="काला, सफेद, नीला"></div>
+<div><label for="a13-material">मटेरियल</label><input id="a13-material" placeholder="कॉटन, रबर, लेदर आदि"></div>
+<div><label for="a13-discount">ऑफर / छूट (%)</label><input id="a13-discount" type="number" min="0" max="90" value="0"></div>
+</div>
+<label for="a13-description">विवरण</label>
+<textarea id="a13-description" rows="2" placeholder="प्रोडक्ट की जानकारी"></textarea>
+<label for="a13-image">प्रोडक्ट फोटो URL (वैकल्पिक)</label>
+<input id="a13-image" type="url" placeholder="https://...">
+<button type="button" id="a13-add-product">डेमो सूची में जोड़ें</button>
+<div id="a13-product-result" class="a13-muted" aria-live="polite"></div>
+</div>
+
+<div class="a13-card">
+<h3>2. दुकान और सर्विस एरिया</h3>
+<div class="a13-grid">
+<div><label for="a13-seller">दुकान का नाम</label><input id="a13-seller" placeholder="जैसे मोहन फूड्स"></div>
+<div><label for="a13-city">शहर</label><input id="a13-city" placeholder="जैसे लखनऊ"></div>
+<div><label for="a13-zone">जोन / इलाका</label><input id="a13-zone" placeholder="जैसे अलीगंज"></div>
+<div><label for="a13-pin">दुकान PIN Code</label><input id="a13-pin" inputmode="numeric" maxlength="6" placeholder="6 अंक"></div>
+<div><label for="a13-open">दुकान की स्थिति</label>
+<select id="a13-open"><option value="open">अभी खुली है</option><option value="closed">अभी बंद है</option></select></div>
+<div><label for="a13-hours">काम का समय</label><input id="a13-hours" placeholder="सुबह 10 से रात 9"></div>
+</div>
+<p class="a13-muted">यह स्थिति केवल इस डेमो में लागू है। लाइव वेबसाइट पर दुकान की स्थिति डेटाबेस और समय के अनुसार सर्वर पर जाँची जानी चाहिए।</p>
+</div>
+
+<div class="a13-card">
+<h3>3. ग्राहक ऑर्डर डेमो</h3>
+<div class="a13-grid">
+<div><label for="a13-customer">ग्राहक का नाम</label><input id="a13-customer"></div>
+<div><label for="a13-order-pin">ग्राहक PIN Code</label><input id="a13-order-pin" inputmode="numeric" maxlength="6"></div>
+<div><label for="a13-order-kind">डिलीवरी नियम</label>
+<select id="a13-order-kind">
+<option value="food">फूड — स्थानीय डिलीवरी</option>
+<option value="fashion">फैशन / फुटवियर — कुरियर शिपिंग</option>
+</select></div>
+<div><label for="a13-payment">भुगतान का तरीका</label>
+<select id="a13-payment"><option value="COD">Cash on Delivery</option><option value="UPI">UPI / Prepaid (डेमो)</option></select></div>
+</div>
+<label for="a13-order-address">पूरा डिलीवरी पता</label>
+<textarea id="a13-order-address" rows="2" placeholder="घर नंबर, सड़क, इलाका"></textarea>
+<label for="a13-order-product">डेमो प्रोडक्ट</label>
+<select id="a13-order-product"><option value="">पहले प्रोडक्ट जोड़ें</option></select>
+<button type="button" id="a13-create-order">डेमो ऑर्डर बनाएँ</button>
+<div id="a13-order-result" aria-live="polite"></div>
+</div>
+
+<div class="a13-card">
+<h3>4. Seller Order Desk</h3>
+<p class="a13-muted">डेमो ऑर्डर की स्थिति देखें और अगला चरण चुनें।</p>
+<div id="a13-orders" class="a13-list"></div>
+</div>
+
+<div class="a13-card a13-warn">
+<strong>सुरक्षा और वास्तविक संचालन</strong>
+<p>यह मॉड्यूल स्थानीय ब्राउज़र की अस्थायी मेमोरी में काम करता है। पेज रीफ्रेश होने पर डेमो रिकॉर्ड मिट सकते हैं। इसमें वास्तविक भुगतान, ग्राहक OTP, कुरियर बुकिंग, GPS, Supabase सेविंग या वास्तविक ऑर्डर असाइनमेंट नहीं है। किसी वास्तविक ग्राहक की निजी जानकारी इसमें न डालें।</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const root=document.getElementById("adbm13");
+  if(!root || root.dataset.ready==="1") return;
+  root.dataset.ready="1";
+  const $=id=>root.querySelector("#"+id);
+
+  let products=[];
+  let orders=[];
+  let sequence=1;
+
+  const statuses=[
+    "नया ऑर्डर",
+    "Seller ने स्वीकार किया",
+    "पैकिंग चल रही है",
+    "पिकअप / कुरियर के लिए तैयार",
+    "डिलीवरी चल रही है",
+    "डिलीवर हुआ"
+  ];
+
+  function refreshProductSelect(){
+    const select=$("a13-order-product");
+    select.innerHTML="";
+    if(!products.length){
+      select.add(new Option("पहले प्रोडक्ट जोड़ें",""));
+      return;
+    }
+    select.add(new Option("प्रोडक्ट चुनें",""));
+    products.forEach(p=>{
+      select.add(new Option(p.name+" — ₹"+p.price+" — स्टॉक "+p.stock,p.id));
+    });
+  }
+
+  function addProduct(){
+    const name=$("a13-product").value.trim();
+    const category=$("a13-category").value;
+    const price=Number($("a13-price").value);
+    const stock=Number($("a13-stock").value);
+    const discount=Number($("a13-discount").value||0);
+
+    if(!name || !Number.isFinite(price) || price<=0 ||
+       !Number.isInteger(stock) || stock<0){
+      $("a13-product-result").textContent="प्रोडक्ट का नाम, सही कीमत और शून्य या अधिक पूर्णांक स्टॉक भरें।";
+      return;
+    }
+    if(!Number.isFinite(discount)||discount<0||discount>90){
+      $("a13-product-result").textContent="छूट 0 से 90 प्रतिशत के बीच रखें।";
+      return;
+    }
+
+    const p={
+      id:"DEMO-P"+sequence++,
+      name:name,
+      category:category,
+      price:Math.round(price*(100-discount))/100,
+      originalPrice:price,
+      stock:stock,
+      sizes:$("a13-sizes").value.trim(),
+      colours:$("a13-colours").value.trim(),
+      material:$("a13-material").value.trim(),
+      description:$("a13-description").value.trim(),
+      image:$("a13-image").value.trim()
+    };
+    products.push(p);
+    refreshProductSelect();
+    $("a13-product-result").textContent=
+      "डेमो प्रोडक्ट जोड़ा गया: "+p.name+
+      " | अंतिम कीमत ₹"+p.price+
+      " | स्टॉक "+p.stock+
+      " | ID "+p.id+
+      ". यह रिकॉर्ड सर्वर पर सेव नहीं हुआ।";
+  }
+
+  function createOrder(){
+    const customer=$("a13-customer").value.trim();
+    const pin=$("a13-order-pin").value.trim();
+    const address=$("a13-order-address").value.trim();
+    const product=products.find(p=>p.id===$("a13-order-product").value);
+    const kind=$("a13-order-kind").value;
+    const sellerPin=$("a13-pin").value.trim();
+    const shopStatus=$("a13-open").value;
+
+    if(!customer||!address||!product){
+      $("a13-order-result").textContent="ग्राहक का नाम, पूरा पता और प्रोडक्ट चुनें।";
+      return;
+    }
+    if(!/^\d{6}$/.test(pin)){
+      $("a13-order-result").textContent="ग्राहक का PIN Code 6 अंकों का होना चाहिए।";
+      return;
+    }
+    if(shopStatus!=="open"){
+      $("a13-order-result").textContent="दुकान बंद है; इस डेमो में नया ऑर्डर नहीं बनाया जा सकता।";
+      return;
+    }
+    if(product.stock<1){
+      $("a13-order-result").textContent="यह प्रोडक्ट स्टॉक में नहीं है।";
+      return;
+    }
+    if(kind==="food"){
+      if(product.category!=="food"){
+        $("a13-order-result").textContent="फूड ऑर्डर में फूड कैटेगरी का प्रोडक्ट चुनें।";
+        return;
+      }
+      if(!/^\d{6}$/.test(sellerPin)){
+        $("a13-order-result").textContent="पहले सेलर की दुकान का सही PIN Code भरें।";
+        return;
+      }
+      if(pin!==sellerPin){
+        $("a13-order-result").textContent="डेमो नियम: फूड ऑर्डर का ग्राहक PIN सेलर PIN से मेल नहीं खाता। वास्तविक सिस्टम में स्वीकृत जोन की जाँच करनी होगी।";
+        return;
+      }
+    }
+
+    const order={
+      id:"DEMO-ORDER-"+String(sequence++).padStart(4,"0"),
+      customer:customer,
+      pin:pin,
+      address:address,
+      productId:product.id,
+      productName:product.name,
+      amount:product.price,
+      category:product.category,
+      kind:kind,
+      payment:$("a13-payment").value,
+      status:statuses[0]
+    };
+    product.stock--;
+    orders.unshift(order);
+    refreshProductSelect();
+    renderOrders();
+    $("a13-order-result").textContent=
+      "डेमो ऑर्डर बना: "+order.id+
+      " | प्रोडक्ट: "+order.productName+
+      " | राशि ₹"+order.amount+
+      " | भुगतान "+order.payment+
+      ". वास्तविक भुगतान या कुरियर बुकिंग नहीं हुई।";
+  }
+
+  function renderOrders(){
+    const list=$("a13-orders");
+    list.innerHTML="";
+    if(!orders.length){
+      const empty=document.createElement("p");
+      empty.textContent="अभी कोई डेमो ऑर्डर नहीं है।";
+      list.appendChild(empty);
+      return;
+    }
+    orders.forEach(order=>{
+      const card=document.createElement("article");
+      card.className="a13-item";
+      const title=document.createElement("strong");
+      title.textContent=order.id+" — "+order.productName;
+      const details=document.createElement("p");
+      details.textContent="ग्राहक: "+order.customer+
+        " | PIN: "+order.pin+
+        " | ₹"+order.amount+
+        " | "+(order.kind==="food"?"स्थानीय फूड डिलीवरी":"फैशन / फुटवियर शिपिंग")+
+        " | "+order.payment;
+      const status=document.createElement("p");
+      status.className="a13-status";
+      status.textContent="स्थिति: "+order.status;
+      const next=document.createElement("button");
+      next.textContent="अगला स्टेटस";
+      next.disabled=order.status===statuses[statuses.length-1];
+      next.addEventListener("click",()=>{
+        const index=statuses.indexOf(order.status);
+        if(index>=0 && index<statuses.length-1){
+          order.status=statuses[index+1];
+          renderOrders();
+        }
+      });
+      card.append(title,details,status,next);
+      list.appendChild(card);
+    });
+  }
+
+  $("a13-add-product").addEventListener("click",addProduct);
+  $("a13-create-order").addEventListener("click",createOrder);
+  refreshProductSelect();
+  renderOrders();
+})();
+</script>
+</section>
+<!-- END ADBM13 -->
+```
+  ```html
+<!-- =====================================================
+ ADBM14 - VOICE SEARCH, CUSTOMER HELP & DELIVERY SOS
+ Demo module. Does not create real support infrastructure.
+===================================================== -->
+<section id="adbm14">
+<style>
+#adbm14 {
+  font-family:Arial,sans-serif;
+  max-width:1150px;
+  margin:20px auto;
+  padding:18px;
+  background:#f3f7fb;
+  color:#172337;
+  border-radius:16px;
+}
+#adbm14 * {box-sizing:border-box}
+#adbm14 .a14-card {
+  background:#fff;
+  border:1px solid #dce4ee;
+  border-radius:13px;
+  padding:16px;
+  margin:14px 0;
+}
+#adbm14 .a14-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
+#adbm14 label {
+  display:block;
+  margin:10px 0 5px;
+  font-size:14px;
+  font-weight:600;
+}
+#adbm14 input,
+#adbm14 select,
+#adbm14 textarea {
+  width:100%;
+  padding:11px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  font:inherit;
+  background:#fff;
+  color:#172337;
+}
+#adbm14 button,
+#adbm14 .a14-link {
+  display:inline-block;
+  padding:11px 14px;
+  margin:6px 5px 4px 0;
+  border:0;
+  border-radius:8px;
+  background:#087d58;
+  color:#fff;
+  font-weight:bold;
+  text-decoration:none;
+  cursor:pointer;
+}
+#adbm14 .a14-danger {background:#b42318}
+#adbm14 .a14-secondary {background:#344054}
+#adbm14 .a14-muted {color:#667085;font-size:13px}
+#adbm14 .a14-result {
+  margin-top:12px;
+  padding:12px;
+  border-radius:8px;
+  background:#edf8f2;
+  overflow-wrap:anywhere;
+}
+#adbm14 .a14-item {
+  padding:12px;
+  border:1px solid #e1e7ef;
+  border-radius:9px;
+  margin:9px 0;
+  background:white;
+}
+#adbm14 .a14-warning {
+  padding:12px;
+  border-radius:8px;
+  background:#fff3d6;
+}
+#adbm14 .a14-emergency {
+  border:2px solid #d92d20;
+}
+#adbm14 button:focus-visible,
+#adbm14 input:focus-visible,
+#adbm14 select:focus-visible,
+#adbm14 textarea:focus-visible {
+  outline:3px solid #84caff;
+  outline-offset:2px;
+}
+</style>
+
+<h2>AD Brand Market — Search & Help Centre</h2>
+<p class="a14-muted">
+ग्राहक सहायता, वॉइस सर्च और डिलीवरी पार्टनर की समस्या रिपोर्टिंग।
+</p>
+
+<!-- CUSTOMER SEARCH -->
+<div class="a14-card">
+  <h3>1. सामान खोजें — लिखकर या बोलकर</h3>
+  <p class="a14-muted">
+    उदाहरण: जूते, चप्पल, टी-शर्ट, चाय, समोसा, स्नैक्स।
+  </p>
+
+  <label for="a14-search">क्या खरीदना चाहते हैं?</label>
+  <input id="a14-search"
+    type="search"
+    placeholder="सामान का नाम लिखें..."
+    autocomplete="off">
+
+  <button type="button" id="a14-search-btn">सामान खोजें</button>
+  <button type="button" id="a14-voice-btn" class="a14-secondary">
+    🎤 बोलकर खोजें
+  </button>
+
+  <div id="a14-voice-status"
+       class="a14-muted"
+       aria-live="polite"></div>
+
+  <div id="a14-search-results"
+       aria-live="polite"></div>
+</div>
+
+<!-- CUSTOMER HELP -->
+<div class="a14-card">
+  <h3>2. ग्राहक सहायता — ऑर्डर नहीं आया?</h3>
+
+  <div class="a14-grid">
+    <div>
+      <label for="a14-order-id">ऑर्डर नंबर</label>
+      <input id="a14-order-id"
+        placeholder="उदाहरण: DEMO-ORDER-0001">
+    </div>
+
+    <div>
+      <label for="a14-help-type">समस्या चुनें</label>
+      <select id="a14-help-type">
+        <option value="not_arrived">ऑर्डर अभी तक नहीं आया</option>
+        <option value="late">डिलीवरी में देरी</option>
+        <option value="wrong_item">गलत सामान मिला</option>
+        <option value="missing_item">सामान कम मिला</option>
+        <option value="damaged">सामान खराब या टूटा हुआ</option>
+        <option value="food_quality">खाने की गुणवत्ता की समस्या</option>
+        <option value="payment">भुगतान या COD की समस्या</option>
+        <option value="refund">रिफंड की जानकारी चाहिए</option>
+        <option value="other">दूसरी समस्या</option>
+      </select>
+    </div>
+  </div>
+
+  <label for="a14-help-description">समस्या की जानकारी</label>
+  <textarea id="a14-help-description"
+    rows="3"
+    maxlength="1000"
+    placeholder="समस्या बताइए। यहाँ OTP, पासवर्ड या बैंक विवरण न लिखें।"></textarea>
+
+  <button type="button" id="a14-create-ticket">
+    सहायता अनुरोध बनाएँ
+  </button>
+
+  <div id="a14-ticket-result"
+       aria-live="polite"></div>
+
+  <p class="a14-muted">
+    अभी यह डेमो टिकट बनाता है। वास्तविक सपोर्ट टीम को टिकट पहुँचाने के
+    लिए Supabase डेटाबेस, सुरक्षित सर्वर लॉजिक और स्टाफ डैशबोर्ड जोड़ना होगा।
+  </p>
+</div>
+
+<!-- DELIVERY PARTNER SUPPORT -->
+<div class="a14-card a14-emergency">
+  <h3>3. डिलीवरी पार्टनर — SOS और इमरजेंसी</h3>
+
+  <p>
+    एक्सीडेंट, चोट, गाड़ी खराब होने या ऑर्डर डिलीवर न कर पाने पर
+    सही सहायता का विकल्प चुनें।
+  </p>
+
+  <div class="a14-warning">
+    <strong>जान का खतरा या मेडिकल इमरजेंसी?</strong>
+    <p>
+      भारत के आपातकालीन सहायता नंबर 112 पर कॉल करें।
+      गंभीर चोट होने पर पहले अपनी सुरक्षा और मेडिकल सहायता को प्राथमिकता दें।
+    </p>
+    <a class="a14-link a14-danger"
+       href="tel:112"
+       aria-label="112 आपातकालीन सहायता पर कॉल करें">
+      📞 112 पर कॉल करें
+    </a>
+  </div>
+
+  <label for="a14-rider-issue">क्या समस्या हुई?</label>
+  <select id="a14-rider-issue">
+    <option value="accident">एक्सीडेंट / चोट लगी</option>
+    <option value="puncture">गाड़ी पंचर हो गई</option>
+    <option value="vehicle">गाड़ी खराब हो गई</option>
+    <option value="customer_unavailable">ग्राहक उपलब्ध नहीं है</option>
+    <option value="seller_delay">सेलर ने ऑर्डर तैयार नहीं किया</option>
+    <option value="wrong_address">पता नहीं मिल रहा</option>
+    <option value="road_block">रास्ता बंद / सुरक्षा समस्या</option>
+    <option value="food_spill">खाना गिर गया या पैकेट खराब है</option>
+    <option value="other">दूसरी समस्या</option>
+  </select>
+
+  <div class="a14-grid">
+    <div>
+      <label for="a14-rider-order">ऑर्डर नंबर (यदि लागू हो)</label>
+      <input id="a14-rider-order"
+        placeholder="ऑर्डर रेफरेंस">
+    </div>
+
+    <div>
+      <label for="a14-rider-area">वर्तमान इलाका</label>
+      <input id="a14-rider-area"
+        placeholder="जैसे अलीगंज, लखनऊ">
+    </div>
+  </div>
+
+  <label for="a14-rider-description">अतिरिक्त जानकारी</label>
+  <textarea id="a14-rider-description"
+    rows="2"
+    maxlength="1000"
+    placeholder="क्या हुआ और किस मदद की जरूरत है?"></textarea>
+
+  <button type="button" id="a14-rider-ticket" class="a14-danger">
+    समस्या रिपोर्ट करें
+  </button>
+
+  <div id="a14-rider-result"
+       aria-live="polite"></div>
+
+  <p class="a14-muted">
+    यह बटन अभी स्थानीय डेमो रिपोर्ट बनाता है, किसी कर्मचारी या एम्बुलेंस
+    को अलर्ट नहीं भेजता। वास्तविक SOS के लिए लाइव सपोर्ट, फोन/मैसेज
+    इंटीग्रेशन, एस्केलेशन और उपलब्धता की पुष्टि आवश्यक है।
+  </p>
+</div>
+
+<!-- COMPANY SUPPORT CONTACT -->
+<div class="a14-card">
+  <h3>4. AD Brand Market सपोर्ट संपर्क</h3>
+  <p>
+    कंपनी का सत्यापित सहायता नंबर और ईमेल मिलने के बाद यहाँ जोड़ा जाएगा।
+  </p>
+
+  <div class="a14-grid">
+    <div>
+      <label>कस्टमर हेल्पलाइन</label>
+      <input value="अभी तय नहीं है" readonly>
+    </div>
+    <div>
+      <label>डिलीवरी पार्टनर हेल्पलाइन</label>
+      <input value="अभी तय नहीं है" readonly>
+    </div>
+    <div>
+      <label>सपोर्ट ईमेल</label>
+      <input value="अभी तय नहीं है" readonly>
+    </div>
+  </div>
+
+  <p class="a14-muted">
+    कोई नकली नंबर न डालें। वास्तविक नंबर जोड़ने से पहले कंपनी के
+    नियंत्रण वाला फोन नंबर और सपोर्ट व्यवस्था तैयार करें।
+  </p>
+</div>
+
+<!-- DEMO TICKET HISTORY -->
+<div class="a14-card">
+  <h3>5. इस सेशन के डेमो सहायता अनुरोध</h3>
+  <div id="a14-ticket-history"></div>
+  <button type="button"
+    id="a14-clear-demo"
+    class="a14-secondary">
+    डेमो रिकॉर्ड साफ करें
+  </button>
+  <p class="a14-muted">
+    ये रिकॉर्ड सिर्फ खुले हुए पेज की मेमोरी में हैं। पेज बंद या रीफ्रेश
+    करने पर मिट जाएँगे।
+  </p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const root=document.getElementById("adbm14");
+  if(!root || root.dataset.ready==="1") return;
+  root.dataset.ready="1";
+
+  const $=id=>root.querySelector("#"+id);
+  const tickets=[];
+  let ticketCounter=1;
+  let recognition=null;
+
+  function safeText(value){
+    return String(value==null?"":value);
+  }
+
+  function makeTicketId(prefix){
+    return prefix+"-"+Date.now().toString(36).toUpperCase()
+      +"-"+String(ticketCounter++).padStart(3,"0");
+  }
+
+  function showMessage(element,message){
+    $(element).textContent=message;
+  }
+
+  /*
+   * Read product names from ADBM13's existing product dropdown.
+   * No access to its private JavaScript variables is required.
+   */
+  function getExistingProducts(){
+    const select=document.getElementById("a13-order-product");
+    if(!select) return [];
+
+    return Array.from(select.options)
+      .filter(option=>option.value && option.textContent.trim())
+      .map(option=>({
+        id:option.value,
+        label:option.textContent.trim()
+      }));
+  }
+
+  function normalize(value){
+    return safeText(value)
+      .toLocaleLowerCase("hi-IN")
+      .normalize("NFC")
+      .replace(/[।,!?;:()[\]{}]/g," ")
+      .replace(/\s+/g," ")
+      .trim();
+  }
+
+  function searchProducts(){
+    const query=normalize($("a14-search").value);
+    const result=$("a14-search-results");
+    result.replaceChildren();
+
+    if(!query){
+      result.textContent="पहले सामान का नाम लिखें या माइक्रोफोन से बोलें।";
+      return;
+    }
+
+    const products=getExistingProducts();
+    const matches=products.filter(product=>
+      normalize(product.label).includes(query) ||
+      query.split(" ").some(word=>
+        word.length>1 && normalize(product.label).includes(word)
+      )
+    );
+
+    if(!matches.length){
+      const message=document.createElement("p");
+      message.textContent=products.length
+        ? "मौजूदा डेमो सूची में यह सामान नहीं मिला। नाम या कैटेगरी बदलकर खोजें।"
+        : "अभी ADBM13 की डेमो प्रोडक्ट सूची खाली है। पहले सेलर मॉड्यूल में प्रोडक्ट जोड़ें।";
+      result.appendChild(message);
+      return;
+    }
+
+    matches.forEach(product=>{
+      const card=document.createElement("div");
+      card.className="a14-item";
+
+      const title=document.createElement("strong");
+      title.textContent=product.label;
+
+      const selectButton=document.createElement("button");
+      selectButton.textContent="यह प्रोडक्ट चुनें";
+      selectButton.addEventListener("click",()=>{
+        const productSelect=document.getElementById("a13-order-product");
+
+        if(productSelect){
+          productSelect.value=product.id;
+          productSelect.dispatchEvent(new Event("change",{bubbles:true}));
+          showMessage("a14-search-results",
+            "प्रोडक्ट ADBM13 के डेमो ऑर्डर फॉर्म में चुना गया है।");
+        }else{
+          showMessage("a14-search-results",
+            "ऑर्डर फॉर्म नहीं मिला। पहले ADBM13 मॉड्यूल जाँचें।");
+        }
+      });
+
+      card.append(title,document.createElement("br"),selectButton);
+      result.appendChild(card);
+    });
+  }
+
+  function startVoiceSearch(){
+    const SpeechRecognition=
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if(!SpeechRecognition){
+      showMessage("a14-voice-status",
+        "इस ब्राउज़र में वॉइस सर्च उपलब्ध नहीं है। Chrome के समर्थित ब्राउज़र में माइक्रोफोन अनुमति जाँचें।");
+      return;
+    }
+
+    try{
+      if(recognition){
+        try{ recognition.stop(); }catch(error){}
+      }
+
+      recognition=new SpeechRecognition();
+      recognition.lang="hi-IN";
+      recognition.interimResults=false;
+      recognition.maxAlternatives=1;
+
+      showMessage("a14-voice-status",
+        "सुन रहा है... सामान का नाम बोलें।");
+
+      recognition.onresult=function(event){
+        const transcript=event.results &&
+          event.results[0] &&
+          event.results[0][0]
+          ? event.results[0][0].transcript
+          : "";
+
+        $("a14-search").value=transcript;
+        showMessage("a14-voice-status",
+          transcript ? "आपने कहा: "+transcript : "आवाज़ समझ नहीं आई।");
+        searchProducts();
+      };
+
+      recognition.onerror=function(event){
+        showMessage("a14-voice-status",
+          "वॉइस सर्च नहीं चल पाया ("+
+          safeText(event.error)+")। लिखकर सर्च करें।");
+      };
+
+      recognition.onend=function(){
+        if(!$("a14-voice-status").textContent){
+          showMessage("a14-voice-status","वॉइस सर्च बंद हो गया।");
+        }
+      };
+
+      recognition.start();
+    }catch(error){
+      showMessage("a14-voice-status",
+        "माइक्रोफोन शुरू नहीं हो पाया। अनुमति और ब्राउज़र सेटिंग जाँचें।");
+    }
+  }
+
+  function renderTickets(){
+    const history=$("a14-ticket-history");
+    history.replaceChildren();
+
+    if(!tickets.length){
+      history.textContent="अभी कोई डेमो सहायता अनुरोध नहीं है।";
+      return;
+    }
+
+    tickets.slice().reverse().forEach(ticket=>{
+      const card=document.createElement("div");
+      card.className="a14-item";
+
+      const title=document.createElement("strong");
+      title.textContent=ticket.id+" — "+ticket.type;
+
+      const description=document.createElement("p");
+      description.textContent=ticket.description || "अतिरिक्त विवरण नहीं दिया गया।";
+
+      const status=document.createElement("p");
+      status.className="a14-muted";
+      status.textContent="डेमो स्थिति: "+ticket.status+
+        " | "+ticket.createdAt;
+
+      card.append(title,description,status);
+      history.appendChild(card);
+    });
+  }
+
+  function createCustomerTicket(){
+    const orderId=$("a14-order-id").value.trim();
+    const type=$("a14-help-type");
+    const description=$("a14-help-description").value.trim();
+
+    if(!orderId){
+      showMessage("a14-ticket-result",
+        "कृपया ऑर्डर नंबर भरें। यदि ऑर्डर नहीं बना है, तो समस्या विवरण में बताएं।");
+      return;
+    }
+
+    const ticket={
+      id:makeTicketId("CUS"),
+      type:type.options[type.selectedIndex].text,
+      description:description,
+      orderId:orderId,
+      status:"डेमो अनुरोध बनाया गया — सहायता टीम को नहीं भेजा गया",
+      createdAt:new Date().toLocaleString("hi-IN")
+    };
+
+    tickets.push(ticket);
+    renderTickets();
+
+    showMessage("a14-ticket-result",
+      "डेमो अनुरोध नंबर: "+ticket.id+
+      ". यह अभी कंपनी की सहायता टीम तक नहीं पहुँचा है।");
+  }
+
+  function createRiderTicket(){
+    const issue=$("a14-rider-issue");
+    const description=$("a14-rider-description").value.trim();
+    const area=$("a14-rider-area").value.trim();
+    const orderId=$("a14-rider-order").value.trim();
+
+    if(!area && !description){
+      showMessage("a14-rider-result",
+        "कृपया अपना इलाका या समस्या का विवरण भरें।");
+      return;
+    }
+
+    const ticket={
+      id:makeTicketId("RDR"),
+      type:"डिलीवरी पार्टनर: "+issue.options[issue.selectedIndex].text,
+      description:
+        (area?"इलाका: "+area+". ":"")+
+        (orderId?"ऑर्डर: "+orderId+". ":"")+
+        description,
+      status:"डेमो रिपोर्ट बनाई गई — लाइव सपोर्ट को नहीं भेजी गई",
+      createdAt:new Date().toLocaleString("hi-IN")
+    };
+
+    tickets.push(ticket);
+    renderTickets();
+
+    showMessage("a14-rider-result",
+      "डेमो रिपोर्ट नंबर: "+ticket.id+
+      ". यदि जान या सुरक्षा को खतरा है तो इंतज़ार न करें—112 पर कॉल करें।");
+  }
+
+  $("a14-search-btn").addEventListener("click",searchProducts);
+
+  $("a14-search").addEventListener("keydown",event=>{
+    if(event.key==="Enter"){
+      event.preventDefault();
+      searchProducts();
+    }
+  });
+
+  $("a14-voice-btn").addEventListener("click",startVoiceSearch);
+
+  $("a14-create-ticket").addEventListener(
+    "click",createCustomerTicket
+  );
+
+  $("a14-rider-ticket").addEventListener(
+    "click",createRiderTicket
+  );
+
+  $("a14-clear-demo").addEventListener("click",()=>{
+    tickets.length=0;
+    renderTickets();
+    showMessage("a14-ticket-result","डेमो रिकॉर्ड साफ कर दिए गए।");
+    showMessage("a14-rider-result","");
+  });
+
+  renderTickets();
+})();
+</script>
+</section>
+<!-- END ADBM14 -->
+```
+  ```html
+<!-- =====================================================
+ ADBM15 - DELIVERY PAY, FAIRNESS & MARGIN CALCULATOR
+ Proposed business rules only. No real payout is triggered.
+===================================================== -->
+<section id="adbm15">
+<style>
+#adbm15{font-family:Arial,sans-serif;max-width:1150px;margin:20px auto;padding:18px;background:#f3f7fb;color:#182338;border-radius:16px}
+#adbm15 *{box-sizing:border-box}
+#adbm15 .a15-card{background:#fff;border:1px solid #dfe6ef;padding:16px;border-radius:12px;margin:14px 0}
+#adbm15 .a15-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(205px,1fr));gap:12px}
+#adbm15 label{display:block;font-size:14px;font-weight:bold;margin:9px 0 5px}
+#adbm15 input,#adbm15 select{width:100%;padding:11px;border:1px solid #ccd5e1;border-radius:8px;font:inherit}
+#adbm15 button{background:#087d58;color:#fff;border:0;padding:11px 15px;border-radius:8px;margin-top:12px;font-weight:bold;cursor:pointer}
+#adbm15 .a15-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+#adbm15 .a15-stat{background:#edf8f2;border-radius:10px;padding:13px}
+#adbm15 .a15-number{font-size:23px;font-weight:bold;display:block;margin-top:5px}
+#adbm15 .a15-muted{color:#667085;font-size:13px}
+#adbm15 .a15-warning{background:#fff3d6;border-radius:8px;padding:12px}
+#adbm15 .a15-result{padding:12px;background:#eef4ff;border-radius:8px;margin-top:12px;overflow-wrap:anywhere}
+</style>
+
+<h2>AD Brand Market — Delivery Pay & Margin</h2>
+<p class="a15-muted">प्रस्तावित दरों का हिसाब लगाएँ। यह डेमो है, वास्तविक भुगतान प्रणाली नहीं।</p>
+
+<div class="a15-card">
+<h3>1. ऑर्डर की जानकारी</h3>
+<div class="a15-grid">
+  <div>
+    <label for="a15-type">ऑर्डर का प्रकार</label>
+    <select id="a15-type">
+      <option value="food">फूड / चाय / स्नैक्स</option>
+      <option value="local">लोकल नॉन-फूड डिलीवरी</option>
+      <option value="courier">फैशन / फुटवियर कुरियर</option>
+    </select>
+  </div>
+  <div>
+    <label for="a15-distance">राइडर की कुल भुगतान योग्य दूरी (km)</label>
+    <input id="a15-distance" type="number" min="0.1" max="100" step="0.1" value="3">
+  </div>
+  <div>
+    <label for="a15-customer-fee">ग्राहक से डिलीवरी चार्ज (₹)</label>
+    <input id="a15-customer-fee" type="number" min="0" step="1" value="45">
+  </div>
+  <div>
+    <label for="a15-seller-fee">सेलर का डिलीवरी योगदान (₹)</label>
+    <input id="a15-seller-fee" type="number" min="0" step="1" value="0">
+  </div>
+  <div>
+    <label for="a15-wait">5 मिनट की छूट के बाद अतिरिक्त इंतजार (मिनट)</label>
+    <input id="a15-wait" type="number" min="0" max="300" step="1" value="0">
+  </div>
+  <div>
+    <label for="a15-peak">पीक / बारिश / कठिन परिस्थिति बोनस (₹)</label>
+    <input id="a15-peak" type="number" min="0" step="1" value="0">
+  </div>
+  <div>
+    <label for="a15-tip">ग्राहक की टिप (₹)</label>
+    <input id="a15-tip" type="number" min="0" step="1" value="0">
+  </div>
+  <div>
+    <label for="a15-cost">कंपनी का प्रति-ऑर्डर अनुमानित अन्य खर्च (₹)</label>
+    <input id="a15-cost" type="number" min="0" step="1" value="5">
+  </div>
+</div>
+<button type="button" id="a15-calculate">कमाई और मार्जिन निकालें</button>
+<div id="a15-output" class="a15-result" aria-live="polite"></div>
+</div>
+
+<div class="a15-card">
+<h3>2. प्रस्तावित राइडर भुगतान नीति</h3>
+<div class="a15-grid">
+  <div>
+    <label for="a15-base">पहले 3 km की न्यूनतम डिलीवरी पे (₹)</label>
+    <input id="a15-base" type="number" min="1" step="1" value="29">
+  </div>
+  <div>
+    <label for="a15-extra">3 km के बाद हर अतिरिक्त km (₹)</label>
+    <input id="a15-extra" type="number" min="0" step="0.5" value="8">
+  </div>
+  <div>
+    <label for="a15-wait-rate">छूट के बाद हर इंतजार मिनट (₹)</label>
+    <input id="a15-wait-rate" type="number" min="0" step="0.5" value="1">
+  </div>
+</div>
+<p class="a15-muted">
+  ये शुरुआत के लिए सुझाई गई सेटिंग हैं। स्थानीय ईंधन खर्च, वास्तविक यात्रा,
+  लौटने की दूरी, काम के समय, सुरक्षा और पार्टनर की सहमति देखकर इन्हें तय करें।
+</p>
+</div>
+
+<div class="a15-card">
+<h3>3. परिणाम</h3>
+<div class="a15-stats">
+  <div class="a15-stat">
+    राइडर की डिलीवरी पे
+    <span id="a15-rider-pay" class="a15-number">₹29</span>
+  </div>
+  <div class="a15-stat">
+    राइडर की कुल कमाई
+    <span id="a15-rider-total" class="a15-number">₹29</span>
+  </div>
+  <div class="a15-stat">
+    कंपनी का अनुमानित योगदान
+    <span id="a15-margin" class="a15-number">₹11</span>
+  </div>
+  <div class="a15-stat">
+    कुल डिलीवरी आय
+    <span id="a15-revenue" class="a15-number">₹45</span>
+  </div>
+</div>
+<p id="a15-explanation" class="a15-result"></p>
+</div>
+
+<div class="a15-card">
+<h3>4. जरूरी नियम</h3>
+<ul>
+  <li>राइडर को ऑर्डर स्वीकार करने से पहले भुगतान योग्य दूरी और अनुमानित कमाई दिखाएँ।</li>
+  <li>टिप को राइडर की कमाई में पूरा जोड़ें; इसे कंपनी का मार्जिन न मानें।</li>
+  <li>दूरी, इंतजार और पीक बोनस का हिसाब स्पष्ट रखें।</li>
+  <li>ऑर्डर रद्द होने, ग्राहक न मिलने, दुर्घटना या गाड़ी खराब होने पर निष्पक्ष सहायता और भुगतान नीति रखें।</li>
+  <li>COD की पूरी ग्राहक राशि राइडर की कमाई नहीं है; COD संग्रह और राइडर की कमाई का हिसाब अलग रखें।</li>
+  <li>राइडर की कमाई से बिना स्पष्ट नियम, प्रमाण और समीक्षा के मनमानी कटौती न करें।</li>
+</ul>
+<div class="a15-warning">
+  <strong>ध्यान दें:</strong> कंपनी का योगदान शुद्ध मुनाफा नहीं है। इसमें टेक्नोलॉजी,
+  सपोर्ट, टैक्स, बीमा, रिफंड, ग्राहक छूट, भुगतान शुल्क और दूसरे खर्च भी हो सकते हैं।
+  वास्तविक भुगतान के लिए सर्वर पर सुरक्षित ऑर्डर और payout ledger आवश्यक है।
+</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const root=document.getElementById("adbm15");
+  if(!root||root.dataset.ready==="1") return;
+  root.dataset.ready="1";
+
+  const $=id=>root.querySelector("#"+id);
+
+  function number(id){
+    return Number($(id).value);
+  }
+
+  function valid(id,min,max){
+    const value=number(id);
+    return Number.isFinite(value)&&value>=min&&value<=max;
+  }
+
+  function rupees(value){
+    return "₹"+value.toLocaleString("en-IN",{
+      maximumFractionDigits:2,
+      minimumFractionDigits:2
+    });
+  }
+
+  function calculate(){
+    const fields=[
+      ["a15-distance",0.1,100],
+      ["a15-customer-fee",0,100000],
+      ["a15-seller-fee",0,100000],
+      ["a15-wait",0,300],
+      ["a15-peak",0,100000],
+      ["a15-tip",0,100000],
+      ["a15-cost",0,100000],
+      ["a15-base",1,100000],
+      ["a15-extra",0,100000],
+      ["a15-wait-rate",0,100000]
+    ];
+
+    for(const field of fields){
+      if(!valid(field[0],field[1],field[2])){
+        $("a15-output").textContent=
+          "कृपया सभी राशियाँ और दूरी सही भरें। नकारात्मक मान स्वीकार नहीं हैं।";
+        return;
+      }
+    }
+
+    const distance=number("a15-distance");
+    const customerFee=number("a15-customer-fee");
+    const sellerFee=number("a15-seller-fee");
+    const wait=number("a15-wait");
+    const peak=number("a15-peak");
+    const tip=number("a15-tip");
+    const costs=number("a15-cost");
+    const base=number("a15-base");
+    const extraRate=number("a15-extra");
+    const waitRate=number("a15-wait-rate");
+
+    const distancePay=base+Math.max(0,distance-3)*extraRate;
+    const waitPay=wait*waitRate;
+    const riderDeliveryPay=distancePay+waitPay+peak;
+    const riderTotal=riderDeliveryPay+tip;
+    const revenue=customerFee+sellerFee;
+    const contribution=revenue-riderDeliveryPay-costs;
+
+    $("a15-rider-pay").textContent=rupees(riderDeliveryPay);
+    $("a15-rider-total").textContent=rupees(riderTotal);
+    $("a15-margin").textContent=rupees(contribution);
+    $("a15-revenue").textContent=rupees(revenue);
+
+    const type=$("a15-type").selectedOptions[0].textContent;
+    let message=
+      "ऑर्डर प्रकार: "+type+
+      ". भुगतान योग्य दूरी: "+distance+" km."+
+      " डिलीवरी पे: "+rupees(distancePay)+
+      ", इंतजार भुगतान: "+rupees(waitPay)+
+      ", बोनस: "+rupees(peak)+
+      ", टिप: "+rupees(tip)+".";
+
+    if(contribution<0){
+      message+=" इस अनुमान पर कंपनी का योगदान नकारात्मक है। ग्राहक शुल्क, सेलर योगदान या लागत की समीक्षा करें; राइडर का तय भुगतान मनमाने ढंग से न घटाएँ।";
+    }else{
+      message+=" अनुमानित योगदान "+rupees(contribution)+
+        " है, जो अन्य सभी अप्रत्यक्ष खर्चों और टैक्स से पहले का हिसाब है।";
+    }
+
+    if(customerFee+sellerFee<riderDeliveryPay){
+      message+=" चेतावनी: ग्राहक और सेलर से मिली डिलीवरी आय राइडर की डिलीवरी पे से कम है।";
+    }
+
+    $("a15-output").textContent=message;
+    $("a15-explanation").textContent=message;
+  }
+
+  $("a15-calculate").addEventListener("click",calculate);
+
+  [
+    "a15-type","a15-distance","a15-customer-fee","a15-seller-fee",
+    "a15-wait","a15-peak","a15-tip","a15-cost",
+    "a15-base","a15-extra","a15-wait-rate"
+  ].forEach(id=>{
+    $(id).addEventListener("change",calculate);
+  });
+
+  calculate();
+})();
+</script>
+</section>
+<!-- END ADBM15 -->
+```
+  ```html
+<!-- =============== ADBM16 START =============== -->
+<section id="adbm16">
+<style>
+#adbm16{font-family:Arial,sans-serif;max-width:1150px;margin:24px auto;padding:20px;background:linear-gradient(135deg,#eef8ff,#f4f0ff,#effff6);color:#172337;border-radius:20px;overflow:hidden}
+#adbm16 *{box-sizing:border-box}
+#adbm16 .a16-head{padding:22px;border-radius:17px;background:linear-gradient(120deg,#073b4c,#087d58,#6c42c2);background-size:200% 200%;color:white;animation:a16bg 8s ease infinite}
+#adbm16 .a16-head h2{font-size:clamp(23px,4vw,36px);margin:0 0 9px}
+#adbm16 .a16-head p{line-height:1.6}
+#adbm16 .a16-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:13px}
+#adbm16 .a16-card{background:#fff;border:1px solid #dce5ef;border-radius:14px;padding:16px;margin:14px 0;box-shadow:0 5px 18px #1b35500d;animation:a16in .55s ease both}
+#adbm16 .a16-stat{background:linear-gradient(145deg,#fff,#f0f9ff);padding:15px;border-radius:12px;border:1px solid #dce5ef}
+#adbm16 .a16-num{font-size:25px;font-weight:800;display:block;margin-top:8px;color:#087d58}
+#adbm16 label{display:block;font-size:14px;font-weight:bold;margin:10px 0 5px}
+#adbm16 input,#adbm16 select{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font:inherit}
+#adbm16 button{padding:11px 15px;border:0;border-radius:9px;background:#087d58;color:white;font-weight:bold;cursor:pointer;margin:6px 4px 4px 0;transition:transform .2s,filter .2s}
+#adbm16 button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+#adbm16 .a16-muted{color:#667085;font-size:13px;line-height:1.6}
+#adbm16 .a16-warn{background:#fff3d6;padding:13px;border-radius:10px;line-height:1.6}
+#adbm16 .a16-table{width:100%;border-collapse:collapse}
+#adbm16 .a16-table th,#adbm16 .a16-table td{text-align:left;padding:10px;border-bottom:1px solid #e4eaf1}
+#adbm16 .a16-table th{background:#eff6ff}
+#adbm16 .a16-table tr{transition:background .2s}
+#adbm16 .a16-table tr:hover{background:#f0fdf4}
+#adbm16 .a16-scroll{overflow-x:auto}
+#adbm16 .a16-pill{display:inline-block;background:#e7f8ef;color:#076b49;border-radius:30px;padding:5px 10px;font-size:12px;font-weight:bold}
+#adbm16 .a16-result{padding:13px;background:#eff6ff;border-radius:10px;margin-top:12px;line-height:1.7;overflow-wrap:anywhere}
+@keyframes a16in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes a16bg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@media(prefers-reduced-motion:reduce){#adbm16 *,#adbm16 *::before,#adbm16 *::after{animation:none!important;transition:none!important}}
+</style>
+
+<header class="a16-head">
+  <h2>AD Brand Market</h2>
+  <p>Fair Delivery Pay · Smart Pricing · Transparent Earnings</p>
+  <span class="a16-pill">प्रस्तावित रेट कार्ड — डेमो</span>
+</header>
+
+<div class="a16-card">
+  <h3>1. डिलीवरी पार्टनर की दूरी के हिसाब से पे</h3>
+  <p class="a16-muted">
+    नीचे की रकम उदाहरण के लिए हैं। इन्हें लखनऊ में वास्तविक राइड, ईंधन,
+    पिकअप दूरी, समय और राइडर की कमाई जाँचकर अंतिम करना होगा।
+  </p>
+  <div class="a16-scroll">
+    <table class="a16-table">
+      <thead><tr><th>भुगतान योग्य दूरी</th><th>प्रस्तावित राइडर पे</th><th>औसत प्रति km</th></tr></thead>
+      <tbody id="a16-rate-rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="a16-card">
+  <h3>2. अपना ऑर्डर हिसाब निकालें</h3>
+  <div class="a16-grid">
+    <div>
+      <label for="a16-distance">भुगतान योग्य दूरी (km)</label>
+      <input id="a16-distance" type="number" min="0.1" max="100" step="0.1" value="3">
+    </div>
+    <div>
+      <label for="a16-customer">ग्राहक डिलीवरी चार्ज (₹)</label>
+      <input id="a16-customer" type="number" min="0" max="100000" value="45">
+    </div>
+    <div>
+      <label for="a16-seller">सेलर का डिलीवरी योगदान (₹)</label>
+      <input id="a16-seller" type="number" min="0" max="100000" value="0">
+    </div>
+    <div>
+      <label for="a16-cost">कंपनी का अनुमानित प्रति-ऑर्डर खर्च (₹)</label>
+      <input id="a16-cost" type="number" min="0" max="100000" value="5">
+    </div>
+    <div>
+      <label for="a16-bonus">राइडर बोनस (₹)</label>
+      <input id="a16-bonus" type="number" min="0" max="100000" value="0">
+    </div>
+    <div>
+      <label for="a16-tip">ग्राहक की टिप (₹)</label>
+      <input id="a16-tip" type="number" min="0" max="100000" value="0">
+    </div>
+    <div>
+      <label for="a16-type">ऑर्डर प्रकार</label>
+      <select id="a16-type">
+        <option value="food">फूड / चाय / स्नैक्स</option>
+        <option value="local">लोकल नॉन-फूड</option>
+        <option value="courier">फैशन / फुटवियर कुरियर</option>
+      </select>
+    </div>
+  </div>
+  <button type="button" id="a16-calculate">हिसाब निकालें</button>
+  <div id="a16-result" class="a16-result" aria-live="polite"></div>
+</div>
+
+<div class="a16-card">
+  <h3>3. परिणाम</h3>
+  <div class="a16-grid">
+    <div class="a16-stat">राइडर की डिलीवरी पे<span id="a16-pay" class="a16-num">₹29</span></div>
+    <div class="a16-stat">टिप सहित राइडर कमाई<span id="a16-total" class="a16-num">₹29</span></div>
+    <div class="a16-stat">कंपनी का अनुमानित योगदान<span id="a16-margin" class="a16-num">₹11</span></div>
+    <div class="a16-stat">ग्राहक + सेलर से डिलीवरी आय<span id="a16-revenue" class="a16-num">₹45</span></div>
+  </div>
+  <p class="a16-muted">
+    कंपनी का योगदान शुद्ध मुनाफा नहीं है। इसमें टैक्स, टेक्नोलॉजी,
+    सपोर्ट, रिफंड, बीमा और अन्य खर्च अभी शामिल नहीं भी हो सकते हैं।
+  </p>
+</div>
+
+<div class="a16-card">
+  <h3>4. राइडर और ग्राहक के लिए जरूरी नियम</h3>
+  <ul>
+    <li>ऑर्डर स्वीकार करने से पहले दूरी, अनुमानित समय और राइडर पे दिखाएँ।</li>
+    <li>टिप राइडर की हो; उसे कंपनी के मार्जिन में न गिनें।</li>
+    <li>लंबा इंतजार, बारिश, पीक समय और अतिरिक्त दूरी पर स्पष्ट बोनस नियम रखें।</li>
+    <li>एक्सीडेंट या गाड़ी खराब होने पर सुरक्षा और सहायता को प्राथमिकता दें।</li>
+    <li>ग्राहक का भुगतान, COD रकम और राइडर की कमाई अलग-अलग रिकॉर्ड करें।</li>
+    <li>फूड डिलीवरी केवल स्वीकृत स्थानीय सर्विस एरिया में रखें।</li>
+    <li>फुटवियर/फैशन शिपिंग तभी दिखाएँ जब वास्तविक कुरियर उस PIN को सर्व करता हो।</li>
+  </ul>
+  <div class="a16-warn">
+    <strong>लाइव सिस्टम की सीमा:</strong> यह केवल फ्रंटएंड डेमो है।
+    यह असली GPS, ऑर्डर असाइनमेंट, भुगतान, राइडर payout या Supabase डेटा
+    से जुड़ा नहीं है। ग्राहक या राइडर को भुगतान करने के लिए वास्तविक
+    सर्वर-साइड रिकॉर्ड और सत्यापन जरूरी हैं।
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const root=document.getElementById("adbm16");
+  if(!root||root.dataset.ready==="1")return;
+  root.dataset.ready="1";
+  const $=id=>root.querySelector("#"+id);
+
+  // प्रस्तावित शुरुआती दरें, competitor rates नहीं।
+  const rates=[
+    {km:1,pay:20},
+    {km:2,pay:24},
+    {km:3,pay:29},
+    {km:4,pay:37},
+    {km:5,pay:45},
+    {km:6,pay:53},
+    {km:7,pay:61},
+    {km:8,pay:69},
+    {km:9,pay:77},
+    {km:10,pay:85}
+  ];
+
+  function money(n){
+    return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:2});
+  }
+
+  function renderRates(){
+    const body=$("a16-rate-rows");
+    body.replaceChildren();
+    rates.forEach(item=>{
+      const row=document.createElement("tr");
+      [item.km+" km",money(item.pay),money(item.pay/item.km)].forEach(value=>{
+        const cell=document.createElement("td");
+        cell.textContent=value;
+        row.appendChild(cell);
+      });
+      body.appendChild(row);
+    });
+  }
+
+  function riderPay(distance){
+    // पहले 10 km की तालिका; उसके बाद ₹8/km का प्रस्ताव।
+    if(distance<=1)return 20;
+    if(distance<=2)return 24;
+    if(distance<=3)return 29;
+    if(distance<=4)return 37;
+    if(distance<=5)return 45;
+    if(distance<=6)return 53;
+    if(distance<=7)return 61;
+    if(distance<=8)return 69;
+    if(distance<=9)return 77;
+    if(distance<=10)return 85;
+    return 85+Math.ceil(distance-10)*8;
+  }
+
+  function valid(id,min,max){
+    const value=Number($(id).value);
+    return Number.isFinite(value)&&value>=min&&value<=max;
+  }
+
+  function calculate(){
+    const inputs=[
+      ["a16-distance",0.1,100],
+      ["a16-customer",0,100000],
+      ["a16-seller",0,100000],
+      ["a16-cost",0,100000],
+      ["a16-bonus",0,100000],
+      ["a16-tip",0,100000]
+    ];
+    for(const input of inputs){
+      if(!valid(input[0],input[1],input[2])){
+        $("a16-result").textContent=
+          "कृपया दूरी और सभी रकम सही भरें। नकारात्मक रकम स्वीकार नहीं है।";
+        return;
+      }
+    }
+
+    const distance=Number($("a16-distance").value);
+    const customer=Number($("a16-customer").value);
+    const seller=Number($("a16-seller").value);
+    const costs=Number($("a16-cost").value);
+    const bonus=Number($("a16-bonus").value);
+    const tip=Number($("a16-tip").value);
+
+    const pay=riderPay(distance);
+    const riderTotal=pay+bonus+tip;
+    const revenue=customer+seller;
+    // टिप राइडर की है; कंपनी की आय या मार्जिन में शामिल नहीं।
+    const margin=revenue-pay-bonus-costs;
+
+    $("a16-pay").textContent=money(pay+bonus);
+    $("a16-total").textContent=money(riderTotal);
+    $("a16-margin").textContent=money(margin);
+    $("a16-revenue").textContent=money(revenue);
+
+    let text="ऑर्डर प्रकार: "+$("a16-type").selectedOptions[0].textContent+
+      ". दूरी: "+distance+" km. प्रस्तावित बेस राइडर पे: "+money(pay)+
+      ". बोनस: "+money(bonus)+". टिप: "+money(tip)+
+      ". कुल राइडर कमाई: "+money(riderTotal)+
+      ". कंपनी की डिलीवरी आय: "+money(revenue)+
+      ". अनुमानित योगदान: "+money(margin)+".";
+
+    if(margin<0){
+      text+=" इस हिसाब में कंपनी को घाटा है। शुल्क और वास्तविक खर्च की समीक्षा करें; राइडर का भुगतान मनमाने ढंग से न घटाएँ।";
+    }else{
+      text+=" यह अप्रत्यक्ष खर्चों और लागू टैक्स से पहले का अनुमान है, शुद्ध मुनाफा नहीं।";
+    }
+
+    text+=" ये दरें प्रस्तावित हैं, बाजार में किसी अन्य कंपनी की गारंटीड दरें नहीं।";
+    $("a16-result").textContent=text;
+  }
+
+  $("a16-calculate").addEventListener("click",calculate);
+  [
+    "a16-distance","a16-customer","a16-seller","a16-cost",
+    "a16-bonus","a16-tip","a16-type"
+  ].forEach(id=>$(id).addEventListener("change",calculate));
+
+  renderRates();
+  calculate();
+})();
+</script>
+</section>
+<!-- =============== ADBM16 END =============== -->
+```
+  
+<!-- ==================== ADBM17 START ==================== -->
+<section id="adbm17" class="panel">
+  <style>
+    #adbm17 {
+      --a17-bg: #101827;
+      --a17-card: #192538;
+      --a17-line: #30435a;
+      --a17-text: #f1f5f9;
+      --a17-muted: #aab8ca;
+      --a17-green: #25c98a;
+      --a17-orange: #ffbd69;
+      color: var(--a17-text);
+      font-family: system-ui, Arial, sans-serif;
+      padding: 16px;
+    }
+    #adbm17 * { box-sizing: border-box; }
+    #adbm17 .a17-shell {
+      max-width: 920px;
+      margin: auto;
+      overflow: hidden;
+      border: 1px solid var(--a17-line);
+      border-radius: 22px;
+      background:
+        radial-gradient(ellipse at top right, #1e4c55 0, transparent 45%),
+        var(--a17-bg);
+      box-shadow: 0 18px 50px #0005;
+      animation: a17Enter .55s ease both;
+    }
+    #adbm17 .a17-head {
+      padding: 22px;
+      background: linear-gradient(125deg, #163d43, #172438 70%);
+      border-bottom: 1px solid var(--a17-line);
+    }
+    #adbm17 .a17-kicker {
+      color: #7ee7bd;
+      font-size: 12px;
+      letter-spacing: 1.6px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    #adbm17 h2 {
+      font-size: clamp(23px, 4vw, 34px);
+      line-height: 1.2;
+      margin: 8px 0;
+    }
+    #adbm17 .a17-sub, #adbm17 .a17-muted {
+      color: var(--a17-muted);
+      line-height: 1.55;
+      font-size: 13px;
+    }
+    #adbm17 .a17-body { padding: 18px; }
+    #adbm17 .a17-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+    #adbm17 .a17-card {
+      min-width: 0;
+      padding: 16px;
+      background: var(--a17-card);
+      border: 1px solid var(--a17-line);
+      border-radius: 16px;
+      margin-bottom: 13px;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    #adbm17 .a17-card:hover {
+      transform: translateY(-2px);
+      border-color: #4d9f94;
+    }
+    #adbm17 .a17-card h3 {
+      font-size: 16px;
+      margin: 0 0 12px;
+    }
+    #adbm17 .a17-label {
+      display: block;
+      font-size: 12px;
+      color: var(--a17-muted);
+      margin: 11px 0 6px;
+    }
+    #adbm17 input, #adbm17 select, #adbm17 textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 12px;
+      color: var(--a17-text);
+      background: #0d1725;
+      border: 1px solid var(--a17-line);
+      border-radius: 10px;
+      font: inherit;
+    }
+    #adbm17 button {
+      border: 0;
+      border-radius: 11px;
+      padding: 11px 13px;
+      font-weight: 750;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform .15s ease, filter .15s ease;
+    }
+    #adbm17 button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    #adbm17 button:focus-visible,
+    #adbm17 input:focus-visible,
+    #adbm17 select:focus-visible,
+    #adbm17 textarea:focus-visible {
+      outline: 2px solid #7ee7bd;
+      outline-offset: 2px;
+    }
+    #adbm17 .a17-primary { background: var(--a17-green); color: #08261c; }
+    #adbm17 .a17-secondary { background: #2b4058; color: white; border: 1px solid #486078; }
+    #adbm17 .a17-warning { background: #ffc66e; color: #35210a; }
+    #adbm17 .a17-danger { background: #6a2e3a; color: #fff; border: 1px solid #a54d5e; }
+    #adbm17 .a17-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    #adbm17 .a17-status {
+      padding: 13px;
+      background: #102e2b;
+      border: 1px solid #28695c;
+      border-radius: 13px;
+      color: #a6f3d7;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    #adbm17 .a17-clock {
+      font-size: clamp(30px, 6vw, 46px);
+      font-weight: 850;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      margin: 5px 0;
+    }
+    #adbm17 .a17-progress {
+      height: 7px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #304055;
+      margin-top: 12px;
+    }
+    #adbm17 .a17-progress > div {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #25c98a, #a4f1ce);
+      transition: width .4s linear;
+    }
+    #adbm17 .a17-log {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #adbm17 .a17-log li {
+      padding: 10px 0 10px 18px;
+      border-bottom: 1px solid var(--a17-line);
+      position: relative;
+      color: #dbe5ef;
+      font-size: 13px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+    #adbm17 .a17-log li::before {
+      content: "";
+      position: absolute;
+      left: 1px;
+      top: 16px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--a17-green);
+    }
+    #adbm17 .a17-log li:last-child { border-bottom: 0; }
+    #adbm17 .a17-note {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #6a5636;
+      background: #332a1b;
+      color: #ffdda6;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    #adbm17 .a17-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 8px;
+      border-radius: 30px;
+      color: #a6f3d7;
+      background: #17473c;
+      margin-bottom: 8px;
+    }
+    @keyframes a17Enter {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 620px) {
+      #adbm17 { padding: 8px; }
+      #adbm17 .a17-grid { grid-template-columns: 1fr; gap: 0; }
+      #adbm17 .a17-head, #adbm17 .a17-body { padding: 14px; }
+      #adbm17 button { flex: 1 1 auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #adbm17 *, #adbm17 *::before, #adbm17 *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+
+  <div class="a17-shell">
+    <header class="a17-head">
+      <div class="a17-kicker">AD Brand Market · Delivery Safety</div>
+      <h2>Customer Unavailable Protection</h2>
+      <p class="a17-sub">
+        राइडर पहुँच गया, लेकिन ग्राहक फोन नहीं उठा रहा?
+        संपर्क, प्रतीक्षा, प्रमाण और सहायता का रिकॉर्ड एक ही जगह रखें।
+      </p>
+    </header>
+
+    <div class="a17-body">
+      <div class="a17-note" style="margin-bottom:14px">
+        <strong>महत्वपूर्ण:</strong> यह अभी स्थानीय डेमो है। इसमें दर्ज रिकॉर्ड
+        इस ब्राउज़र की मौजूदा स्क्रीन तक सीमित हैं। यह अपने-आप GPS, कॉल,
+        SMS, Supabase या असली सपोर्ट टीम से कनेक्ट नहीं होता।
+      </div>
+
+      <div class="a17-grid">
+        <div class="a17-card">
+          <h3>1. ऑर्डर की जानकारी</h3>
+
+          <label class="a17-label" for="a17-order">ऑर्डर रेफरेंस</label>
+          <input id="a17-order" maxlength="50" placeholder="उदाहरण: AD-1042">
+
+          <label class="a17-label" for="a17-kind">सामान का प्रकार</label>
+          <select id="a17-kind">
+            <option value="food">खाना / चाय / स्नैक्स</option>
+            <option value="parcel">कपड़े / जूते / सामान्य पार्सल</option>
+          </select>
+
+          <label class="a17-label" for="a17-payment">पेमेंट का प्रकार</label>
+          <select id="a17-payment">
+            <option value="prepaid">पहले से ऑनलाइन पेमेंट</option>
+            <option value="cod">Cash on Delivery (COD)</option>
+          </select>
+
+          <label class="a17-label" for="a17-location">पहुँचने की जगह</label>
+          <select id="a17-location">
+            <option value="address">दिए गए पते पर</option>
+            <option value="gate">गेट / रिसेप्शन / सुरक्षा बैरियर</option>
+            <option value="pickup">निर्धारित पिकअप पॉइंट</option>
+          </select>
+
+          <p class="a17-muted">
+            असली ग्राहक का फोन, OTP, बैंक डिटेल या निजी पहचान यहाँ न डालें।
+          </p>
+        </div>
+
+        <div class="a17-card">
+          <h3>2. पहुँच और प्रतीक्षा</h3>
+          <span class="a17-tag">डेमो टाइमर · 5 मिनट</span>
+
+          <div id="a17-status" class="a17-status" aria-live="polite">
+            अभी आगमन दर्ज नहीं हुआ है। पहले सही ऑर्डर चुनें और राइडर का
+            पहुँचना दर्ज करें।
+          </div>
+
+          <div class="a17-clock" id="a17-clock" aria-live="off">05:00</div>
+          <div class="a17-muted" id="a17-clock-note">
+            आगमन दर्ज करने के बाद प्रतीक्षा टाइमर शुरू करें।
+          </div>
+
+          <div class="a17-progress" aria-hidden="true">
+            <div id="a17-progress-fill"></div>
+          </div>
+
+          <div class="a17-actions">
+            <button type="button" class="a17-primary" id="a17-arrived">
+              मैं पहुँच गया
+            </button>
+            <button type="button" class="a17-secondary" id="a17-start">
+              5 मिनट शुरू करें
+            </button>
+            <button type="button" class="a17-secondary" id="a17-pause">
+              टाइमर रोकें
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="a17-card">
+        <h3>3. ग्राहक से संपर्क का रिकॉर्ड</h3>
+        <p class="a17-muted">
+          हर बटन सिर्फ प्रयास को डेमो लॉग में दर्ज करता है। यह असली कॉल या
+          मैसेज नहीं भेजता।
+        </p>
+
+        <div class="a17-actions">
+          <button type="button" class="a17-secondary" id="a17-call">
+            कॉल करने का प्रयास
+          </button>
+          <button type="button" class="a17-secondary" id="a17-message">
+            मैसेज भेजने का प्रयास
+          </button>
+          <button type="button" class="a17-secondary" id="a17-directions">
+            पते / दिशा की जाँच
+          </button>
+        </div>
+
+        <label class="a17-label" for="a17-contact-result">परिणाम</label>
+        <select id="a17-contact-result">
+          <option value="no-answer">जवाब नहीं मिला</option>
+          <option value="answered">ग्राहक से बात हो गई</option>
+          <option value="wrong-number">नंबर गलत / संपर्क नहीं हो रहा</option>
+          <option value="directions">ग्राहक ने दिशा बताई</option>
+          <option value="gate">गेट / रिसेप्शन पर संपर्क किया</option>
+        </select>
+
+        <div class="a17-actions">
+          <button type="button" class="a17-primary" id="a17-save-result">
+            परिणाम दर्ज करें
+          </button>
+        </div>
+      </div>
+
+      <div class="a17-grid">
+        <div class="a17-card">
+          <h3>4. सुरक्षित अगला कदम</h3>
+          <p class="a17-muted">
+            ग्राहक नहीं मिला तो पहले प्रयास और प्रतीक्षा का रिकॉर्ड देखें।
+            फिर सहायता के लिए मामला दर्ज करें।
+          </p>
+
+          <label class="a17-label" for="a17-reason">समस्या का कारण</label>
+          <select id="a17-reason">
+            <option value="no-answer">ग्राहक फोन नहीं उठा रहा</option>
+            <option value="wrong-address">पता गलत / अधूरा है</option>
+            <option value="gate-blocked">गेट / सुरक्षा बैरियर पर रोक</option>
+            <option value="customer-delay">ग्राहक ने देर करने को कहा</option>
+            <option value="unsafe">जगह असुरक्षित है</option>
+            <option value="other">अन्य समस्या</option>
+          </select>
+
+          <label class="a17-label" for="a17-notes">संक्षिप्त नोट (निजी जानकारी नहीं)</label>
+          <textarea id="a17-notes" rows="3" maxlength="300"
+            placeholder="उदाहरण: बिल्डिंग का ब्लॉक नहीं मिल रहा"></textarea>
+
+          <div class="a17-actions">
+            <button type="button" class="a17-warning" id="a17-escalate">
+              सहायता / विवाद दर्ज करें
+            </button>
+          </div>
+        </div>
+
+        <div class="a17-card">
+          <h3>5. पेमेंट और ऑर्डर सुरक्षा</h3>
+          <ul class="a17-log">
+            <li>OTP सत्यापन के बिना सामान्य ऑर्डर को डिलीवर न मानें।</li>
+            <li>COD की रकम मिले बिना COD जमा हुआ न दिखाएँ।</li>
+            <li>ग्राहक नहीं मिला तो अपने-आप पूरा भुगतान रिफंड या जब्त न करें।</li>
+            <li>खाने के ऑर्डर के लिए सपोर्ट से खराब होने / वापसी का निर्णय लें।</li>
+            <li>राइडर की बेस कमाई और वैध प्रतीक्षा-भुगतान का हिसाब अलग रखें।</li>
+          </ul>
+
+          <p class="a17-muted">
+            असली भुगतान, रिफंड, OTP और राइडर की कमाई का अंतिम निर्णय
+            सर्वर पर सत्यापन के बाद ही होना चाहिए।
+          </p>
+        </div>
+      </div>
+
+      <div class="a17-card">
+        <h3>6. इस ऑर्डर की गतिविधि</h3>
+        <p class="a17-muted" id="a17-log-summary">अभी कोई गतिविधि दर्ज नहीं है।</p>
+        <ul class="a17-log" id="a17-log" aria-live="polite"></ul>
+
+        <div class="a17-actions">
+          <button type="button" class="a17-secondary" id="a17-export">
+            डेमो रिकॉर्ड कॉपी करें
+          </button>
+          <button type="button" class="a17-danger" id="a17-reset">
+            नया डेमो शुरू करें
+          </button>
+        </div>
+
+        <p class="a17-muted">
+          कॉपी में केवल इस डेमो के दर्ज रिकॉर्ड होंगे। यह आधिकारिक शिकायत
+          या सर्वर पर सेव हुआ रिकॉर्ड नहीं है।
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    "use strict";
+
+    var root = document.getElementById("adbm17");
+    if (!root || root.dataset.initialized === "yes") return;
+    root.dataset.initialized = "yes";
+
+    function el(id) {
+      return root.querySelector("#" + id);
+    }
+
+    var arrived = false;
+    var timerRunning = false;
+    var remaining = 300;
+    var interval = null;
+    var events = [];
+    var escalated = false;
+
+    function safeOrder() {
+      var value = el("a17-order").value.trim();
+      return value ? value.slice(0, 50) : "डेमो ऑर्डर";
+    }
+
+    function nowText() {
+      return new Date().toLocaleString("hi-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function logEvent(message) {
+      events.unshift({
+        time: nowText(),
+        order: safeOrder(),
+        message: message
+      });
+      renderLog();
+    }
+
+    function renderLog() {
+      var list = el("a17-log");
+      list.textContent = "";
+
+      events.forEach(function (event) {
+        var li = document.createElement("li");
+        var strong = document.createElement("strong");
+        strong.textContent = event.time + " — " + event.order;
+        li.appendChild(strong);
+        li.appendChild(document.createTextNode(" · " + event.message));
+        list.appendChild(li);
+      });
+
+      el("a17-log-summary").textContent = events.length
+        ? "कुल दर्ज गतिविधियाँ: " + events.length
+        : "अभी कोई गतिविधि दर्ज नहीं है।";
+    }
+
+    function setStatus(message) {
+      el("a17-status").textContent = message;
+    }
+
+    function updateClock() {
+      var minutes = Math.floor(remaining / 60);
+      var seconds = remaining % 60;
+      el("a17-clock").textContent =
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+
+      var percent = ((300 - remaining) / 300) * 100;
+      el("a17-progress-fill").style.width =
+        Math.max(0, Math.min(100, percent)) + "%";
+
+      if (remaining === 0) {
+        el("a17-clock-note").textContent =
+          "डेमो प्रतीक्षा अवधि पूरी हुई। अब सहायता के लिए मामला दर्ज कर सकते हैं।";
+      } else if (timerRunning) {
+        el("a17-clock-note").textContent =
+          "प्रतीक्षा चल रही है। यह स्थानीय डेमो टाइमर है।";
+      } else {
+        el("a17-clock-note").textContent =
+          "टाइमर रुका हुआ है या अभी शुरू नहीं हुआ है।";
+      }
+    }
+
+    function stopTimer() {
+      if (interval !== null) {
+        clearInterval(interval);
+        interval = null;
+      }
+      timerRunning = false;
+      updateClock();
+    }
+
+    function startTimer() {
+      if (!arrived) {
+        setStatus("पहले 'मैं पहुँच गया' दर्ज करें।");
+        return;
+      }
+      if (remaining <= 0) {
+        setStatus("प्रतीक्षा अवधि पूरी हो चुकी है। सहायता का विकल्प इस्तेमाल करें।");
+        return;
+      }
+      if (timerRunning) return;
+
+      timerRunning = true;
+      logEvent("5 मिनट की डेमो प्रतीक्षा शुरू हुई।");
+      setStatus("प्रतीक्षा चालू है। ग्राहक से संपर्क के प्रयास दर्ज करते रहें।");
+      updateClock();
+
+      interval = setInterval(function () {
+        if (remaining > 0) remaining--;
+        updateClock();
+
+        if (remaining <= 0) {
+          stopTimer();
+          logEvent("डेमो प्रतीक्षा अवधि पूरी हुई।");
+          setStatus(
+            "प्रतीक्षा अवधि पूरी हुई। ऑर्डर डिलीवर या कैंसल नहीं हुआ है; सहायता के लिए मामला दर्ज करें।"
+          );
+        }
+      }, 1000);
+    }
+
+    el("a17-arrived").addEventListener("click", function () {
+      if (arrived) {
+        setStatus("आगमन पहले ही दर्ज है।");
+        return;
+      }
+      arrived = true;
+      logEvent("राइडर ने आगमन दर्ज किया। GPS सत्यापन उपलब्ध नहीं है।");
+      setStatus(
+        "आगमन डेमो में दर्ज हुआ। वास्तविक सिस्टम में सर्वर-सत्यापित GPS और समय जरूरी होंगे।"
+      );
+    });
+
+    el("a17-start").addEventListener("click", startTimer);
+
+    el("a17-pause").addEventListener("click", function () {
+      if (!timerRunning) {
+        setStatus("टाइमर अभी चल नहीं रहा है।");
+        return;
+      }
+      stopTimer();
+      logEvent("राइडर ने डेमो टाइमर रोका।");
+      setStatus("टाइमर रुका हुआ है। आगे बढ़ने पर शेष समय से जारी कर सकते हैं।");
+    });
+
+    function contactAttempt(label) {
+      if (!arrived) {
+        setStatus("पहले राइडर का आगमन दर्ज करें।");
+        return;
+      }
+      logEvent(label + " — केवल डेमो प्रयास; असली कॉल/मैसेज नहीं भेजा गया।");
+      setStatus(label + " का डेमो रिकॉर्ड दर्ज हुआ। ग्राहक का वास्तविक जवाब सत्यापित नहीं हुआ।");
+    }
+
+    el("a17-call").addEventListener("click", function () {
+      contactAttempt("ग्राहक को कॉल करने का प्रयास");
+    });
+
+    el("a17-message").addEventListener("click", function () {
+      contactAttempt("ग्राहक को मैसेज भेजने का प्रयास");
+    });
+
+    el("a17-directions").addEventListener("click", function () {
+      contactAttempt("पते / दिशा की जाँच");
+    });
+
+    el("a17-save-result").addEventListener("click", function () {
+      if (!arrived) {
+        setStatus("पहले आगमन दर्ज करें।");
+        return;
+      }
+
+      var options = el("a17-contact-result");
+      var result = options.options[options.selectedIndex].text;
+      logEvent("संपर्क परिणाम दर्ज: " + result + "। यह ग्राहक के वास्तविक जवाब का स्वतंत्र प्रमाण नहीं है।");
+      setStatus("परिणाम दर्ज हुआ। विवाद होने पर सहायता से सत्यापन जरूरी होगा।");
+    });
+
+    el("a17-escalate").addEventListener("click", function () {
+      if (!arrived) {
+        setStatus("सहायता का मामला खोलने से पहले आगमन दर्ज करें।");
+        return;
+      }
+
+      var reasonSelect = el("a17-reason");
+      var reason = reasonSelect.options[reasonSelect.selectedIndex].text;
+      var notes = el("a17-notes").value.trim();
+      var kind = el("a17-kind").value === "food"
+        ? "खाना / चाय / स्नैक्स"
+        : "सामान्य पार्सल";
+      var payment = el("a17-payment").value === "cod"
+        ? "COD"
+        : "पहले से ऑनलाइन पेमेंट";
+
+      if (el("a17-reason").value === "unsafe") {
+        logEvent("सुरक्षा संबंधी समस्या दर्ज; राइडर को सुरक्षित जगह जाने और सहायता लेने की सलाह।");
+        setStatus("सुरक्षा पहले: असुरक्षित जगह से हटें और वास्तविक सहायता/आपातकालीन सेवा लें।");
+        return;
+      }
+
+      if (remaining > 0 && !escalated) {
+        setStatus(
+          "अभी डेमो टाइमर में समय बाकी है। संपर्क और प्रतीक्षा के प्रयास दर्ज करें। " +
+          "अगर सुरक्षा या दूसरी तात्कालिक समस्या है, तो उचित सहायता लेने के लिए टाइमर पूरा होने की प्रतीक्षा न करें।"
+        );
+        return;
+      }
+
+      escalated = true;
+      logEvent(
+        "सहायता समीक्षा का डेमो अनुरोध: कारण — " + reason +
+        "; सामान — " + kind + "; पेमेंट — " + payment +
+        (notes ? "; नोट — " + notes : "")
+      );
+
+      setStatus(
+        "समीक्षा अनुरोध डेमो रिकॉर्ड में दर्ज है। ऑर्डर अभी डिलीवर या कैंसल नहीं हुआ। " +
+        "असली सिस्टम में सहायता टीम को सर्वर पर यह केस भेजना होगा।"
+      );
+    });
+
+    el("a17-export").addEventListener("click", function () {
+      var text = [
+        "AD Brand Market — ADBM17 डेमो रिकॉर्ड",
+        "ऑर्डर: " + safeOrder(),
+        "सामान: " + (el("a17-kind").value === "food" ? "खाना" : "सामान्य पार्सल"),
+        "पेमेंट: " + (el("a17-payment").value === "cod" ? "COD" : "ऑनलाइन"),
+        "आगमन दर्ज: " + (arrived ? "हाँ (डेमो)" : "नहीं"),
+        "",
+        "गतिविधियाँ:"
+      ];
+
+      events.slice().reverse().forEach(function (event) {
+        text.push(event.time + " | " + event.order + " | " + event.message);
+      });
+
+      var content = text.join("\n");
+
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(content).then(function () {
+          setStatus("डेमो रिकॉर्ड क्लिपबोर्ड पर कॉपी हुआ।");
+        }).catch(function () {
+          window.prompt("रिकॉर्ड कॉपी करें:", content);
+        });
+      } else {
+        window.prompt("रिकॉर्ड कॉपी करें:", content);
+      }
+    });
+
+    el("a17-reset").addEventListener("click", function () {
+      if (!window.confirm("क्या आप इस डेमो की गतिविधियाँ साफ करके नया डेमो शुरू करना चाहते हैं?")) {
+        return;
+      }
+
+      stopTimer();
+      arrived = false;
+      escalated = false;
+      remaining = 300;
+      events = [];
+      el("a17-order").value = "";
+      el("a17-notes").value = "";
+      el("a17-kind").value = "food";
+      el("a17-payment").value = "prepaid";
+      el("a17-location").value = "address";
+      el("a17-reason").value = "no-answer";
+      el("a17-contact-result").value = "no-answer";
+      setStatus("नया डेमो तैयार है। पहले ऑर्डर का आगमन दर्ज करें।");
+      updateClock();
+      renderLog();
+    });
+
+    updateClock();
+    renderLog();
+  })();
+  </script>
+</section>
+<!-- ==================== ADBM17 END ==================== -->
