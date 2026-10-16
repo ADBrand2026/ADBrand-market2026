@@ -436,26 +436,7 @@ img{max-width:100%}
   <div class="section"><h3>💰 Weekly Delivery Earnings</h3><div id="deliveryFinance"></div></div>
 </section>
 
-<!-- Admin screen: no public Admin button -->
-<section id="admin" class="panel container">
-  <div class="panel-header">
-    <h2>🔐 Private Admin Dashboard</h2>
-    <button class="btn gray" onclick="goHome()">← Home</button>
-  </div>
-  <div class="notice">यह dashboard केवल authenticated, active Admin के लिए है। वास्तविक सुरक्षा Supabase RLS और server-side authorization से लागू करनी होगी।</div>
-  <div class="statgrid">
-    <div class="stat"><b id="adminCustomerCount">0</b>Customers</div>
-    <div class="stat"><b id="adminSellerCount">0</b>Sellers</div>
-    <div class="stat"><b id="adminDeliveryCount">0</b>Delivery Partners</div>
-    <div class="stat"><b id="adminProductCount">0</b>Products</div>
-    <div class="stat"><b id="adminOrderCount">0</b>Orders</div>
-  </div>
-  <h3>Customers</h3><div id="adminCustomers"></div>
-  <h3>Sellers</h3><div id="adminSellers"></div>
-  <h3>Delivery Partners</h3><div id="adminDelivery"></div>
-  <h3>Products</h3><div id="adminProducts"></div>
-  <h3>Orders</h3><div id="adminOrders"></div>
-</section>
+
 
 <!-- Cart modal -->
 <div class="modal" id="cartModal" role="dialog" aria-modal="true" aria-labelledby="cartModalTitle">
