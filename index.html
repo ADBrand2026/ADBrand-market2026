@@ -373,6 +373,7 @@ img{max-width:100%}
         <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
         <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
         <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6"></div>
+        <div class="field"><label for="adCheckoutFulfillment">Non-food order option</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery by external courier (Valmo when booked)</option><option value="self_pickup">Self pickup from seller (same city only)</option></select><p class="small muted">Food items always use AD local delivery; this option applies only to clothes/shoes/slippers.</p></div>
         <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi">UPI (gateway verification pending)</option></select></div>
         <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
       </div>
@@ -1370,8 +1371,10 @@ function liveOptions(v){return Array.isArray(v)?v:[];}
 function liveNormalizeCatalogResult(data){if(Array.isArray(data))return data;if(data&&Array.isArray(data.products))return data.products;if(data&&Array.isArray(data.data))return data.data;return [];}
 function liveVariantLabel(v){
  var a=v&&v.attributes&&typeof v.attributes==="object"?v.attributes:{};
- var bits=[v.variant_name,a.size,a.color,a.food_type==="veg"?"Veg":a.food_type==="non_veg"?"Non-Veg":a.food_type==="egg"?"Egg":null];
- return Array.from(new Set(bits.filter(Boolean).map(String))).join(" · ");
+ var label=String(v&&v.variant_name||"").trim()||[a.size,a.color].filter(Boolean).map(String).join(" / ");
+ var kind=a.food_type==="veg"?"Veg":a.food_type==="non_veg"?"Non-Veg":a.food_type==="egg"?"Egg":"";
+ if(kind&&label.toLowerCase().indexOf(kind.toLowerCase())<0)label+=(label?" · ":"")+kind;
+ return label||"Variant";
 }
 function liveSelectedProductVariant(product,select){
  var id=select?select.value:"";
@@ -1447,7 +1450,7 @@ window.adLiveCheckout=async function(){
  var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
  var btn=document.querySelector("button[onclick='adLiveCheckout()']");if(btn)btn.disabled=true;
  try{
-  var res=await client.rpc("checkout_marketplace_order",{p_items:cart.map(function(x){return {product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity};}),p_address:address,p_payment_method:payment,p_notes:notes||null});
+  var fulfillment=String($("adCheckoutFulfillment")?.value||"delivery");var res=await client.rpc("checkout_marketplace_order_v2",{p_items:cart.map(function(x){return {product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity};}),p_address:address,p_payment_method:payment,p_notes:notes||null,p_nonfood_fulfillment:fulfillment});
   if(res.error)throw res.error;
   window.__adBrandLiveCart=[];adLiveRenderCart();
   if(resultBox){resultBox.textContent="Order database में बन गया। Payment status pending है। Food order local AD rider queue में जाएगा; non-food order बाहरी courier की real booking confirm होने तक pending रहेगा. "+JSON.stringify(res.data?.orders?.map(function(o){return o.order_code+" ("+o.status+")";})||[]);}
