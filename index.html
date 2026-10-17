@@ -382,6 +382,18 @@ img{max-width:100%}
       <div id="adLiveCheckoutResult" class="notice" role="status"></div>
     </div>
     <div class="section"><h3>📦 मेरे Live Orders</h3><button class="btn outline" type="button" onclick="adLiveLoadCustomerOrders()">↻ Refresh Orders</button><div id="adLiveOrders"></div></div>
+    <div class="section card">
+      <h3>🆘 Customer Support / Complaint</h3>
+      <p class="small muted">Order, rider, payment, product या return/refund की समस्या यहाँ दर्ज करें। Ticket Admin queue में जाएगा; पैसे transfer या courier booking इस form से नहीं होती।</p>
+      <div class="form-grid">
+        <div class="field"><label for="adSupportSubject">समस्या का विषय</label><input id="adSupportSubject" maxlength="180" placeholder="जैसे Pizza देर से आया"></div>
+        <div class="field"><label for="adSupportCategory">Category</label><select id="adSupportCategory"><option value="order">Order</option><option value="delivery">Delivery / Rider</option><option value="payment">Payment</option><option value="product">Product</option><option value="return_refund">Return / Refund</option><option value="seller">Seller</option><option value="other">Other</option></select></div>
+        <div class="field"><label for="adSupportOrderCode">Order code (optional)</label><input id="adSupportOrderCode" maxlength="40" placeholder="AD-..."></div>
+        <div class="field"><label for="adSupportDescription">पूरी समस्या</label><textarea id="adSupportDescription" maxlength="3000" placeholder="क्या हुआ, कब हुआ, और क्या मदद चाहिए?"></textarea></div>
+      </div>
+      <button class="btn primary" type="button" onclick="adLiveCreateSupportTicket()">📨 Submit support ticket</button>
+      <div id="adLiveSupportTickets"></div>
+    </div>
   </div>
   <div id="legacyCustomerDemo" hidden>
   <div class="form-grid">
@@ -1490,11 +1502,29 @@ window.adLiveCheckout=async function(){
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
  finally{if(btn)btn.disabled=false;}
 };
+function adLiveRenderCustomerSupportTickets(tickets){
+ var box=$("adLiveSupportTickets");if(!box)return;box.replaceChildren();
+ if(window.__adBrandAuthRole!=="customer"){box.appendChild(liveEl("div","empty","अपने Customer account से login करें।"));return;}
+ if(!tickets.length){box.appendChild(liveEl("div","empty","अभी कोई support ticket नहीं है।"));return;}
+ tickets.forEach(function(t){var card=liveEl("div","card");card.append(liveEl("strong","",(t.ticket_code||t.id)+" · "+(t.subject||"Support")),liveEl("p","small","Status: "+(t.status||"open")+" · Priority: "+(t.priority||"normal")+" · "+(t.category||"other")),liveEl("p","",t.description||""),liveEl("p","small muted",new Date(t.created_at).toLocaleString()));box.appendChild(card);});
+}
+window.adLiveCreateSupportTicket=async function(){
+ var client=liveClient();if(!client||window.__adBrandAuthRole!=="customer"){toast("Support ticket बनाने के लिए Customer login जरूरी है।");openAccountAccess("customer");return;}
+ var subject=String($("adSupportSubject")?.value||"").trim(),description=String($("adSupportDescription")?.value||"").trim(),category=String($("adSupportCategory")?.value||"other"),code=String($("adSupportOrderCode")?.value||"").trim();
+ if(subject.length<3||description.length<5){toast("Subject और समस्या का विवरण पूरा भरें।");return;}
+ var orderId=null;
+ try{
+  if(code){var workspace=await client.rpc("customer_get_workspace");if(workspace.error)throw workspace.error;var found=liveOptions(workspace.data?.orders).find(function(o){return String(o.order_code||"").toLowerCase()===code.toLowerCase()||String(o.id||"").toLowerCase()===code.toLowerCase();});if(!found){toast("यह order code आपके खाते में नहीं मिला।");return;}orderId=found.id;}
+  var res=await client.rpc("customer_create_support_ticket",{p_subject:subject,p_description:description,p_category:category,p_order_id:orderId});if(res.error)throw res.error;
+  $("adSupportSubject").value="";$("adSupportDescription").value="";$("adSupportOrderCode").value="";
+  toast("Support ticket बना: "+(res.data?.ticket_code||"submitted"));await adLiveLoadCustomerOrders();
+ }catch(e){liveError("Support ticket submit नहीं हुआ",e);}
+};
 window.adLiveLoadCustomerOrders=async function(){
  var client=liveClient(),box=$("adLiveOrders");if(!client||!box)return;box.replaceChildren(liveEl("div","empty","Orders load हो रहे हैं…"));
  if(window.__adBrandAuthRole!=="customer"){box.replaceChildren(liveEl("div","empty","अपने Customer account से login करें।"));return;}
  try{
-  var r=await client.rpc("customer_get_workspace");if(r.error)throw r.error;var orders=liveOptions(r.data?.orders);
+  var r=await client.rpc("customer_get_workspace");if(r.error)throw r.error;var orders=liveOptions(r.data?.orders);adLiveRenderCustomerSupportTickets(liveOptions(r.data?.support_tickets));
   if(!orders.length){box.replaceChildren(liveEl("div","empty","अभी कोई Live Order नहीं है।"));return;}
   box.replaceChildren();
   orders.forEach(function(o){
@@ -1509,6 +1539,16 @@ window.adLiveLoadCustomerOrders=async function(){
     var mapLink=liveEl("a","btn outline","🗺️ View rider location on map");mapLink.href="https://www.google.com/maps?q="+encodeURIComponent(o.tracking.latitude+","+o.tracking.longitude);mapLink.target="_blank";mapLink.rel="noopener noreferrer";card.appendChild(mapLink);
    }
    if(o.shipment)card.appendChild(liveEl("p","small","Courier: "+(o.shipment.provider||"not booked")+" · "+(o.shipment.status||"pending")+" · Tracking: "+(o.shipment.tracking_number||"pending")));
+   if(o.status==="delivered"&&o.fulfillment_mode!=="inhouse_food"){
+    liveOptions(o.items).forEach(function(it){
+     var category=String(it.category_slug||"").toLowerCase();
+     if(!it.order_item_id||["food","veg-food","non-veg-food","tea","snacks"].includes(category))return;
+     var existing=liveOptions(o.return_requests).find(function(x){return x.order_item_id===it.order_item_id;});
+     if(existing){card.appendChild(liveEl("p","small","Return status for "+(it.name||"item")+": "+existing.status+" · "+(existing.review_note||""));}
+     else {var ret=liveEl("button","btn outline small-btn","↩️ Request return · "+(it.name||"item"));ret.onclick=async function(){var reason=prompt("Return का कारण (उदाहरण: size issue, damaged item):","");if(reason===null)return;if(reason.trim().length<5){toast("Return reason कम से कम 5 characters का होना चाहिए।");return;}try{var rr=await client.rpc("customer_request_return",{p_order_item_id:it.order_item_id,p_reason:reason.trim()});if(rr.error)throw rr.error;toast("Return request Admin review के लिए भेज दी गई।");await adLiveLoadCustomerOrders();}catch(e){liveError("Return request submit नहीं हुई",e);}};card.appendChild(ret);}
+    });
+   }
+
    if(o.status==="out_for_delivery"||o.status==="ready_for_pickup"||o.status==="awaiting_customer_confirmation"){
     var confirm=liveEl("button","btn green",o.status==="ready_for_pickup"?"✅ Shop से सामान ले लिया — Confirm":o.status==="awaiting_customer_confirmation"?"✅ Courier parcel मिल गया — Confirm":"✅ Order मिल गया — Confirm");confirm.onclick=async function(){if(!confirmEvent())return;try{var x=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});if(x.error)throw x.error;toast("Receipt confirm हो गया।");await adLiveLoadCustomerOrders();}catch(e){liveError("Delivery confirm नहीं हुई",e);}};
     card.appendChild(confirm);
