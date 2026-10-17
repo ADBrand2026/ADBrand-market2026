@@ -1506,7 +1506,7 @@ function adLiveRenderCustomerSupportTickets(tickets){
  var box=$("adLiveSupportTickets");if(!box)return;box.replaceChildren();
  if(window.__adBrandAuthRole!=="customer"){box.appendChild(liveEl("div","empty","अपने Customer account से login करें।"));return;}
  if(!tickets.length){box.appendChild(liveEl("div","empty","अभी कोई support ticket नहीं है।"));return;}
- tickets.forEach(function(t){var card=liveEl("div","card");card.append(liveEl("strong","",(t.ticket_code||t.id)+" · "+(t.subject||"Support")),liveEl("p","small","Status: "+(t.status||"open")+" · Priority: "+(t.priority||"normal")+" · "+(t.category||"other")),liveEl("p","",t.description||""),liveEl("p","small muted",new Date(t.created_at).toLocaleString()));box.appendChild(card);});
+ tickets.forEach(function(t){var card=liveEl("div","card");card.append(liveEl("strong","",(t.ticket_code||t.id)+" · "+(t.subject||"Support")),liveEl("p","small","Status: "+(t.status||"open")+" · Priority: "+(t.priority||"normal")+" · "+(t.category||"other")),liveEl("p","",t.description||""),liveEl("p","small muted",new Date(t.created_at).toLocaleString()));liveOptions(t.messages).forEach(function(m){var reply=liveEl("div","card");reply.append(liveEl("strong","small",m.sender_role==="admin"?"Admin response":"Your message"),liveEl("p","small",m.message||""),liveEl("p","small muted",m.created_at?new Date(m.created_at).toLocaleString():""));card.appendChild(reply);});box.appendChild(card);});
 }
 window.adLiveCreateSupportTicket=async function(){
  var client=liveClient();if(!client||window.__adBrandAuthRole!=="customer"){toast("Support ticket बनाने के लिए Customer login जरूरी है।");openAccountAccess("customer");return;}
