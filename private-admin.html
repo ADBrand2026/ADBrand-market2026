@@ -29,6 +29,9 @@
 <div class="card"><div class="sectionhead"><h2>Non-food courier booking and tracking</h2></div><p class="small muted">After you have actually booked the parcel in the courier's authorized account, enter the provider and confirmed tracking/AWB here. Saving this form does not call Valmo's system.</p><div id="shipments"></div></div>
 <div class="card"><div class="sectionhead"><h2>Delivery incidents / customer waiting</h2></div><p class="small muted">A customer's missed call or request for ten minutes does not automatically cancel the order and does not create a customer penalty.</p><div id="issues"></div></div>
 <div class="card"><div class="sectionhead"><h2>Rider cancellation penalty review</h2></div><p class="small muted">₹10–₹15 is only a proposed case amount. Review evidence and disputes; no automatic payout deduction is made.</p><div id="penalties"></div></div>
+<div class="card"><div class="sectionhead"><h2>Customer accounts & live orders</h2><span class="pill">Read-only operations view</span></div><div id="opsOrders"></div></div>
+<div class="card"><div class="sectionhead"><h2>Product catalogue & seller stock</h2></div><div id="opsProducts"></div></div>
+<div class="card"><div class="sectionhead"><h2>Returns, refunds, complaints & support</h2></div><div id="opsReturns"></div><div id="opsSupport"></div></div>
 <div class="card"><div class="sectionhead"><h2>Admin audit note</h2></div><p class="small muted">This portal is a separate HTML file and is not linked from the store. Static GitHub Pages cannot hide source files at the hosting layer; sensitive data and admin actions are protected by Supabase Auth/RLS and RPC role checks. For a truly private network URL, put this page behind a host-side access gateway.</p></div>
 </section>
 </main>
@@ -69,9 +72,85 @@ el("loginForm").addEventListener("submit",async e=>{
  if(error){setStatus("Sign-in failed: "+errText(error),"error");return;}
  try{await confirmAdmin(data.user||data.session?.user);}catch(ex){sessionUser=null;hideApp();setStatus(errText(ex),"error");}
 });
+
+async function loadOperationalOrders(){
+ const box=el("opsOrders");list(box,"Loading customers and orders…");
+ const [ordersR,customersR,sellersR,addressesR,itemsR,shipR]=await Promise.all([
+  client.from("orders").select("id,order_code,customer_profile_id,seller_profile_id,delivery_profile_id,address_id,status,payment_method,payment_status,subtotal,delivery_charge,total_amount,fulfillment_mode,internal_barcode,delivery_issue_status,created_at").order("created_at",{ascending:false}).limit(100),
+  client.from("customer_profiles").select("id,profile_id,customer_code,full_name,mobile").limit(1000),
+  client.from("seller_profiles").select("id,shop_name,seller_code,seller_type,city,state").limit(1000),
+  client.from("customer_addresses").select("id,full_name,mobile,address_line,city,state,pincode").limit(1000),
+  client.from("order_items").select("order_id,product_id,variant_id,quantity,unit_price,total_price").limit(3000),
+  client.from("external_shipments").select("order_id,courier_provider,shipment_status,tracking_number,internal_barcode").limit(1000)
+ ]);
+ if(ordersR.error)return list(box,"Order list unavailable: "+errText(ordersR.error));
+ const customers=new Map((customersR.data||[]).map(x=>[x.id,x]));
+ const sellers=new Map((sellersR.data||[]).map(x=>[x.id,x]));
+ const addresses=new Map((addressesR.data||[]).map(x=>[x.id,x]));
+ const ships=new Map((shipR.data||[]).map(x=>[x.order_id,x]));
+ const items=(itemsR.data||[]);
+ const productIds=Array.from(new Set(items.map(x=>x.product_id).filter(Boolean)));
+ const variantIds=Array.from(new Set(items.map(x=>x.variant_id).filter(Boolean)));
+ let products=[],variants=[];
+ if(productIds.length){const q=await client.from("products").select("id,name,product_code").in("id",productIds);products=q.data||[];}
+ if(variantIds.length){const q=await client.from("product_variants").select("id,variant_name,attributes").in("id",variantIds);variants=q.data||[];}
+ const pMap=new Map(products.map(x=>[x.id,x])),vMap=new Map(variants.map(x=>[x.id,x]));
+ if(!ordersR.data?.length)return list(box,"No live orders yet.");
+ box.replaceChildren();
+ ordersR.data.forEach(o=>{
+  const cu=customers.get(o.customer_profile_id)||{},se=sellers.get(o.seller_profile_id)||{},ad=addresses.get(o.address_id)||{},sh=ships.get(o.id)||{};
+  const c=node("div","item");c.appendChild(node("h3",(o.order_code||o.id)+" · "+o.status));
+  c.appendChild(node("p","",[cu.full_name||ad.full_name||"Customer",cu.mobile||ad.mobile,se.shop_name||"Seller"].filter(Boolean).join(" • ")));
+  c.appendChild(node("p","small",[(ad.address_line||""),ad.city,ad.state,ad.pincode].filter(Boolean).join(", ")));
+  c.appendChild(node("p","small","Total "+money(o.total_amount)+" · "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")+" · "+(o.fulfillment_mode||"unknown")));
+  c.appendChild(node("p","small muted","Barcode "+(o.internal_barcode||"—")+" · issue "+(o.delivery_issue_status||"none")+" · "+new Date(o.created_at).toLocaleString()));
+  const its=items.filter(x=>x.order_id===o.id);
+  if(its.length)c.appendChild(node("p","small","Items: "+its.map(x=>{const p=pMap.get(x.product_id)||{},v=vMap.get(x.variant_id)||{};return (p.name||p.product_code||"Item")+(v.variant_name?" ("+v.variant_name+")":"")+" ×"+x.quantity+" = "+money(x.total_price);}).join("; ")));
+  if(o.fulfillment_mode==="external_courier")c.appendChild(node("p","small", "External courier: "+(sh.courier_provider||"pending")+" · "+(sh.shipment_status||"not booked")+" · Tracking "+(sh.tracking_number||"not confirmed")));
+  box.appendChild(c);
+ });
+ if(customersR.error||sellersR.error||addressesR.error||itemsR.error||shipR.error)box.prepend(node("p","small muted","कुछ nested details permission/relationship की वजह से unavailable हैं; ऊपर core orders दिखाए गए हैं।"));
+}
+async function loadOperationalProducts(){
+ const box=el("opsProducts");list(box,"Loading products and stock…");
+ const [pr,sr,vr]=await Promise.all([
+  client.from("products").select("id,product_code,seller_profile_id,name,description,price,sale_price,stock,is_active,is_food,created_at").order("created_at",{ascending:false}).limit(300),
+  client.from("seller_profiles").select("id,shop_name,seller_code,seller_type,city,state,is_verified,is_active,is_open").limit(1000),
+  client.from("product_variants").select("id,product_id,variant_name,price,sale_price,stock,attributes,is_active").limit(3000)
+ ]);
+ if(pr.error)return list(box,"Product inventory unavailable: "+errText(pr.error));
+ const sellers=new Map((sr.data||[]).map(x=>[x.id,x]));
+ if(!pr.data?.length)return list(box,"No products yet; approved sellers must add their catalogue.");
+ box.replaceChildren();
+ pr.data.forEach(p=>{
+  const s=sellers.get(p.seller_profile_id)||{},vars=(vr.data||[]).filter(v=>v.product_id===p.id);
+  const c=node("div","item");c.appendChild(node("h3",(p.name||"Product")+" · "+p.product_code));
+  c.appendChild(node("p","", (s.shop_name||"Unknown seller")+" · "+(s.seller_type==="food"?"Food":"Non-food")+" · "+[s.city,s.state].filter(Boolean).join(", ")));
+  c.appendChild(node("p","small","Price "+money(p.sale_price||p.price)+" · Stock "+p.stock+" · "+(p.is_active?"Active":"Hidden")+" · "+(s.is_verified?"Seller verified":"Seller not verified")+" · "+(s.is_open?"Shop open":"Shop closed")));
+  if(vars.length)c.appendChild(node("p","small","Variants: "+vars.map(v=>(v.variant_name||"Variant")+" — "+money(v.sale_price||v.price)+" / stock "+v.stock+" "+(v.is_active?"":"(inactive)")).join(" • ")));
+  if(p.description)c.appendChild(node("p","small muted",p.description));
+  box.appendChild(c);
+ });
+ if(sr.error||vr.error)box.prepend(node("p","small muted","Seller/variant detail query failed; product base fields are shown where available."));
+}
+async function loadReturnsSupport(){
+ const ret=el("opsReturns"),sup=el("opsSupport");
+ list(ret,"Loading returns/refunds/complaints…");list(sup,"Loading support tickets…");
+ const [rr,rf,co,st]=await Promise.all([
+  client.from("return_requests").select("id,order_id,order_item_id,customer_profile_id,reason,status,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
+  client.from("refunds").select("id,order_id,payment_id,amount,refund_method,refund_status,transaction_reference,reason,created_at,processed_at").order("created_at",{ascending:false}).limit(100),
+  client.from("complaints").select("id,profile_id,order_id,subject,description,status,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
+  client.from("support_tickets").select("id,ticket_code,profile_id,subject,description,category,priority,status,assigned_to,created_at,updated_at").order("created_at",{ascending:false}).limit(100)
+ ]);
+ ret.replaceChildren();if(rr.error)ret.appendChild(node("p","", "Returns unavailable: "+errText(rr.error)));else if(!rr.data?.length)ret.appendChild(node("p","muted","No return requests."));else rr.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Return "+x.id+" · "+x.status),node("p","small","Order "+x.order_id+" · Customer profile "+x.customer_profile_id),node("p","",x.reason||""),node("p","small muted",new Date(x.created_at).toLocaleString()));ret.appendChild(c);});
+ if(!rf.error&&rf.data?.length)rf.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Refund "+x.id+" · "+x.refund_status),node("p","small","Order "+x.order_id+" · "+money(x.amount)+" · "+(x.refund_method||"method pending")),node("p","",x.reason||x.transaction_reference||""));ret.appendChild(c);});
+ if(co.error)ret.appendChild(node("p","", "Complaints unavailable: "+errText(co.error)));else if(!co.data?.length)ret.appendChild(node("p","muted","No complaints."));else co.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Complaint "+x.subject+" · "+x.status),node("p","small","Order "+(x.order_id||"—")+" · Profile "+x.profile_id),node("p","",x.description||""));ret.appendChild(c);});
+ sup.replaceChildren();if(st.error)sup.appendChild(node("p","", "Support queue unavailable: "+errText(st.error)));else if(!st.data?.length)sup.appendChild(node("p","muted","No support tickets."));else st.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", (x.ticket_code||x.id)+" · "+x.subject+" · "+x.status),node("p","small","Category "+(x.category||"—")+" · Priority "+(x.priority||"normal")+" · Profile "+x.profile_id),node("p","",x.description||""),node("p","small muted",new Date(x.created_at).toLocaleString()));sup.appendChild(c);});
+}
+
 async function refreshAll(){
  if(!sessionUser)return;
- await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties()]);
+ await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalProducts(),loadReturnsSupport()]);
 }
 el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
 el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
