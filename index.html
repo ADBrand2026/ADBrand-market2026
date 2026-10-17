@@ -1728,8 +1728,13 @@ window.adLiveLoadDeliveryWorkspace=async function(){
    var note=liveEl("input","search-input");note.placeholder="Attempt note (optional)";note.maxLength=500;
    var save=liveEl("button","btn outline","Record contact result");save.disabled=!arrived;save.title=arrived?"Record the actual contact result":"पहले customer location पर arrival दर्ज करें।";save.onclick=async function(){if(!arrived){toast("पहले customer location पर arrival दर्ज करें।");return;}var promised=null;if(outcome.value==="customer_delay"){var m=prompt("ग्राहक ने कितने मिनट में आने को कहा? 1–60 मिनट लिखें:","15");var mins=Number(m);if(!Number.isInteger(mins)||mins<1||mins>60){toast("1 से 60 मिनट का सही समय भरें।");return;}promised=new Date(Date.now()+mins*60000).toISOString();}
     await adLiveRecordContact(o.order_id,"call",outcome.value,note.value,promised);};
-   var cancel=liveEl("button","btn red","Request reassignment");cancel.onclick=async function(){var reason=prompt("कारण चुनें: vehicle_issue / emergency / wrong_assignment / seller_delay / other","other");if(!["vehicle_issue","emergency","wrong_assignment","seller_delay","other"].includes(reason||"")){toast("मान्य reason चुनें।");return;}var n=prompt("संक्षिप्त note (optional):","")||"";try{var z=await client.rpc("rider_cancel_and_request_reassignment",{p_order_id:o.order_id,p_reason:reason,p_note:n});if(z.error)throw z.error;toast("Order फिर delivery queue में गया। Penalty अभी प्रस्ताव है; Admin evidence review के बाद ही फैसला होगा।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Reassignment request fail",e);}};
-   card.append(outcome,note,save,cancel);box.appendChild(card);
+   if(o.status==="assigned"||o.status==="ready_for_delivery"){
+    var cancel=liveEl("button","btn red","Request reassignment (before pickup)");cancel.onclick=async function(){var reason=prompt("कारण चुनें: vehicle_issue / emergency / wrong_assignment / seller_delay / other","other");if(!["vehicle_issue","emergency","wrong_assignment","seller_delay","other"].includes(reason||"")){toast("मान्य reason चुनें।");return;}var n=prompt("संक्षिप्त note (optional):","")||"";try{var z=await client.rpc("rider_cancel_and_request_reassignment",{p_order_id:o.order_id,p_reason:reason,p_note:n});if(z.error)throw z.error;toast("Order फिर delivery queue में गया। प्रस्तावित penalty पर Admin evidence review करेगा; automatic deduction नहीं होगा।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Reassignment request fail",e);}};
+    card.appendChild(cancel);
+   }else{
+    card.appendChild(liveEl("p","small muted","Pickup के बाद order अपने-आप reassign नहीं होगा। Food की custody और customer safety के लिए तुरंत Admin/support को notify करें।"));
+   }
+   card.append(outcome,note,save);box.appendChild(card);
   });
  }catch(e){liveError("Delivery workspace load नहीं हुआ",e);if(status)status.textContent=e?.message||"Delivery profile verify करें।";}
 };
