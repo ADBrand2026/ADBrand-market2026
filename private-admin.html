@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>AD Brand Market | Private Operations</title>
+<style>
+:root{color-scheme:light;--bg:#f4f6fb;--card:#fff;--ink:#182236;--muted:#66728a;--border:#dce3ef;--primary:#5034c6;--green:#0b8f65;--red:#c53345;--amber:#965b09}
+*{box-sizing:border-box}body{margin:0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:9px 12px;background:var(--primary);color:white;font-weight:650}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#e9edf6;color:#283650}.danger{background:#a72838}.good{background:var(--green)}.plain{background:transparent;color:var(--primary);border:1px solid var(--border)}input,select,textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:9px;background:white;color:var(--ink);margin:4px 0 8px}label{font-weight:650;font-size:13px}.muted{color:var(--muted)}.small{font-size:12px}.wrap{width:min(1400px,96%);margin:auto}.top{background:#15152c;color:white;padding:18px 0}.topinner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.top h1{font-size:20px;margin:0}.sub{color:#d9d8f4;font-size:13px}.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 5px 18px #1523480b}.sectionhead{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.sectionhead h2{font-size:17px;margin:0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}.count{font-size:30px;font-weight:800}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row button{margin:4px 4px 0 0}.row input,.row select{flex:1;min-width:130px}.hidden{display:none!important}.notice{padding:12px;border:1px solid var(--border);border-radius:10px;background:#f9faff}.status{padding:10px 12px;border-radius:9px;margin:12px 0;background:#edf1fa;white-space:pre-wrap;overflow-wrap:anywhere}.status.error{background:#fff0f0;color:#892632}.status.ok{background:#eaf8f1;color:#166344}.pill{font-size:12px;border-radius:999px;padding:3px 8px;background:#eef0f7;color:#38435b}.item{border:1px solid var(--border);border-radius:11px;padding:12px;margin:9px 0;overflow-wrap:anywhere}.item h3{font-size:15px;margin:0 0 5px}.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media(max-width:650px){.two{grid-template-columns:1fr}.card{padding:12px}.wrap{width:94%}}a{color:var(--primary)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header class="top"><div class="wrap topinner"><div><h1>🔐 AD Brand Market — Private Operations</h1><div class="sub">Separate operations portal • no storefront Admin link</div></div><div class="row"><span id="sessionBadge" class="pill">Not signed in</span><button id="refreshBtn" class="secondary hidden" type="button">Refresh all</button><button id="logoutBtn" class="danger hidden" type="button">Sign out</button></div></div></header>
+<main class="wrap">
+<section id="loginCard" class="card">
+<h2>Admin sign-in</h2><p class="muted">Only an existing, active Supabase Admin account can enter. Public registration cannot create an Admin role.</p>
+<form id="loginForm"><label for="email">Admin email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required minlength="8"><button type="submit">Secure sign in</button></form>
+<p class="small muted">Every privileged action is checked by the database. The publishable key in this page is not a service-role secret.</p>
+</section>
+<div id="globalStatus" class="status" role="status">Waiting for sign-in.</div>
+<section id="adminApp" class="hidden">
+<div class="card"><div class="sectionhead"><h2>Live overview</h2><button id="refreshTop" class="secondary" type="button">Refresh dashboard</button></div><div id="stats" class="grid"></div></div>
+<div class="card"><div class="sectionhead"><h2>Seller / Delivery applications</h2><span class="pill">Admin decision required</span></div><div id="applications"></div></div>
+<div class="card"><div class="sectionhead"><h2>Private application documents</h2><span class="pill">2-minute signed viewing links</span></div><p class="small muted">Seller verification requires an approved shop photo and address proof. Rider verification requires address proof, vehicle photo and a relevant licence/insurance/identity document.</p><div id="documents"></div></div>
+<div class="card"><div class="sectionhead"><h2>Seller / rider verification queue</h2></div><div id="verification"></div></div>
+<div class="card"><div class="sectionhead"><h2>Non-food courier booking and tracking</h2></div><p class="small muted">After you have actually booked the parcel in the courier's authorized account, enter the provider and confirmed tracking/AWB here. Saving this form does not call Valmo's system.</p><div id="shipments"></div></div>
+<div class="card"><div class="sectionhead"><h2>Delivery incidents / customer waiting</h2></div><p class="small muted">A customer's missed call or request for ten minutes does not automatically cancel the order and does not create a customer penalty.</p><div id="issues"></div></div>
+<div class="card"><div class="sectionhead"><h2>Rider cancellation penalty review</h2></div><p class="small muted">₹10–₹15 is only a proposed case amount. Review evidence and disputes; no automatic payout deduction is made.</p><div id="penalties"></div></div>
+<div class="card"><div class="sectionhead"><h2>Admin audit note</h2></div><p class="small muted">This portal is a separate HTML file and is not linked from the store. Static GitHub Pages cannot hide source files at the hosting layer; sensitive data and admin actions are protected by Supabase Auth/RLS and RPC role checks. For a truly private network URL, put this page behind a host-side access gateway.</p></div>
+</section>
+</main>
+<script>
+(function(){
+"use strict";
+const URL="https://jwvawjztfwfpmlnocwiw.supabase.co";
+const KEY="sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
+const el=id=>document.getElementById(id);
+const client=window.supabase&&window.supabase.createClient?window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+let sessionUser=null;
+const tables=[["profiles","Total accounts"],["customer_profiles","Customers"],["seller_profiles","Sellers"],["delivery_profiles","Delivery partners"],["products","Products"],["orders","Orders"],["return_requests","Return requests"],["role_applications","Role applications"]];
+function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=String(text);return n;}
+function btn(text,fn,cls){const b=node("button",cls||"",text);b.type="button";b.addEventListener("click",fn);return b;}
+function setStatus(msg,type){const n=el("globalStatus");n.textContent=String(msg||"");n.className="status "+(type||"");}
+function list(box,msg){box.replaceChildren(node("p","muted",msg));}
+function errText(e){return e&&e.message?e.message:String(e||"Unknown error");}
+function money(v){const n=Number(v||0);return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:2});}
+function showApp(){el("loginCard").classList.add("hidden");el("adminApp").classList.remove("hidden");el("refreshBtn").classList.remove("hidden");el("refreshTop").classList.remove("hidden");el("logoutBtn").classList.remove("hidden");el("sessionBadge").textContent="Active Admin";}
+function hideApp(){el("loginCard").classList.remove("hidden");el("adminApp").classList.add("hidden");el("refreshBtn").classList.add("hidden");el("refreshTop").classList.add("hidden");el("logoutBtn").classList.add("hidden");el("sessionBadge").textContent="Not signed in";}
+async function confirmAdmin(user){
+ if(!client||!user)throw new Error("Supabase session missing.");
+ const {data,error}=await client.from("profiles").select("id,user_id,role,is_active,full_name").eq("user_id",user.id).maybeSingle();
+ if(error)throw error;
+ if(!data||data.role!=="admin"||data.is_active!==true){
+  await client.auth.signOut();
+  throw new Error("This account is not an active Admin. Public signup cannot grant Admin privileges.");
+ }
+ sessionUser=user;showApp();
+ setStatus("Signed in as verified Admin: "+(data.full_name||user.email),"ok");
+ await refreshAll();
+}
+el("loginForm").addEventListener("submit",async e=>{
+ e.preventDefault();if(!client)return setStatus("Supabase client did not load.","error");
+ const email=el("email").value.trim().toLowerCase(),password=el("password").value;
+ setStatus("Checking Supabase Admin role…");
+ const {data,error}=await client.auth.signInWithPassword({email,password});
+ if(error){setStatus("Sign-in failed: "+errText(error),"error");return;}
+ try{await confirmAdmin(data.user||data.session?.user);}catch(ex){sessionUser=null;hideApp();setStatus(errText(ex),"error");}
+});
+async function refreshAll(){
+ if(!sessionUser)return;
+ await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties()]);
+}
+el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
+el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
+el("logoutBtn").addEventListener("click",async()=>{if(client)await client.auth.signOut();sessionUser=null;hideApp();setStatus("Signed out.","ok");});
+async function loadStats(){
+ const box=el("stats");box.replaceChildren();
+ for(const [table,label] of tables){
+  const {count,error}=await client.from(table).select("*",{count:"exact",head:true});
+  const c=node("div","item");c.appendChild(node("div","muted",label));c.appendChild(node("div","count",error?"—":count??0));c.appendChild(node("div","small muted",error?"Permission/query error":"Live database count"));box.appendChild(c);
+ }
+}
+async function loadApplications(){
+ const box=el("applications");list(box,"Loading…");
+ const {data,error}=await client.from("role_applications").select("id,requested_role,applicant_name,mobile,shop_name,seller_type,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id").eq("status","pending").order("created_at",{ascending:true}).limit(100);
+ if(error)return list(box,"Application queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No pending applications.");
+ box.replaceChildren();
+ data.forEach(a=>{
+  const c=node("div","item");c.appendChild(node("h3",(a.requested_role==="seller"?(a.seller_type==="food"?"🍕 Food Seller":"👕 Non-food Seller"):"🛵 Delivery Partner")+" — "+a.applicant_name));
+  c.appendChild(node("p","", [a.mobile,a.shop_name,a.seller_type,a.address,a.city,a.state,a.pincode,a.vehicle_type,a.vehicle_number,a.notes].filter(Boolean).join(" • ")));
+  c.appendChild(node("p","small muted","Application "+a.id+" • "+new Date(a.created_at).toLocaleString()));
+  c.appendChild(btn("Approve application",()=>reviewApplication(a.id,true),"good"));
+  c.appendChild(btn("Reject application",()=>reviewApplication(a.id,false),"danger"));
+  box.appendChild(c);
+ });
+}
+async function reviewApplication(id,approve){
+ const note=approve?null:(prompt("Reason for rejection (optional):","")||"");
+ const {error}=await client.rpc("admin_review_role_application",{p_application_id:id,p_approve:approve,p_note:note});
+ if(error){setStatus("Application review failed: "+errText(error),"error");return;}
+ setStatus(approve?"Application approved. New seller/rider verification remains required.":"Application rejected.","ok");
+ await refreshAll();
+}
+async function loadDocuments(){
+ const box=el("documents");list(box,"Loading private documents…");
+ const {data,error}=await client.from("private_document_registry").select("id,application_id,profile_id,user_id,doc_type,storage_path,original_name,mime_type,status,created_at,review_note").eq("status","pending").order("created_at",{ascending:true}).limit(100);
+ if(error)return list(box,"Private document queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No pending private documents.");
+ box.replaceChildren();
+ data.forEach(d=>{
+  const c=node("div","item");c.appendChild(node("h3",d.doc_type+" — "+d.original_name));
+  c.appendChild(node("p","small muted","Application "+d.application_id+" • "+d.mime_type+" • "+new Date(d.created_at).toLocaleString()));
+  c.appendChild(btn("Open private file (120 seconds)",async()=>{
+   const {data:link,error}=await client.storage.from("adbrand-private-documents").createSignedUrl(d.storage_path,120);
+   if(error)return setStatus("Private file could not be opened: "+errText(error),"error");
+   const a=document.createElement("a");a.href=link.signedUrl;a.target="_blank";a.rel="noopener noreferrer";a.click();
+  },"secondary"));
+  c.appendChild(btn("Approve document",()=>reviewDocument(d.id,true),"good"));
+  c.appendChild(btn("Reject document",()=>reviewDocument(d.id,false),"danger"));
+  box.appendChild(c);
+ });
+}
+async function reviewDocument(id,approve){
+ const note=approve?null:(prompt("Why is this document rejected?","")||"");
+ const {error}=await client.rpc("admin_review_role_document",{p_document_id:id,p_approve:approve,p_note:note});
+ if(error){setStatus("Document review failed: "+errText(error),"error");return;}
+ setStatus("Private document review saved.","ok");await refreshAll();
+}
+async function loadVerification(){
+ const box=el("verification");list(box,"Loading verification queue…");
+ const [sr,dr]=await Promise.all([
+  client.from("seller_profiles").select("id,profile_id,seller_code,shop_name,seller_type,city,state,is_verified,is_active").eq("is_verified",false).limit(100),
+  client.from("delivery_profiles").select("id,profile_id,delivery_code,full_name,mobile,vehicle_type,vehicle_number,is_verified,is_active").eq("is_verified",false).limit(100)
+ ]);
+ box.replaceChildren();
+ if(sr.error)box.appendChild(node("p","", "Seller query failed: "+errText(sr.error)));
+ else (sr.data||[]).forEach(s=>{
+  const c=node("div","item");c.appendChild(node("h3",(s.seller_type==="food"?"🍕 Food seller: ":"👕 Non-food seller: ")+(s.shop_name||s.seller_code)));
+  c.appendChild(node("p","small muted",[s.city,s.state,s.is_active?"Active":"Inactive"].filter(Boolean).join(" • ")));
+  c.appendChild(btn("Verify seller after checking documents",()=>setVerified("seller",s.id),"good"));box.appendChild(c);
+ });
+ if(dr.error)box.appendChild(node("p","", "Rider query failed: "+errText(dr.error)));
+ else (dr.data||[]).forEach(d=>{
+  const c=node("div","item");c.appendChild(node("h3","🛵 "+(d.full_name||d.delivery_code)));
+  c.appendChild(node("p","small muted",[d.mobile,d.vehicle_type,d.vehicle_number,d.is_active?"Active":"Inactive"].filter(Boolean).join(" • ")));
+  c.appendChild(btn("Verify rider after checking documents",()=>setVerified("delivery",d.id),"good"));box.appendChild(c);
+ });
+ if(!box.childNodes.length)list(box,"No unverified seller/rider profiles.");
+}
+async function setVerified(type,id){
+ const ok=confirm("This verifies identity/documents only after your manual inspection. Continue?");
+ if(!ok)return;
+ const {error}=await client.rpc(type==="seller"?"admin_set_seller_verification":"admin_set_delivery_verification",
+  type==="seller"?{p_seller_id:id,p_verified:true,p_active:true}:{p_delivery_id:id,p_verified:true,p_active:true});
+ if(error){setStatus("Profile verification failed: "+errText(error),"error");return;}
+ setStatus("Profile verified. Open shop/online settings remain subject to backend checks.","ok");await refreshAll();
+}
+async function loadShipments(){
+ const box=el("shipments");list(box,"Loading shipments…");
+ const {data,error}=await client.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,label_reference,tracking_number,courier_order_reference").in("shipment_status",["pending_quote","pending_booking","booked","picked_up","in_transit"]).order("created_at",{ascending:false}).limit(100);
+ if(error)return list(box,"Courier queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No active external shipments.");
+ box.replaceChildren();
+ data.forEach((s,i)=>{
+  const c=node("div","item");c.appendChild(node("h3","Order "+s.order_id));
+  c.appendChild(node("p","small muted","Barcode "+s.internal_barcode+" • "+s.shipment_status+" • "+(s.tracking_number||"No confirmed tracking")));
+  const pfx="ship"+i;
+  const provider=node("input");provider.id=pfx+"Provider";provider.placeholder="Courier provider";provider.value=s.courier_provider==="valmo_pending_onboarding"?"Valmo (manual booking)":s.courier_provider||"Valmo";
+  const tracking=node("input");tracking.id=pfx+"Tracking";tracking.placeholder="Confirmed tracking / AWB";tracking.value=s.tracking_number||"";
+  const ref=node("input");ref.id=pfx+"Ref";ref.placeholder="Courier booking reference";ref.value=s.courier_order_reference||"";
+  const charge=node("input");charge.id=pfx+"Charge";charge.type="number";charge.min="0";charge.step=".01";charge.placeholder="Customer shipping charge ₹";charge.value="0";
+  c.appendChild(node("label","", "Provider"));c.appendChild(provider);c.appendChild(node("label","","Tracking / AWB"));c.appendChild(tracking);c.appendChild(node("label","","Booking reference"));c.appendChild(ref);c.appendChild(node("label","","Shipping charge"));c.appendChild(charge);
+  c.appendChild(btn("Save confirmed booking",async()=>{
+   if(provider.value.trim().length<2||tracking.value.trim().length<2||!Number.isFinite(Number(charge.value))||Number(charge.value)<0)return setStatus("Enter provider, actual confirmed tracking and a valid charge.","error");
+   if(!confirm("Confirm that the provider has actually accepted this shipment and returned the entered tracking number?"))return;
+   const {error}=await client.rpc("admin_configure_external_shipment",{p_shipment_id:s.id,p_courier_provider:provider.value.trim(),p_tracking_number:tracking.value.trim(),p_courier_reference:ref.value.trim()||null,p_shipping_charge:Number(charge.value)});
+   if(error){setStatus("Shipment save failed: "+errText(error),"error");return;}
+   setStatus("Courier reference saved. No provider API call was made by this page.","ok");await refreshAll();
+  },"good"));
+  const status=node("select");[["booked","Booked"],["picked_up","Picked up"],["in_transit","In transit"],["delivered","Delivered"],["returned","Returned"],["failed","Failed"],["cancelled","Cancelled"]].forEach(([v,t])=>{const o=node("option","",t);o.value=v;o.selected=s.shipment_status===v;status.appendChild(o);});
+  c.appendChild(status);
+  c.appendChild(btn("Update courier status",async()=>{
+   const {error}=await client.rpc("admin_update_shipment_status",{p_shipment_id:s.id,p_status:status.value,p_tracking_number:tracking.value.trim()||null});
+   if(error){setStatus("Shipment status save failed: "+errText(error),"error");return;}
+   setStatus("Shipment status updated.","ok");await refreshAll();
+  },"secondary"));
+  box.appendChild(c);
+ });
+}
+async function loadIssues(){
+ const box=el("issues");list(box,"Loading incidents…");
+ const {data,error}=await client.from("delivery_issue_cases").select("id,order_id,actor_profile_id,actor_role,reason,details,status,customer_promised_until,created_at").in("status",["open","under_review"]).order("created_at",{ascending:true}).limit(100);
+ if(error)return list(box,"Issue queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No open incidents.");
+ box.replaceChildren();
+ data.forEach(v=>{
+  const c=node("div","item");c.appendChild(node("h3",v.reason+" • "+v.status));c.appendChild(node("p","small","Order "+v.order_id+" • actor "+v.actor_role));
+  if(v.details)c.appendChild(node("p","",v.details));
+  if(v.customer_promised_until)c.appendChild(node("p","small muted","Customer promise: "+new Date(v.customer_promised_until).toLocaleString()));
+  c.appendChild(btn("Resolve case",()=>reviewIssue(v.id,"resolve"),"good"));c.appendChild(btn("Dismiss case",()=>reviewIssue(v.id,"dismiss"),"secondary"));c.appendChild(btn("Keep under review",()=>reviewIssue(v.id,"review"),"plain"));box.appendChild(c);
+ });
+}
+async function reviewIssue(id,decision){
+ const note=prompt("Review note/evidence:","");if(note===null)return;
+ const {error}=await client.rpc("admin_review_delivery_issue",{p_case_id:id,p_decision:decision,p_note:note});
+ if(error)return setStatus("Issue review failed: "+errText(error),"error");
+ setStatus("Incident review saved.","ok");await refreshAll();
+}
+async function loadPenalties(){
+ const box=el("penalties");list(box,"Loading proposed penalties…");
+ const {data,error}=await client.from("delivery_penalty_cases").select("id,order_id,delivery_profile_id,reason,proposed_amount,status,evidence,decision_note,created_at").in("status",["pending","disputed"]).order("created_at",{ascending:true}).limit(100);
+ if(error)return list(box,"Penalty queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No pending/disputed cases.");
+ box.replaceChildren();
+ data.forEach(p=>{
+  const c=node("div","item");c.appendChild(node("h3",p.reason+" • "+money(p.proposed_amount)));c.appendChild(node("p","small","Order "+p.order_id+" • Rider "+p.delivery_profile_id+" • "+p.status));
+  c.appendChild(node("p","small muted","Evidence: "+JSON.stringify(p.evidence||[])));
+  if(p.decision_note)c.appendChild(node("p","",p.decision_note));
+  c.appendChild(btn("Approve proposed amount (no automatic deduction)",()=>reviewPenalty(p.id,"approve"),"good"));
+  c.appendChild(btn("Reject / waive",()=>reviewPenalty(p.id,"waive"),"secondary"));
+  c.appendChild(btn("Keep disputed",()=>reviewPenalty(p.id,"dispute"),"plain"));box.appendChild(c);
+ });
+}
+async function reviewPenalty(id,decision){
+ const note=prompt("Explain the evidence and decision:","");if(note===null)return;
+ const {error}=await client.rpc("admin_review_delivery_penalty_case",{p_case_id:id,p_decision:decision,p_note:note});
+ if(error)return setStatus("Penalty review failed: "+errText(error),"error");
+ setStatus("Penalty decision saved. Actual payout deduction remains a separate process.","ok");await refreshAll();
+}
+async function restoreSession(){
+ if(!client){setStatus("Supabase library did not load.","error");return;}
+ const {data,error}=await client.auth.getSession();
+ if(error){setStatus(errText(error),"error");return;}
+ if(!data.session?.user)return;
+ try{await confirmAdmin(data.session.user);}catch(e){await client.auth.signOut();hideApp();setStatus("Saved session does not have active Admin role: "+errText(e),"error");}
+}
+restoreSession();
+})();
+</script>
+</body>
+</html>
