@@ -565,40 +565,7 @@ img{max-width:100%}
 
 
 
-<!-- Private Admin panel: no public navigation link. Open with ?admin=1; role is checked server-side. -->
-<section id="admin" class="panel container" aria-label="Private Admin Dashboard">
-  <div class="card">
-    <h2>🔐 AD Brand Market — Admin Dashboard</h2>
-    <p class="muted">केवल Supabase में active admin role वाले account के लिए।</p>
-    <div class="form-grid">
-      <div class="field"><label for="adminEmail">Admin Email</label><input id="adminEmail" type="email" autocomplete="username"></div>
-      <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
-    </div>
-    <button class="btn primary" type="button" onclick="adminLogin()">Secure Admin Login</button>
-    <button class="btn outline" type="button" onclick="adminLogout()">Logout</button>
-    <p id="adminStatus" class="notice" role="status">Admin sign-in required.</p>
-  </div>
-  <div id="adminDashboardContent" style="display:none">
-    <div class="card"><h3>📊 Live overview</h3><div id="adminLiveStats" class="form-grid"></div><button class="btn outline" type="button" onclick="renderAdminDashboard()">↻ Refresh Dashboard</button></div>
-    <div class="card"><h3>📝 Seller / Delivery applications</h3><p class="small muted">Approval पर account role और संबंधित profile एक transaction में update होंगे।</p><div id="adminApplications"></div></div>
-    <div class="card"><h3>📄 Private Seller / Rider documents</h3><p class="small muted">Files private storage में रहती हैं; केवल आवेदन वाला account और active Admin temporary signed link से देख सकते हैं।</p><div id="adminPrivateDocs"></div></div>
-    <div class="card"><h3>🛡️ Seller / Rider document verification</h3><p class="small muted">पहले private document review/approve करें; तभी profile verification button सफल होगा।</p><div id="adminVerificationQueue"></div></div>
-    <div class="card"><h3>📦 Non-food courier booking</h3><p class="small muted">Valmo को booking अपने official/authorized account से confirm करने के बाद ही provider, tracking ID और shipping charge भरें। यह console API booking का दावा नहीं करता।</p><div id="adminCourierShipments"></div></div>
-    <div class="card"><h3>🧾 Delivery incidents / customer waiting cases</h3><div id="adminDeliveryIssues"></div></div>
-    <div class="card"><h3>⚖️ Rider cancellation penalty review</h3><p class="small muted">₹10 proposed amount automatic deduction नहीं है। Evidence और rider dispute देखने के बाद ही फैसला करें।</p><div id="adminPenaltyCases"></div></div>
-    <div class="card"><h3>🔒 Security reminder</h3><p>Customer data, order details, seller verification, delivery verification, returns और payment records केवल आवश्यकता के अनुसार access करें। Public page पर Admin button नहीं है।</p></div>
-  </div>
-</section>
 
-<div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
-  <div class="modal-card">
-    <div class="modal-header"><h2 id="adminModalTitle">🔐 Private Admin Login</h2><button class="close-btn" onclick="closeModal('adminModal')" aria-label="Close">×</button></div>
-    <p class="notice">केवल पहले से approved active Admin account login कर सकता है।</p>
-    <div class="field"><label for="adminModalEmail">Admin Email</label><input id="adminModalEmail" type="email" autocomplete="username"></div>
-    <div class="field"><label for="adminModalPassword">Password</label><input id="adminModalPassword" type="password" autocomplete="current-password"></div>
-    <button class="btn primary" type="button" onclick="adminLogin(true)">Secure Admin Login</button>
-  </div>
-</div>
 
 <!-- Cart modal -->
 <div class="modal" id="cartModal" role="dialog" aria-modal="true" aria-labelledby="cartModalTitle">
@@ -1372,9 +1339,7 @@ function openPrivateAdminPortal() {
   const modal = $("adminModal");
   if (modal) modal.classList.add("show");
 }
-if (window.location.search.includes("admin=1")) {
-  document.addEventListener("DOMContentLoaded",openPrivateAdminPortal,{once:true});
-}
+// Admin UI has been moved to private-admin.html; storefront intentionally has no Admin login route.
 
 
 /* ADBM LIVE WORKFLOWS v1
@@ -19312,13 +19277,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   }
   if ($("accountRole")) $("accountRole").addEventListener("change",updateRoleApplicationFields);
   if ($("adLiveCatalog")) adLiveLoadCatalog();
-  document.addEventListener("DOMContentLoaded",function(){
-    if(window.location.search.includes("admin=1")) {
-      // The private route is protected by Supabase Admin authentication and RLS, not by the query string.
-      const modal=$("adminModal");
-      if(modal && !window.__adBrandAdminAuthorized)modal.classList.add("show");
-    }
-  },{once:true});
+  // Admin UI is served from private-admin.html, not embedded in the storefront.
 })();
 </script>
 
