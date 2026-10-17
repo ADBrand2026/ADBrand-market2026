@@ -18483,7 +18483,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         (product.category_name || product.category_slug || "Product") + " • " + (product.seller_name || "Local seller")));
       card.appendChild(liveNode("p","small muted",
         product.seller_type === "food" ? ("🍕 Food Seller • " + (product.seller_city || "Local city") + " • AD rider delivery")
-        : ("📦 Non-food seller • " + (product.seller_city || "Seller city") + " • External courier booking")));
+        : ("📦 Non-food seller • " + (product.seller_city || "Seller city") + " • Courier delivery or self-pickup as selected at checkout")));
       if (product.description) card.appendChild(liveNode("p","",product.description));
       const variants = asList(product.variants);
       let selectedVariant = null;
@@ -19050,7 +19050,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
       actions.appendChild(liveButton("☎️ Customer didn't answer",()=>adLiveRecordContact(o.order_id,"no_answer",0),"outline"));
       actions.appendChild(liveButton("⏱️ Customer asks 10 minutes",()=>adLiveRecordContact(o.order_id,"customer_delay",10),"outline"));
-      actions.appendChild(liveButton("📍 Wrong address / safety issue",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
+      actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
+      actions.appendChild(liveButton("🛡️ Safety concern / unsafe location",()=>adLiveRecordContact(o.order_id,"unsafe",0),"red"));
       if(!["out_for_delivery","delivered","cancelled"].includes(o.status)){
         const reason=document.createElement("select");reason.setAttribute("aria-label","Rider cancellation reason");
         [["vehicle_issue","Vehicle issue"],["emergency","Emergency"],["wrong_assignment","Wrong assignment"],["seller_delay","Seller delay"],["other","Other reason"]]
