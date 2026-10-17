@@ -1562,7 +1562,9 @@ window.adLiveAddFoodProduct=async function(){
  var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Approved Seller login जरूरी है।");return;}
  var name=String($("adFoodName")?.value||"").trim(),category=String($("adFoodCategory")?.value||"food"),foodType=String($("adFoodKind")?.value||"both");
  var variants=[],sizes=["Small","Medium","Large"],types=foodType==="veg"?[["Veg","veg"]]:foodType==="non_veg"?[["NonVeg","non_veg"]]:foodType==="both"?[["Veg","veg"],["NonVeg","non_veg"]]:[];
- sizes.forEach(function(size){types.forEach(function(tp){var stem="adFood"+size+tp[0],p=String($(stem+"Price")?.value||"").trim(),s=String($(stem+"Stock")?.value||"").trim();if(p!==""){if(s==="")throw new Error(size+" "+tp[0]+" stock भरें।");var price=Number(p),stock=Number(s);if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0)throw new Error(size+" "+tp[0]+" price/stock जाँचें।");variants.push({variant_name:size+" · "+tp[0],price:price,stock:stock,attributes:{size:size,food_type:tp[1],veg_label:tp[1]==="veg"?"Veg":"Non-Veg"}});}});});
+ var variantBuildError="";
+ sizes.forEach(function(size){types.forEach(function(tp){var stem="adFood"+size+tp[0],p=String($(stem+"Price")?.value||"").trim(),s=String($(stem+"Stock")?.value||"").trim();if(p!==""){if(s===""){variantBuildError=size+" "+tp[0]+" stock भरें।";return;}var price=Number(p),stock=Number(s);if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){variantBuildError=size+" "+tp[0]+" price/stock जाँचें।";return;}variants.push({variant_name:size+" · "+tp[0],price:price,stock:stock,attributes:{size:size,food_type:tp[1],veg_label:tp[1]==="veg"?"Veg":"Non-Veg"}});}});});
+ if(variantBuildError){toast(variantBuildError);return;}
  var basePrice=Number($("adFoodBasePrice")?.value||0),baseStock=Number($("adFoodBaseStock")?.value||0);
  if(name.length<2){toast("Menu item का नाम भरें।");return;}
  if((category==="veg-food"&&foodType!=="veg")||(category==="non-veg-food"&&foodType!=="non_veg")){toast("Category और Veg/Non-Veg item type एक-दूसरे से match होने चाहिए।");return;}
