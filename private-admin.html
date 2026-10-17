@@ -27,6 +27,7 @@
 <div class="card"><div class="sectionhead"><h2>Private application documents</h2><span class="pill">2-minute signed viewing links</span></div><p class="small muted">Seller verification requires an approved shop photo and address proof. Rider verification requires address proof, vehicle photo and a relevant licence/insurance/identity document.</p><div id="documents"></div></div>
 <div class="card"><div class="sectionhead"><h2>Seller / rider verification queue</h2></div><div id="verification"></div></div>
 <div class="card"><div class="sectionhead"><h2>Non-food courier booking and tracking</h2></div><p class="small muted">After you have actually booked the parcel in the courier's authorized account, enter the provider and confirmed tracking/AWB here. Saving this form does not call Valmo's system.</p><div id="shipments"></div></div>
+<div class="card"><div class="sectionhead"><h2>COD cash reconciliation</h2></div><p class="small muted">Shows COD cash already collected by a food rider or self-pickup seller but not yet handed over/reconciled with the platform. Confirm only after actual cash handover; this does not send bank transfers.</p><div id="opsCod"></div></div>
 <div class="card"><div class="sectionhead"><h2>Delivery incidents / customer waiting</h2></div><p class="small muted">A customer's missed call or request for ten minutes does not automatically cancel the order and does not create a customer penalty.</p><div id="issues"></div></div>
 <div class="card"><div class="sectionhead"><h2>Rider cancellation penalty review</h2></div><p class="small muted">₹10–₹15 is only a proposed case amount. Review evidence and disputes; no automatic payout deduction is made.</p><div id="penalties"></div></div>
 <div class="card"><div class="sectionhead"><h2>Customer accounts & live orders</h2><span class="pill">Read-only operations view</span></div><div id="opsOrders"></div></div>
@@ -133,6 +134,33 @@ async function loadOperationalProducts(){
  });
  if(sr.error||vr.error)box.prepend(node("p","small muted","Seller/variant detail query failed; product base fields are shown where available."));
 }
+async function loadCodRemittance(){
+ const box=el("opsCod");list(box,"Loading COD cash reconciliation…");
+ const {data,error}=await client.from("orders")
+  .select("id,order_code,fulfillment_mode,total_amount,cod_collected,cod_collected_amount,cod_collected_at,cod_collected_note,cod_remittance_status,cod_remittance_reference")
+  .in("cod_remittance_status",["pending_remittance","disputed"]).order("cod_collected_at",{ascending:true}).limit(100);
+ if(error)return list(box,"COD reconciliation queue failed: "+errText(error));
+ if(!data?.length)return list(box,"No collected COD cash is awaiting platform handover.");
+ box.replaceChildren();
+ data.forEach(o=>{
+  const c=node("div","item");
+  c.append(node("h3","", (o.order_code||o.id)+" · "+o.cod_remittance_status),
+   node("p","small","Mode "+o.fulfillment_mode+" · Customer cash "+money(o.cod_collected_amount??o.total_amount)),
+   node("p","small muted","Collected at "+(o.cod_collected_at?new Date(o.cod_collected_at).toLocaleString():"unknown")+" · "+(o.cod_collected_note||"No note")));
+  const ref=node("input");ref.placeholder="Physical handover / reconciliation reference";ref.maxLength=180;
+  const note=node("input");note.placeholder="Admin note (optional)";note.maxLength=500;
+  c.append(ref,note);
+  c.appendChild(btn("Confirm actual cash handover",async()=>{
+   if(ref.value.trim().length<3)return setStatus("Enter the actual handover reference or receipt note.","error");
+   if(!confirm("Confirm platform physically received/reconciled "+money(o.cod_collected_amount??o.total_amount)+" for this order?"))return;
+   const {error}=await client.rpc("admin_confirm_cod_remittance",{p_order_id:o.id,p_reference:ref.value.trim(),p_note:note.value.trim()||null});
+   if(error){setStatus("COD remittance confirmation failed: "+errText(error),"error");return;}
+   setStatus("COD cash handover recorded. No seller/rider bank payout was made.","ok");
+   await refreshAll();
+  },"good"));
+  box.appendChild(c);
+ });
+}
 async function loadReturnsSupport(){
  const ret=el("opsReturns"),sup=el("opsSupport");
  list(ret,"Loading returns/refunds/complaints…");list(sup,"Loading support tickets…");
@@ -210,7 +238,7 @@ async function loadReturnsSupport(){
 }
 async function refreshAll(){
  if(!sessionUser)return;
- await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalProducts(),loadReturnsSupport()]);
+ await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalProducts(),loadReturnsSupport(),loadCodRemittance()]);
 }
 el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
 el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
