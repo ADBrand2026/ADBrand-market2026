@@ -994,10 +994,11 @@ function openAccountAccess(role) {
   if (modal) {
     modal.classList.add("show");
   }
+  updateRoleApplicationFields();
 }
 
 async function continueAccountAccess(mode) {
-  const role = $("accountRole").value;
+  const requestedRole = String($("accountRole")?.value || "customer");
   const email = String($("accountEmail")?.value || "").trim().toLowerCase();
   const password = String($("accountPassword")?.value || "");
   const mobile = String($("accountMobile")?.value || "").trim().replace(/\D/g, "");
@@ -1006,41 +1007,80 @@ async function continueAccountAccess(mode) {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("सही email address डालें।");
   if (password.length < 8) return alert("Password कम से कम 8 characters का होना चाहिए।");
   if (mobile && !validIndianMobile(mobile)) return alert("Mobile खाली छोड़ें या सही 10-digit number डालें।");
-  if (mode === "signup" && role !== "customer") return alert("पहले Customer account बनाएं। Seller/Delivery role Admin approval से मिलेगा।");
+  if (!["customer","seller","delivery"].includes(requestedRole)) return alert("सही account type चुनें।");
+
   const buttons = $("accountModal")?.querySelectorAll("button");
   if (buttons) buttons.forEach(b => b.disabled = true);
   try {
+    // Seller/Delivery applicants always authenticate as customers until Admin approval.
     const result = mode === "signup"
-      ? await client.auth.signUp({email, password, options:{data:{full_name:""}}})
-      : await client.auth.signInWithPassword({email, password});
+      ? await client.auth.signUp({email,password,options:{data:{full_name:""}}})
+      : await client.auth.signInWithPassword({email,password});
     if (result.error) throw result.error;
     const user = result.data?.user || result.data?.session?.user;
     if (!user) { toast("Account request हुई। जरूरत हो तो email confirmation करें।"); return; }
     if (mode === "signup" && !result.data?.session) {
-      toast("Account बन गया। Email confirmation करके फिर login करें।");
+      toast("Account बन गया। Email confirmation करें, फिर Customer के रूप में login करके आवेदन भेजें।");
       return;
     }
-    const pr = await client.from("profiles").select("user_id,role,is_active").eq("user_id",user.id).maybeSingle();
+    const pr = await client.from("profiles").select("user_id,role,is_active,full_name,mobile")
+      .eq("user_id",user.id).maybeSingle();
     if (pr.error) throw pr.error;
-    if (!pr.data) { await client.auth.signOut(); throw new Error("Account profile नहीं बना। Support/Admin से संपर्क करें।"); }
-    if (pr.data.is_active !== true) { await client.auth.signOut(); throw new Error("यह account inactive है।"); }
-    if (pr.data.role !== role) {
+    if (!pr.data) {
       await client.auth.signOut();
-      window.__adBrandAuthUser = null;
-      window.__adBrandAuthRole = null;
-      throw new Error(role === "customer" ? "यह account Customer role का नहीं है।" : "यह role इस account के लिए Admin ने approve नहीं किया है।");
+      throw new Error("Account profile नहीं बना। Database signup trigger/status verify करना होगा।");
     }
+    if (pr.data.is_active !== true) {
+      await client.auth.signOut();
+      throw new Error("यह account inactive है।");
+    }
+    const actualRole = pr.data.role;
+    if (actualRole === "admin") {
+      await client.auth.signOut();
+      throw new Error("Admin के लिए private Admin portal इस्तेमाल करें।");
+    }
+    if (!["customer","seller","delivery"].includes(actualRole)) {
+      await client.auth.signOut();
+      throw new Error("इस account का role website access के लिए मान्य नहीं है।");
+    }
+    if (mode === "signup" && actualRole !== "customer") {
+      await client.auth.signOut();
+      throw new Error("नया account पहले Customer के रूप में बनना चाहिए।");
+    }
+
     window.__adBrandAuthUser = user;
-    window.__adBrandAuthRole = pr.data.role;
-    currentAccountRole = pr.data.role;
+    window.__adBrandAuthRole = actualRole;
+    currentAccountRole = actualRole;
+
+    if (actualRole === "customer" && (requestedRole === "seller" || requestedRole === "delivery")) {
+      // Critical path: do NOT reject/sign out a customer who is applying for a new role.
+      $("accountRole").value = requestedRole;
+      updateRoleApplicationFields();
+      if ($("roleApplicantName") && !$("roleApplicantName").value) $("roleApplicantName").value = pr.data.full_name || "";
+      if ($("roleApplicantMobile") && !$("roleApplicantMobile").value) $("roleApplicantMobile").value = mobile || pr.data.mobile || "";
+      toast("Customer login सुरक्षित है। अब नीचे Seller/Delivery आवेदन भरकर भेजें; approval से पहले dashboard access नहीं मिलेगा।");
+      return;
+    }
+
+    if (actualRole !== requestedRole && requestedRole !== "customer") {
+      $("accountRole").value = actualRole;
+    }
     closeModal("accountModal");
-    if (role === "customer") { openPanel("customer"); if (mobile && $("customerMobile")) $("customerMobile").value=mobile; loadCustomer(); }
-    else if (role === "seller") { openPanel("seller"); if (mobile && $("sellerMobile")) $("sellerMobile").value=mobile; loadSeller(); }
-    else if (role === "delivery") { openPanel("delivery"); if (mobile && $("deliveryMobile")) $("deliveryMobile").value=mobile; loadDelivery(); }
+    if (actualRole === "customer") {
+      openPanel("customer");
+      if (mobile && $("adCheckoutMobile") && !$("adCheckoutMobile").value) $("adCheckoutMobile").value = mobile;
+      if ($("adCheckoutName") && !$("adCheckoutName").value) $("adCheckoutName").value = pr.data.full_name || "";
+    } else if (actualRole === "seller") {
+      openPanel("seller");
+    } else if (actualRole === "delivery") {
+      openPanel("delivery");
+    }
   } catch (e) {
     console.error("Secure account access failed:",e);
     alert(e?.message || "Login नहीं हो पाया। Email और password जाँचें।");
-  } finally { if (buttons) buttons.forEach(b => b.disabled=false); }
+  } finally {
+    if (buttons) buttons.forEach(b => b.disabled = false);
+  }
 }
 async function restoreAdBrandAuthSession() {
   const client=window.adBrandSupabase;
@@ -1098,6 +1138,7 @@ async function submitRoleApplication() {
     applicant_name: name,
     mobile: mobile,
     shop_name: requestedRole === "seller" ? shop : null,
+    seller_type: requestedRole === "seller" ? String($("roleSellerType")?.value || "non_food") : null,
     address, city: city || null, state: state || null, pincode: pincode || null,
     vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
     vehicle_number: requestedRole === "delivery" ? String($("roleVehicleNumber").value || "").trim() || null : null,
@@ -1206,7 +1247,7 @@ async function renderAdminDashboard() {
     out?.appendChild(card);
   }
   const apps = await client.from("role_applications")
-    .select("id,requested_role,applicant_name,mobile,shop_name,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id")
+    .select("id,requested_role,applicant_name,mobile,shop_name,seller_type,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id")
     .eq("status","pending").order("created_at",{ascending:true}).limit(100);
   const box = $("adminApplications");
   if (!box) return;
@@ -1224,9 +1265,11 @@ async function renderAdminDashboard() {
     const card = document.createElement("div");
     card.className = "card";
     const title = document.createElement("h4");
-    title.textContent = (app.requested_role === "seller" ? "🏪 Seller: " : "🛵 Delivery: ") + app.applicant_name;
+    title.textContent = (app.requested_role === "seller"
+      ? (app.seller_type === "food" ? "🍕 Food Seller: " : "👕 Non-food Seller: ")
+      : "🛵 Delivery: ") + app.applicant_name;
     const details = document.createElement("p");
-    details.textContent = [app.mobile,app.shop_name,app.address,app.city,app.state,app.pincode,app.vehicle_type,app.vehicle_number,app.notes].filter(Boolean).join(" • ");
+    details.textContent = [app.mobile,app.shop_name,app.seller_type === "food" ? "Food Seller" : app.seller_type === "non_food" ? "Non-food Seller" : "",app.address,app.city,app.state,app.pincode,app.vehicle_type,app.vehicle_number,app.notes].filter(Boolean).join(" • ");
     const approve = document.createElement("button");
     approve.className = "btn primary";
     approve.textContent = "Approve";
