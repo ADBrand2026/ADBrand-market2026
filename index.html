@@ -19244,7 +19244,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
       }
       actions.appendChild(liveButton("☎️ Customer didn't answer",()=>adLiveRecordContact(o.order_id,"no_answer",0),"outline"));
-      actions.appendChild(liveButton("⏱️ Customer asks 10 minutes",()=>adLiveRecordContact(o.order_id,"customer_delay",10),"outline"));
+      actions.appendChild(liveButton("⏱️ Customer asks more time",()=>adLiveRecordContact(o.order_id,"customer_delay",null),"outline"));
       actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
       actions.appendChild(liveButton("🛡️ Safety concern / unsafe location",()=>adLiveRecordContact(o.order_id,"unsafe",0),"red"));
       if(!["out_for_delivery","delivered","cancelled"].includes(o.status)){
@@ -19268,9 +19268,16 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     });
   }
   window.adLiveRecordContact=async function(orderId,outcome,minutes){
-    const note=prompt(outcome==="no_answer"?"Call/no-answer का छोटा note:":outcome==="customer_delay"?"Customer ने 10 मिनट माँगे—confirm करने के लिए note:":"Wrong address/safety details:","") ;
+    let promised=null;
+    if(outcome==="customer_delay"){
+      const raw=prompt("Customer ने कितने मिनट माँगे हैं? 1 से 60 मिनट तक (5-minute cancellation नहीं होगी):",minutes || "10");
+      if(raw===null)return;
+      const waitMinutes=Number(raw);
+      if(!Number.isInteger(waitMinutes)||waitMinutes<1||waitMinutes>60){alert("1 से 60 मिनट के बीच सही समय भरें।");return;}
+      promised=new Date(Date.now()+waitMinutes*60000).toISOString();
+    }
+    const note=prompt(outcome==="no_answer"?"Call/no-answer का छोटा note:":outcome==="customer_delay"?"Customer ने extra time माँगा — जो समय बताया, note करें:":outcome==="unsafe"?"Safety concern details:":"Wrong address details:","") ;
     if(note===null)return;
-    const promised=minutes>0?new Date(Date.now()+minutes*60000).toISOString():null;
     const {data,error}=await supa().rpc("rider_record_contact_attempt",{
       p_order_id:orderId,p_channel:"call",p_outcome:outcome,p_note:note||null,p_customer_promised_until:promised
     });
