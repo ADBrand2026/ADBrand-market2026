@@ -167,6 +167,20 @@ async function loadReturnsSupport(){
     setStatus("Return rejected; no refund transfer was initiated.","ok");await refreshAll();
    },"danger"));
   }
+  if(["approved","received","refund_review"].includes(x.status)){
+   const actions=node("div","row");
+   [["received","Mark item received"],["refund_review","Move to refund review"],["close","Close return"]].forEach(([decision,label])=>{
+    actions.appendChild(btn(label,async()=>{
+     const note=prompt("Return inspection / decision note (required):","");
+     if(note===null)return;
+     if(note.trim().length<3){setStatus("Enter an audit note for this return action.","error");return;}
+     const {error}=await client.rpc("admin_review_return_request",{p_return_request_id:x.id,p_decision:decision,p_note:note.trim()});
+     if(error){setStatus("Return status update failed: "+errText(error),"error");return;}
+     setStatus(decision==="refund_review"?"Return moved to refund review. No money was transferred.":"Return status saved. Any refund/pickup remains a separate process.","ok");await refreshAll();
+    },decision==="close"?"secondary":decision==="refund_review"?"plain":"good"));
+   });
+   c.appendChild(actions);
+  }
   ret.appendChild(c);
  });
  if(!rf.error&&rf.data?.length)rf.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Refund "+x.id+" · "+x.refund_status),node("p","small","Order "+x.order_id+" · "+money(x.amount)+" · "+(x.refund_method||"method pending")),node("p","",x.reason||x.transaction_reference||""));ret.appendChild(c);});
@@ -176,7 +190,23 @@ async function loadReturnsSupport(){
  sup.replaceChildren();
  if(st.error)sup.appendChild(node("p","", "Support queue unavailable: "+errText(st.error)));
  else if(!st.data?.length)sup.appendChild(node("p","muted","No support tickets."));
- else st.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", (x.ticket_code||x.id)+" · "+x.subject+" · "+x.status),node("p","small","Category "+(x.category||"—")+" · Priority "+(x.priority||"normal")+" · Profile "+x.profile_id),node("p","",x.description||""),node("p","small muted",new Date(x.created_at).toLocaleString()));sup.appendChild(c);});
+ else st.data.forEach(x=>{
+  const c=node("div","item");
+  c.append(node("h3","", (x.ticket_code||x.id)+" · "+x.subject+" · "+x.status),
+   node("p","small","Category "+(x.category||"—")+" · Priority "+(x.priority||"normal")+" · Profile "+x.profile_id),
+   node("p","",x.description||""),node("p","small muted",new Date(x.created_at).toLocaleString()));
+  const status=node("select"),priority=node("select"),note=node("textarea");
+  [["open","Open"],["in_progress","In progress"],["waiting_customer","Waiting for customer"],["resolved","Resolved"],["closed","Closed"]].forEach(([v,t])=>{const o=node("option","",t);o.value=v;o.selected=x.status===v;status.appendChild(o);});
+  [["low","Low"],["normal","Normal"],["high","High"],["urgent","Urgent"]].forEach(([v,t])=>{const o=node("option","",t);o.value=v;o.selected=(x.priority||"normal")===v;priority.appendChild(o);});
+  note.placeholder="Admin response / audit note (optional)";
+  c.append(node("label","","Update status"),status,node("label","","Priority"),priority,note);
+  c.appendChild(btn("Save support update",async()=>{
+   const {error}=await client.rpc("admin_update_support_ticket",{p_ticket_id:x.id,p_status:status.value,p_priority:priority.value,p_note:note.value.trim()||null});
+   if(error){setStatus("Support update failed: "+errText(error),"error");return;}
+   setStatus("Support ticket updated.","ok");await refreshAll();
+  },"good"));
+  sup.appendChild(c);
+ });
 }
 async function refreshAll(){
  if(!sessionUser)return;
