@@ -849,11 +849,20 @@ async function continueAccountAccess(mode) {
     if (result.error) throw result.error;
     const user = result.data?.user || result.data?.session?.user;
     if (!user) { toast("Account request हुई। जरूरत हो तो email confirmation करें।"); return; }
+    if (mode === "signup" && !result.data?.session) {
+      toast("Account बन गया। Email confirmation करके फिर login करें।");
+      return;
+    }
     const pr = await client.from("profiles").select("user_id,role,is_active").eq("user_id",user.id).maybeSingle();
     if (pr.error) throw pr.error;
     if (!pr.data) { await client.auth.signOut(); throw new Error("Account profile नहीं बना। Support/Admin से संपर्क करें।"); }
     if (pr.data.is_active !== true) { await client.auth.signOut(); throw new Error("यह account inactive है।"); }
-    if (pr.data.role !== role) throw new Error(role === "customer" ? "यह account Customer role का नहीं है।" : "यह role इस account के लिए Admin ने approve नहीं किया है।");
+    if (pr.data.role !== role) {
+      await client.auth.signOut();
+      window.__adBrandAuthUser = null;
+      window.__adBrandAuthRole = null;
+      throw new Error(role === "customer" ? "यह account Customer role का नहीं है।" : "यह role इस account के लिए Admin ने approve नहीं किया है।");
+    }
     window.__adBrandAuthUser = user;
     window.__adBrandAuthRole = pr.data.role;
     currentAccountRole = pr.data.role;
