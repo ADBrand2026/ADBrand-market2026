@@ -476,27 +476,17 @@ img{max-width:100%}
   </div>
 </div>
 
-<!-- Account access modal -->
+<!-- Secure account access modal -->
 <div class="modal" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
   <div class="modal-card">
-    <div class="modal-header">
-      <h2 id="accountModalTitle">Account Access</h2>
-      <button class="close-btn" onclick="closeModal('accountModal')" aria-label="Close">×</button>
-    </div>
-    <div class="notice">अभी इस form से profile save करने का आधार तैयार है। केवल mobile number डालना secure authentication या OTP verification नहीं है।</div>
-    <div class="field">
-      <label for="accountRole">Account Type</label>
-      <select id="accountRole">
-        <option value="customer">Customer</option>
-        <option value="seller">Seller</option>
-        <option value="delivery">Delivery Partner</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="accountMobile">Registered Mobile Number</label>
-      <input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel">
-    </div>
-    <button class="btn primary" onclick="continueAccountAccess()">Continue</button>
+    <div class="modal-header"><h2 id="accountModalTitle">Secure Account Login</h2><button class="close-btn" onclick="closeModal('accountModal')" aria-label="Close">×</button></div>
+    <div class="notice">ईमेल और पासवर्ड से सुरक्षित login होगा। Seller और Delivery access के लिए Admin approval जरूरी है।</div>
+    <div class="field"><label for="accountRole">Account Type</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
+    <div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+    <div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="कम से कम 8 characters"></div>
+    <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="continueAccountAccess('login')">Login</button><button class="btn outline" onclick="continueAccountAccess('signup')">Create Customer Account</button></div>
+    <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
 </div>
 
@@ -755,6 +745,10 @@ function goHome() {
 }
 
 function openPanel(panelName) {
+  if (["customer","seller","delivery"].includes(panelName)) {
+    if (!window.__adBrandAuthUser) { openAccountAccess(panelName); toast("पहले secure login करें।"); return; }
+    if (window.__adBrandAuthRole !== panelName) { toast("इस panel के लिए आपका account role authorized नहीं है।"); return; }
+  }
   if (panelName === "admin" &&
       window.__adBrandAdminAuthorized !== true) {
     toast("Admin access केवल authorized Admin के लिए है।");
@@ -835,43 +829,57 @@ function openAccountAccess(role) {
   }
 }
 
-function continueAccountAccess() {
+async function continueAccountAccess(mode) {
   const role = $("accountRole").value;
-  const mobile = $("accountMobile").value
-    .trim()
-    .replace(/\D/g, "");
-
-  if (!validIndianMobile(mobile)) {
-    alert("सही 10-digit Indian mobile number डालें।");
-    return;
-  }
-
-  currentAccountRole = role;
-  closeModal("accountModal");
-
-  if (role === "customer") {
-    openPanel("customer");
-    $("customerMobile").value = mobile;
-    loadCustomer();
-    return;
-  }
-
-  if (role === "seller") {
-    openPanel("seller");
-    $("sellerMobile").value = mobile;
-    loadSeller();
-    return;
-  }
-
-  if (role === "delivery") {
-    openPanel("delivery");
-    $("deliveryMobile").value = mobile;
-    loadDelivery();
-    return;
-  }
-
-  toast("Account type सही नहीं है।");
+  const email = String($("accountEmail")?.value || "").trim().toLowerCase();
+  const password = String($("accountPassword")?.value || "");
+  const mobile = String($("accountMobile")?.value || "").trim().replace(/\D/g, "");
+  const client = window.adBrandSupabase;
+  if (!client) return toast("Secure login service load नहीं हुई। Page refresh करें।");
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("सही email address डालें।");
+  if (password.length < 8) return alert("Password कम से कम 8 characters का होना चाहिए।");
+  if (mobile && !validIndianMobile(mobile)) return alert("Mobile खाली छोड़ें या सही 10-digit number डालें।");
+  if (mode === "signup" && role !== "customer") return alert("पहले Customer account बनाएं। Seller/Delivery role Admin approval से मिलेगा।");
+  const buttons = $("accountModal")?.querySelectorAll("button");
+  if (buttons) buttons.forEach(b => b.disabled = true);
+  try {
+    const result = mode === "signup"
+      ? await client.auth.signUp({email, password, options:{data:{full_name:""}}})
+      : await client.auth.signInWithPassword({email, password});
+    if (result.error) throw result.error;
+    const user = result.data?.user || result.data?.session?.user;
+    if (!user) { toast("Account request हुई। जरूरत हो तो email confirmation करें।"); return; }
+    const pr = await client.from("profiles").select("user_id,role,is_active").eq("user_id",user.id).maybeSingle();
+    if (pr.error) throw pr.error;
+    if (!pr.data) { await client.auth.signOut(); throw new Error("Account profile नहीं बना। Support/Admin से संपर्क करें।"); }
+    if (pr.data.is_active !== true) { await client.auth.signOut(); throw new Error("यह account inactive है।"); }
+    if (pr.data.role !== role) throw new Error(role === "customer" ? "यह account Customer role का नहीं है।" : "यह role इस account के लिए Admin ने approve नहीं किया है।");
+    window.__adBrandAuthUser = user;
+    window.__adBrandAuthRole = pr.data.role;
+    currentAccountRole = pr.data.role;
+    closeModal("accountModal");
+    if (role === "customer") { openPanel("customer"); if (mobile && $("customerMobile")) $("customerMobile").value=mobile; loadCustomer(); }
+    else if (role === "seller") { openPanel("seller"); if (mobile && $("sellerMobile")) $("sellerMobile").value=mobile; loadSeller(); }
+    else if (role === "delivery") { openPanel("delivery"); if (mobile && $("deliveryMobile")) $("deliveryMobile").value=mobile; loadDelivery(); }
+  } catch (e) {
+    console.error("Secure account access failed:",e);
+    alert(e?.message || "Login नहीं हो पाया। Email और password जाँचें।");
+  } finally { if (buttons) buttons.forEach(b => b.disabled=false); }
 }
+async function restoreAdBrandAuthSession() {
+  const client=window.adBrandSupabase;
+  if (!client) return;
+  try {
+    const {data,error}=await client.auth.getSession();
+    if (error || !data?.session?.user) return;
+    const user=data.session.user;
+    const {data:profile,error:pe}=await client.from("profiles").select("user_id,role,is_active").eq("user_id",user.id).maybeSingle();
+    if (pe || !profile || profile.is_active!==true) { await client.auth.signOut(); return; }
+    window.__adBrandAuthUser=user;
+    window.__adBrandAuthRole=profile.role;
+  } catch(e) { console.warn("Could not restore saved auth session.",e); }
+}
+restoreAdBrandAuthSession();
 
 /* ---------- CATEGORY FILTER ---------- */
 
