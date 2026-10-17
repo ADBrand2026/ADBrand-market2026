@@ -1497,8 +1497,8 @@ window.adLiveLoadCustomerOrders=async function(){
    card.appendChild(liveEl("p","", "Total "+liveMoney(o.total_amount)+" · Payment: "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")));
    card.appendChild(liveEl("p","small muted","Fulfilment: "+(o.fulfillment_mode==="inhouse_food"?"AD local food rider":o.fulfillment_mode==="external_courier"?"External courier booking":o.fulfillment_mode||"pending")+" · Barcode: "+(o.internal_barcode||"—")));
    if(o.shipment)card.appendChild(liveEl("p","small","Courier: "+(o.shipment.provider||"not booked")+" · "+(o.shipment.status||"pending")+" · Tracking: "+(o.shipment.tracking_number||"pending")));
-   if(o.status==="out_for_delivery"||o.status==="ready_for_pickup"){
-    var confirm=liveEl("button","btn green",o.status==="ready_for_pickup"?"✅ Shop से सामान ले लिया — Confirm":"✅ Order मिल गया — Confirm");confirm.onclick=async function(){if(!confirmEvent())return;try{var x=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});if(x.error)throw x.error;toast("Receipt confirm हो गया।");await adLiveLoadCustomerOrders();}catch(e){liveError("Delivery confirm नहीं हुई",e);}};
+   if(o.status==="out_for_delivery"||o.status==="ready_for_pickup"||o.status==="awaiting_customer_confirmation"){
+    var confirm=liveEl("button","btn green",o.status==="ready_for_pickup"?"✅ Shop से सामान ले लिया — Confirm":o.status==="awaiting_customer_confirmation"?"✅ Courier parcel मिल गया — Confirm":"✅ Order मिल गया — Confirm");confirm.onclick=async function(){if(!confirmEvent())return;try{var x=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});if(x.error)throw x.error;toast("Receipt confirm हो गया।");await adLiveLoadCustomerOrders();}catch(e){liveError("Delivery confirm नहीं हुई",e);}};
     card.appendChild(confirm);
    }
    box.appendChild(card);
