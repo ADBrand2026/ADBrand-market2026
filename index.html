@@ -1573,38 +1573,40 @@ window.adLiveLoadCustomerOrders=async function(){
 };
 window.adLiveAddFoodProduct=async function(){
  var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Approved Seller login जरूरी है।");return;}
- var name=String($("adFoodName")?.value||"").trim(),category=String($("adFoodCategory")?.value||"food"),foodType=String($("adFoodKind")?.value||"both");
+ var name=String($("adFoodName")?.value||"").trim(),category=String($("adFoodCategory")?.value||"food"),foodType=String($("adFoodKind")?.value||"both"),discountPct=Number($("adFoodDiscountPct")?.value||0);
  var variants=[],sizes=["Small","Medium","Large"],types=foodType==="veg"?[["Veg","veg"]]:foodType==="non_veg"?[["NonVeg","non_veg"]]:foodType==="both"?[["Veg","veg"],["NonVeg","non_veg"]]:[];
  var variantBuildError="";
- sizes.forEach(function(size){types.forEach(function(tp){var stem="adFood"+size+tp[0],p=String($(stem+"Price")?.value||"").trim(),s=String($(stem+"Stock")?.value||"").trim();if(p!==""){if(s===""){variantBuildError=size+" "+tp[0]+" stock भरें।";return;}var price=Number(p),stock=Number(s);if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){variantBuildError=size+" "+tp[0]+" price/stock जाँचें।";return;}variants.push({variant_name:size+" · "+tp[0],price:price,stock:stock,attributes:{size:size,food_type:tp[1],veg_label:tp[1]==="veg"?"Veg":"Non-Veg"}});}});});
+ sizes.forEach(function(size){types.forEach(function(tp){var stem="adFood"+size+tp[0],p=String($(stem+"Price")?.value||"").trim(),s=String($(stem+"Stock")?.value||"").trim();if(p!==""){if(s===""){variantBuildError=size+" "+tp[0]+" stock भरें।";return;}var price=Number(p),stock=Number(s);if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){variantBuildError=size+" "+tp[0]+" price/stock जाँचें।";return;}variants.push({variant_name:size+" · "+tp[0],price:price,sale_price:discountPct>0?Math.round(price*(1-discountPct/100)*100)/100:null,stock:stock,attributes:{size:size,food_type:tp[1],veg_label:tp[1]==="veg"?"Veg":"Non-Veg"}});}});});
  if(variantBuildError){toast(variantBuildError);return;}
  var basePrice=Number($("adFoodBasePrice")?.value||0),baseStock=Number($("adFoodBaseStock")?.value||0);
  if(name.length<2){toast("Menu item का नाम भरें।");return;}
+ if(!Number.isFinite(discountPct)||discountPct<0||discountPct>90){toast("Offer discount 0 से 90 percent के बीच रखें।");return;}
  if((category==="veg-food"&&foodType!=="veg")||(category==="non-veg-food"&&foodType!=="non_veg")){toast("Category और Veg/Non-Veg item type एक-दूसरे से match होने चाहिए।");return;}
  if(variants.length){basePrice=Math.min.apply(null,variants.map(function(v){return v.price;}));baseStock=variants.reduce(function(n,v){return n+v.stock;},0);}
  if(!Number.isFinite(basePrice)||basePrice<=0||!Number.isInteger(baseStock)||baseStock<0){toast("Base price और stock सही भरें; pizza/variant price अलग-अलग भरें।");return;}
  if(foodType==="both"&&!variants.length){toast("Veg + Non-Veg दोनों बनाने हैं तो हर size के लिए अलग price/stock भरें, या एक ही type चुनें।");return;}
  try{
   var imageUrl=await adLiveUploadProductImage($("adFoodImageFile")?.files?.[0]);
-  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adFoodDescription")?.value||"").trim().slice(0,2000),p_price:basePrice,p_sale_price:null,p_stock:baseStock,p_variants:variants,p_food_type:foodType,p_image_url:imageUrl});
+  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adFoodDescription")?.value||"").trim().slice(0,2000),p_price:basePrice,p_sale_price:discountPct>0?Math.round(basePrice*(1-discountPct/100)*100)/100:null,p_stock:baseStock,p_variants:variants,p_food_type:foodType,p_image_url:imageUrl});
   if(r.error)throw r.error;toast("Food/menu item save हो गया। Product code: "+(r.data?.product_code||"created"));
-  ["adFoodName","adFoodBasePrice","adFoodBaseStock","adFoodDescription","adFoodImageFile","adFoodSmallVegPrice","adFoodSmallVegStock","adFoodMediumVegPrice","adFoodMediumVegStock","adFoodLargeVegPrice","adFoodLargeVegStock","adFoodSmallNonVegPrice","adFoodSmallNonVegStock","adFoodMediumNonVegPrice","adFoodMediumNonVegStock","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"].forEach(function(id){if($(id))$(id).value="";});
+  ["adFoodName","adFoodBasePrice","adFoodBaseStock","adFoodDiscountPct","adFoodDescription","adFoodImageFile","adFoodSmallVegPrice","adFoodSmallVegStock","adFoodMediumVegPrice","adFoodMediumVegStock","adFoodLargeVegPrice","adFoodLargeVegStock","adFoodSmallNonVegPrice","adFoodSmallNonVegStock","adFoodMediumNonVegPrice","adFoodMediumNonVegStock","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"].forEach(function(id){if($(id))$(id).value="";});
   await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();
  }catch(e){liveError("Food item save नहीं हुआ",e);}
 };
 window.adLiveAddNonFoodProduct=async function(){
  var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Approved Seller login जरूरी है।");return;}
- var name=String($("adNonFoodName")?.value||"").trim(),category=String($("adNonFoodCategory")?.value||"clothes"),price=Number($("adNonFoodBasePrice")?.value||0),stock=Number($("adNonFoodBaseStock")?.value||0);
+ var name=String($("adNonFoodName")?.value||"").trim(),category=String($("adNonFoodCategory")?.value||"clothes"),price=Number($("adNonFoodBasePrice")?.value||0),stock=Number($("adNonFoodBaseStock")?.value||0),discountPct=Number($("adNonFoodDiscountPct")?.value||0);
  if(name.length<2){toast("Product name कम से कम 2 characters का होना चाहिए।");return;}
+ if(!Number.isFinite(discountPct)||discountPct<0||discountPct>90){toast("Offer discount 0 से 90 percent के बीच रखें।");return;}
  var variants=[];
- for(var i=1;i<=4;i++){var n=String($("adNfV"+i+"Name")?.value||"").trim();if(!n)continue;var p=Number($("adNfV"+i+"Price")?.value||0),s=Number($("adNfV"+i+"Stock")?.value);if(p<=0||!Number.isInteger(s)||s<0){toast("Variant "+i+" का price और stock सही भरें।");return;}variants.push({variant_name:n,price:p,stock:s,attributes:{size:String($("adNfV"+i+"Size")?.value||"").trim(),color:String($("adNfV"+i+"Color")?.value||"").trim()}});}
+ for(var i=1;i<=4;i++){var n=String($("adNfV"+i+"Name")?.value||"").trim();if(!n)continue;var p=Number($("adNfV"+i+"Price")?.value||0),s=Number($("adNfV"+i+"Stock")?.value);if(p<=0||!Number.isInteger(s)||s<0){toast("Variant "+i+" का price और stock सही भरें।");return;}variants.push({variant_name:n,price:p,sale_price:discountPct>0?Math.round(p*(1-discountPct/100)*100)/100:null,stock:s,attributes:{size:String($("adNfV"+i+"Size")?.value||"").trim(),color:String($("adNfV"+i+"Color")?.value||"").trim()}});}
  if(variants.length){price=Math.min.apply(null,variants.map(function(v){return v.price;}));stock=variants.reduce(function(n,v){return n+v.stock;},0);}
  else if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){toast("बिना variants वाले product के लिए positive base price और valid stock भरें।");return;}
  try{
   var imageUrl=await adLiveUploadProductImage($("adNonFoodImageFile")?.files?.[0]);
-  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adNonFoodDescription")?.value||"").trim().slice(0,2000),p_price:price,p_sale_price:null,p_stock:stock,p_variants:variants,p_food_type:"not_applicable",p_image_url:imageUrl});
+  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adNonFoodDescription")?.value||"").trim().slice(0,2000),p_price:price,p_sale_price:discountPct>0?Math.round(price*(1-discountPct/100)*100)/100:null,p_stock:stock,p_variants:variants,p_food_type:"not_applicable",p_image_url:imageUrl});
   if(r.error)throw r.error;toast("Product save हो गया। Code: "+(r.data?.product_code||"created"));
-  ["adNonFoodName","adNonFoodBasePrice","adNonFoodBaseStock","adNonFoodImageFile","adNonFoodDescription","adNfV1Name","adNfV1Size","adNfV1Color","adNfV1Price","adNfV1Stock","adNfV2Name","adNfV2Size","adNfV2Color","adNfV2Price","adNfV2Stock","adNfV3Name","adNfV3Size","adNfV3Color","adNfV3Price","adNfV3Stock","adNfV4Name","adNfV4Size","adNfV4Color","adNfV4Price","adNfV4Stock"].forEach(function(id){if($(id))$(id).value="";});
+  ["adNonFoodName","adNonFoodBasePrice","adNonFoodBaseStock","adNonFoodDiscountPct","adNonFoodImageFile","adNonFoodDescription","adNfV1Name","adNfV1Size","adNfV1Color","adNfV1Price","adNfV1Stock","adNfV2Name","adNfV2Size","adNfV2Color","adNfV2Price","adNfV2Stock","adNfV3Name","adNfV3Size","adNfV3Color","adNfV3Price","adNfV3Stock","adNfV4Name","adNfV4Size","adNfV4Color","adNfV4Price","adNfV4Stock"].forEach(function(id){if($(id))$(id).value="";});
   await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();
  }catch(e){liveError("Non-food product save नहीं हुआ",e);}
 };
