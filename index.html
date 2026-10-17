@@ -1534,6 +1534,17 @@ window.adLiveLoadCustomerOrders=async function(){
    card.appendChild(liveEl("p","", "Total "+liveMoney(o.total_amount)+" · Payment: "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")));
    card.appendChild(liveEl("p","small muted","Fulfilment: "+(o.fulfillment_mode==="inhouse_food"?"AD local food rider":o.fulfillment_mode==="external_courier"?"External courier booking":o.fulfillment_mode||"pending")+" · Barcode: "+(o.internal_barcode||"—")));
 
+   if(o.payment_method==="cod"){
+    card.appendChild(liveEl("p","small",o.cod_collected
+     ?"✅ COD cash recorded: "+liveMoney(o.cod_collected_amount||o.total_amount)+" · Platform handover: "+(o.cod_remittance_status||"pending")
+     :"Cash on Delivery: order मिलते समय ही सही amount दें; order status अभी cash received नहीं बताता।"));
+   }
+   if(o.fulfillment_mode==="self_pickup"&&o.seller_location){
+    var pickupAddress=[o.seller_location.address,o.seller_location.city,o.seller_location.state,o.seller_location.pincode].filter(Boolean).join(", ");
+    card.appendChild(liveEl("p","small","Pickup shop: "+(o.seller_name||"Seller")+" · "+(pickupAddress||"Shop address unavailable")));
+    if(pickupAddress){var pickupMap=liveEl("a","btn outline","📍 Directions to seller shop");pickupMap.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent((o.seller_name||"Shop")+" "+pickupAddress);pickupMap.target="_blank";pickupMap.rel="noopener noreferrer";card.appendChild(pickupMap);}
+   }
+
    if(o.tracking&&Number.isFinite(Number(o.tracking.latitude))&&Number.isFinite(Number(o.tracking.longitude))){
     card.appendChild(liveEl("p","small","Rider latest GPS: "+o.tracking.latitude+", "+o.tracking.longitude+" · "+new Date(o.tracking.recorded_at).toLocaleString()+" · Accuracy ±"+Math.round(Number(o.tracking.accuracy||0))+" m"));
     var mapLink=liveEl("a","btn outline","🗺️ View rider location on map");mapLink.href="https://www.google.com/maps?q="+encodeURIComponent(o.tracking.latitude+","+o.tracking.longitude);mapLink.target="_blank";mapLink.rel="noopener noreferrer";card.appendChild(mapLink);
