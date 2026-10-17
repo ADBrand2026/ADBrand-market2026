@@ -353,6 +353,36 @@ img{max-width:100%}
     <h2>🛍️ Customer Panel</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
   </div>
+
+  <div id="adLiveCustomerMarket" class="section">
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
+    <div class="form-grid">
+      <div class="field"><label for="adLiveSearch">Live products खोजें</label><input id="adLiveSearch" placeholder="Pizza, shoes, shirt..." oninput="adLiveLoadCatalog()"></div>
+      <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adLiveLoadCatalog()">
+        <option value="">सभी categories</option><option value="food">खाना / Pizza</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option>
+      </select></div>
+    </div>
+    <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
+    <div class="section">
+      <h3>🛒 Live Cart और Checkout</h3>
+      <div id="adLiveCart"><div class="empty">Cart खाली है।</div></div>
+      <div class="form-grid">
+        <div class="field"><label for="adCheckoutName">नाम</label><input id="adCheckoutName" autocomplete="name" maxlength="120"></div>
+        <div class="field"><label for="adCheckoutMobile">मोबाइल</label><input id="adCheckoutMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
+        <div class="field"><label for="adCheckoutAddress">पूरा delivery address</label><textarea id="adCheckoutAddress" autocomplete="street-address" maxlength="500"></textarea></div>
+        <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
+        <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
+        <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6"></div>
+        <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi">UPI (gateway verification pending)</option></select></div>
+        <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
+      </div>
+      <p class="small muted">UPI चुनने पर भी gateway से payment verified होने तक order unpaid रहेगा। बाहरी courier की कीमत/booking confirmed न हो तो order booking-pending दिखेगा; कोई काल्पनिक tracking नहीं दी जाएगी।</p>
+      <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
+      <div id="adLiveCheckoutResult" class="notice" role="status"></div>
+    </div>
+    <div class="section"><h3>📦 मेरे Live Orders</h3><button class="btn outline" type="button" onclick="adLiveLoadCustomerOrders()">↻ Refresh Orders</button><div id="adLiveOrders"></div></div>
+  </div>
+  <div id="legacyCustomerDemo" hidden>
   <div class="form-grid">
     <div class="field">
       <label for="productSearch">Product खोजें</label>
@@ -387,6 +417,8 @@ img{max-width:100%}
   <div class="section"><h3>❤️ Wishlist</h3><div id="customerWishlist"></div></div>
   <div class="section"><h3>📦 My Orders</h3><div id="customerOrders"></div></div>
   <div class="section"><h3>↩️ Returns / Refunds</h3><div id="customerReturns"></div></div>
+
+  </div>
 </section>
 
 <!-- Seller screen -->
@@ -395,6 +427,56 @@ img{max-width:100%}
     <h2>🏪 Seller Panel</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
   </div>
+
+  <div id="adLiveSellerDashboard" class="section">
+    <div id="adLiveSellerStatus" class="notice">Live Seller Dashboard: approved account की स्थिति जाँची जा रही है…</div>
+    <div id="adLiveSellerProfile" class="form-grid"></div>
+    <button id="adLiveShopToggle" class="btn green" type="button" onclick="adLiveToggleShop()">🟢 Shop Open / Closed</button>
+    <div id="adLiveFoodSellerTools" class="section" style="display:none">
+      <h3>🍕 Food Seller Dashboard — Menu, Sizes, Veg/Non-Veg Price</h3>
+      <p class="small muted">हर size की कीमत और stock दुकान खुद भरेगी; वेबसाइट कोई pizza price अनुमान से नहीं डालती। Food: केवल local AD rider delivery, self-pickup या Valmo नहीं।</p>
+      <div class="form-grid">
+        <div class="field"><label for="adFoodName">Menu item नाम</label><input id="adFoodName" maxlength="150" placeholder="जैसे Pizza"></div>
+        <div class="field"><label for="adFoodCategory">Category</label><select id="adFoodCategory"><option value="food">खाना / Pizza</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option></select></div>
+        <div class="field"><label for="adFoodKind">Item type</label><select id="adFoodKind"><option value="both">Veg + Non-Veg (हर variant अलग चुनें)</option><option value="veg">Veg</option><option value="non_veg">Non-Veg</option><option value="egg">Egg</option></select></div>
+        <div class="field"><label for="adFoodBasePrice">Base price (no size variants में)</label><input id="adFoodBasePrice" type="number" min="1" step="0.01"></div>
+        <div class="field"><label for="adFoodBaseStock">Base stock (no variants में)</label><input id="adFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adFoodDescription">Ingredients / crust / details</label><textarea id="adFoodDescription" maxlength="2000"></textarea></div>
+      </div>
+      <h4>Size-wise prices and stock (blank price = not offered)</h4>
+      <div class="form-grid">
+        <div class="field"><label>Small · Veg price / stock</label><div class="form-grid"><input id="adFoodSmallVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodSmallVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+        <div class="field"><label>Medium · Veg price / stock</label><div class="form-grid"><input id="adFoodMediumVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodMediumVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+        <div class="field"><label>Large · Veg price / stock</label><div class="form-grid"><input id="adFoodLargeVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodLargeVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+        <div class="field"><label>Small · Non-Veg price / stock</label><div class="form-grid"><input id="adFoodSmallNonVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodSmallNonVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+        <div class="field"><label>Medium · Non-Veg price / stock</label><div class="form-grid"><input id="adFoodMediumNonVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodMediumNonVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+        <div class="field"><label>Large · Non-Veg price / stock</label><div class="form-grid"><input id="adFoodLargeNonVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodLargeNonVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
+      </div>
+      <button class="btn primary" type="button" onclick="adLiveAddFoodProduct()">➕ Add food/menu item</button>
+    </div>
+    <div id="adLiveNonFoodSellerTools" class="section" style="display:none">
+      <h3>👕 Non-food Seller Dashboard — Clothes / Shoes / Slippers</h3>
+      <p class="small muted">Every product gets a unique product code; each order gets a different internal barcode. After a real courier booking and tracking ID, seller can print the internal packing slip and hand the parcel to the booked courier. This slip is not a Valmo airway bill.</p>
+      <div class="form-grid">
+        <div class="field"><label for="adNonFoodName">Product name</label><input id="adNonFoodName" maxlength="150"></div>
+        <div class="field"><label for="adNonFoodCategory">Category</label><select id="adNonFoodCategory"><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option></select></div>
+        <div class="field"><label for="adNonFoodBasePrice">Base price (₹)</label><input id="adNonFoodBasePrice" type="number" min="1" step=".01"></div>
+        <div class="field"><label for="adNonFoodBaseStock">Stock (no variants only)</label><input id="adNonFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adNonFoodDescription">Description / material / offer</label><textarea id="adNonFoodDescription" maxlength="2000"></textarea></div>
+      </div>
+      <h4>Optional size / colour variants (blank name = skip)</h4>
+      <div class="form-grid">
+        <div class="field"><label>Variant 1: name, size, colour, price, stock</label><input id="adNfV1Name" placeholder="S / Black"><input id="adNfV1Size" placeholder="Size"><input id="adNfV1Color" placeholder="Color"><input id="adNfV1Price" type="number" min="1" step=".01" placeholder="Price"><input id="adNfV1Stock" type="number" min="0" step="1" placeholder="Stock"></div>
+        <div class="field"><label>Variant 2</label><input id="adNfV2Name" placeholder="M / Black"><input id="adNfV2Size" placeholder="Size"><input id="adNfV2Color" placeholder="Color"><input id="adNfV2Price" type="number" min="1" step=".01" placeholder="Price"><input id="adNfV2Stock" type="number" min="0" step="1" placeholder="Stock"></div>
+        <div class="field"><label>Variant 3</label><input id="adNfV3Name" placeholder="L / Blue"><input id="adNfV3Size" placeholder="Size"><input id="adNfV3Color" placeholder="Color"><input id="adNfV3Price" type="number" min="1" step=".01" placeholder="Price"><input id="adNfV3Stock" type="number" min="0" step="1" placeholder="Stock"></div>
+        <div class="field"><label>Variant 4</label><input id="adNfV4Name" placeholder="XL / Red"><input id="adNfV4Size" placeholder="Size"><input id="adNfV4Color" placeholder="Color"><input id="adNfV4Price" type="number" min="1" step=".01" placeholder="Price"><input id="adNfV4Stock" type="number" min="0" step="1" placeholder="Stock"></div>
+      </div>
+      <button class="btn primary" type="button" onclick="adLiveAddNonFoodProduct()">➕ Add non-food product</button>
+    </div>
+    <div class="section"><h3>📦 Live inventory</h3><div id="adLiveSellerProducts"></div></div>
+    <div class="section"><h3>🧾 Live seller orders / parcel slips</h3><div id="adLiveSellerOrders"></div></div>
+  </div>
+  <div id="legacySellerDemo" hidden>
   <div class="notice">खाना, चाय और Snacks के लिए केवल delivery; कपड़े, जूते और चप्पल के लिए उपलब्धता के अनुसार delivery या self-pickup।</div>
   <div class="form-grid">
     <div class="field"><label for="sellerName">Seller Name</label><input id="sellerName" autocomplete="name"></div>
@@ -438,6 +520,8 @@ img{max-width:100%}
   <div class="section"><h3>📦 Seller Products</h3><div id="sellerProducts"></div></div>
   <div class="section"><h3>🧾 Seller Orders</h3><div id="sellerOrders"></div></div>
   <div class="section"><h3>💰 Seller Finance</h3><div id="sellerFinance"></div></div>
+
+  </div>
 </section>
 
 <!-- Delivery partner screen -->
@@ -446,6 +530,17 @@ img{max-width:100%}
     <h2>🛵 Delivery Partner Panel</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
   </div>
+
+  <div id="adLiveDeliveryDashboard" class="section">
+    <div id="adLiveDeliveryStatus" class="notice">Delivery Partner live dashboard: verification status load हो रहा है…</div>
+    <div id="adLiveDeliveryProfile" class="form-grid"></div>
+    <button id="adLiveDeliveryOnline" class="btn green" type="button" onclick="adLiveToggleOnline()">🟢 Go Online</button>
+    <button class="btn primary" type="button" onclick="adLiveClaimFoodOrder()">🔎 Claim next ready Food Order</button>
+    <p class="small muted">केवल verified/online rider को ready food orders मिलेंगे। कपड़े/जूते/चप्पल वाले orders AD rider को assign नहीं होंगे; वे external courier flow में रहेंगे।</p>
+    <div class="section"><h3>🛵 Assigned Food Orders</h3><div id="adLiveDeliveryOrders"></div></div>
+    <div class="section"><h3>⚖️ Your proposed penalty cases</h3><div id="adLiveDeliveryPenalties"></div></div>
+  </div>
+  <div id="legacyDeliveryDemo" hidden>
   <div class="notice">Online/Offline और delivery assignment इस वेबसाइट के frontend controls हैं। असली identity verification और secure assignment के लिए backend enforcement जरूरी है।</div>
   <div class="form-grid">
     <div class="field"><label for="deliveryId">Delivery ID</label><input id="deliveryId" readonly></div>
@@ -461,6 +556,8 @@ img{max-width:100%}
   <span id="deliveryOnlineText" class="pill">Offline</span>
   <div class="section"><h3>📦 Available / Assigned Orders</h3><div id="deliveryOrders"></div></div>
   <div class="section"><h3>💰 Weekly Delivery Earnings</h3><div id="deliveryFinance"></div></div>
+
+  </div>
 </section>
 
 
@@ -482,6 +579,10 @@ img{max-width:100%}
   <div id="adminDashboardContent" style="display:none">
     <div class="card"><h3>📊 Live overview</h3><div id="adminLiveStats" class="form-grid"></div><button class="btn outline" type="button" onclick="renderAdminDashboard()">↻ Refresh Dashboard</button></div>
     <div class="card"><h3>📝 Seller / Delivery applications</h3><p class="small muted">Approval पर account role और संबंधित profile एक transaction में update होंगे।</p><div id="adminApplications"></div></div>
+    <div class="card"><h3>🛡️ Seller / Rider document verification</h3><p class="small muted">यह बटन केवल Admin की वास्तविक दस्तावेज़ जाँच के बाद प्रयोग करें; automatic KYC provider connected नहीं है।</p><div id="adminVerificationQueue"></div></div>
+    <div class="card"><h3>📦 Non-food courier booking</h3><p class="small muted">Valmo को booking अपने official/authorized account से confirm करने के बाद ही provider, tracking ID और shipping charge भरें। यह console API booking का दावा नहीं करता।</p><div id="adminCourierShipments"></div></div>
+    <div class="card"><h3>🧾 Delivery incidents / customer waiting cases</h3><div id="adminDeliveryIssues"></div></div>
+    <div class="card"><h3>⚖️ Rider cancellation penalty review</h3><p class="small muted">₹10 proposed amount automatic deduction नहीं है। Evidence और rider dispute देखने के बाद ही फैसला करें।</p><div id="adminPenaltyCases"></div></div>
     <div class="card"><h3>🔒 Security reminder</h3><p>Customer data, order details, seller verification, delivery verification, returns और payment records केवल आवश्यकता के अनुसार access करें। Public page पर Admin button नहीं है।</p></div>
   </div>
 </section>
@@ -524,6 +625,9 @@ img{max-width:100%}
       <div class="field"><label for="roleApplicantMobile">10-digit मोबाइल</label><input id="roleApplicantMobile" inputmode="numeric" maxlength="10"></div>
       <div id="roleShopFields">
         <div class="field"><label for="roleShopName">दुकान का नाम</label><input id="roleShopName" maxlength="120"></div>
+        <div class="field"><label for="roleSellerType">किस तरह की दुकान?</label>
+          <select id="roleSellerType"><option value="food">Food Seller — खाना, पिज़्ज़ा, Veg/Non-Veg, चाय, Snacks</option><option value="non_food">Non-food Seller — कपड़े, जूते, चप्पल</option></select>
+        </div>
       </div>
       <div class="field"><label for="roleApplicantAddress">पूरा पता</label><textarea id="roleApplicantAddress" maxlength="500"></textarea></div>
       <div class="form-grid">
