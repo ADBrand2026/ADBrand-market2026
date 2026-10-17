@@ -947,7 +947,7 @@ function loadCustomer() {
   }
 }
 
-function saveCustomer() {
+async function saveCustomer() {
   const name = $("customerName").value.trim();
   const mobile = $("customerMobile").value
     .trim()
@@ -981,6 +981,44 @@ function saveCustomer() {
     return;
   }
 
+  const client = window.adBrandSupabase;
+  const authUser = window.__adBrandAuthUser;
+  if (!client || !authUser || window.__adBrandAuthRole !== "customer") {
+    toast("Customer secure login जरूरी है।");
+    return;
+  }
+  const profileLookup = await client.from("profiles")
+    .select("id")
+    .eq("user_id", authUser.id)
+    .maybeSingle();
+  if (profileLookup.error || !profileLookup.data) {
+    console.error("Could not find customer profile:", profileLookup.error);
+    toast("Profile database से नहीं मिला। कृपया दोबारा login करें।");
+    return;
+  }
+  const coords = location.split(",").map(v => Number(v.trim()));
+  const hasCoords = coords.length === 2 && coords.every(Number.isFinite);
+  const profileUpdate = await client.from("profiles").update({
+    full_name: name,
+    mobile: mobile,
+    address: address,
+    latitude: hasCoords ? coords[0] : null,
+    longitude: hasCoords ? coords[1] : null
+  }).eq("user_id", authUser.id).select("user_id").maybeSingle();
+  if (profileUpdate.error || !profileUpdate.data) {
+    console.error("Customer profile save failed:", profileUpdate.error);
+    toast("Customer profile database में save नहीं हुआ।");
+    return;
+  }
+  const customerProfileUpdate = await client.from("customer_profiles")
+    .update({ full_name: name, mobile: mobile })
+    .eq("profile_id", profileLookup.data.id);
+  if (customerProfileUpdate.error) {
+    console.error("Customer detail save failed:", customerProfileUpdate.error);
+    toast("मुख्य profile save हुई, लेकिन customer details save नहीं हुईं।");
+    return;
+  }
+
   let customer = db.customers.find(function(item) {
     return item.id === db.activeCustomerId;
   });
@@ -1002,7 +1040,7 @@ function saveCustomer() {
 
   saveDB();
   loadCustomer();
-  toast("Customer profile इस browser में save हो गया।");
+  toast("Customer profile Supabase और इस browser में save हो गया।");
 }
 
 /* =========================================================
