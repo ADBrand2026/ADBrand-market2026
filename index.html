@@ -1137,6 +1137,29 @@ async function submitRoleApplication() {
     toast("दुकान का नाम भरें।");
     return;
   }
+  const docs = requestedRole === "seller" ? [
+    ["business_registration","roleSellerRegistrationDoc"],
+    ["shop_photo","roleSellerShopPhotoDoc"],
+    ["address_proof","roleSellerAddressDoc"]
+  ] : [
+    ["vehicle_photo","roleDeliveryVehiclePhotoDoc"],
+    ["driving_license","roleDeliveryLicenseDoc"],
+    ["vehicle_insurance","roleDeliveryInsuranceDoc"],
+    ["address_proof","roleDeliveryAddressDoc"]
+  ];
+  const selectedDocs = docs.map(([type,id])=>({type,input:$(id),file:$(id)?.files?.[0]})).filter(x=>x.file);
+  if (!selectedDocs.length) {
+    toast("कम से कम एक संबंधित दस्तावेज़ अपलोड करें। Files private storage में रहेंगी और Admin review के बाद ही account verify होगा।");
+    return;
+  }
+  for (const doc of selectedDocs) {
+    if (!["image/jpeg","image/png","application/pdf"].includes(doc.file.type)) {
+      toast("दस्तावेज़ केवल JPG, PNG या PDF हो सकता है।"); return;
+    }
+    if (doc.file.size > 10 * 1024 * 1024) {
+      toast("हर private document 10 MB या उससे छोटा होना चाहिए।"); return;
+    }
+  }
   const profile = await client.from("profiles").select("id,role,is_active").eq("user_id",user.id).maybeSingle();
   if (profile.error || !profile.data || profile.data.role !== "customer" || profile.data.is_active !== true) {
     toast("Customer profile verify नहीं हुआ। दोबारा login करें।");
@@ -1146,23 +1169,56 @@ async function submitRoleApplication() {
     profile_id: profile.data.id,
     requested_role: requestedRole,
     applicant_name: name,
-    mobile: mobile,
+    mobile,
     shop_name: requestedRole === "seller" ? shop : null,
     seller_type: requestedRole === "seller" ? String($("roleSellerType")?.value || "non_food") : null,
     address, city: city || null, state: state || null, pincode: pincode || null,
     vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
-    vehicle_number: requestedRole === "delivery" ? String($("roleVehicleNumber").value || "").trim() || null : null,
+    vehicle_number: requestedRole === "delivery" ? (String($("roleVehicleNumber").value || "").trim() || null) : null,
     notes: String($("roleApplicationNotes").value || "").trim() || null,
     status: "pending"
   };
+  let application = null;
   const result = await client.from("role_applications").insert(payload).select("id,status").single();
-  if (result.error) {
-    if (result.error.code === "23505") toast("आपका इस role का आवेदन पहले से pending है।");
-    else { console.error("Role application failed:", result.error); toast("आवेदन save नहीं हुआ। कृपया फिर प्रयास करें।"); }
+  if (!result.error) {
+    application = result.data;
+  } else if (result.error.code === "23505") {
+    const existing = await client.from("role_applications").select("id,status")
+      .eq("profile_id",profile.data.id).eq("requested_role",requestedRole).eq("status","pending").maybeSingle();
+    if (existing.error || !existing.data) {
+      toast("इस role का आवेदन पहले से pending है; आवेदन record verify नहीं हो पाया।");
+      return;
+    }
+    application = existing.data;
+  } else {
+    console.error("Role application failed:",result.error);
+    toast("आवेदन save नहीं हुआ। कृपया फिर प्रयास करें।");
     return;
   }
+
+  const safeName = value => String(value || "document").normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g,"_").slice(0,100);
+  for (const doc of selectedDocs) {
+    const path = user.id + "/" + requestedRole + "/" + application.id + "/" + doc.type + "_" + Date.now() + "_" + safeName(doc.file.name);
+    const upload = await client.storage.from("adbrand-private-documents")
+      .upload(path,doc.file,{upsert:false,contentType:doc.file.type});
+    if (upload.error) {
+      console.error("Private document upload failed:",upload.error);
+      toast("आवेदन save है, लेकिन private document upload नहीं हुआ: " + (upload.error.message || "storage error"));
+      return;
+    }
+    const registered = await client.rpc("register_role_document",{
+      p_application_id:application.id,p_doc_type:doc.type,p_storage_path:path,
+      p_original_name:doc.file.name,p_mime_type:doc.file.type
+    });
+    if (registered.error) {
+      console.error("Private document registry failed:",registered.error);
+      await client.storage.from("adbrand-private-documents").remove([path]);
+      toast("Private document registry में save नहीं हुआ। Application pending रहेगी; दस्तावेज़ दोबारा भेजें।");
+      return;
+    }
+  }
   closeModal("accountModal");
-  toast("आवेदन Admin को भेज दिया गया। Approval तक इस role की सुविधाएँ बंद रहेंगी।");
+  toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller/Delivery tools unlock नहीं होंगे।");
 }
 function updateRoleApplicationFields() {
   const role = String($("accountRole")?.value || "");
