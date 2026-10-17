@@ -441,6 +441,7 @@ img{max-width:100%}
         <div class="field"><label for="adFoodKind">Item type</label><select id="adFoodKind"><option value="both">Veg + Non-Veg (हर variant अलग चुनें)</option><option value="veg">Veg</option><option value="non_veg">Non-Veg</option><option value="egg">Egg</option></select></div>
         <div class="field"><label for="adFoodBasePrice">Base price (no size variants में)</label><input id="adFoodBasePrice" type="number" min="1" step="0.01"></div>
         <div class="field"><label for="adFoodBaseStock">Base stock (no variants में)</label><input id="adFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adFoodImageFile">Product photo (JPG/PNG/WEBP)</label><input id="adFoodImageFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
         <div class="field"><label for="adFoodDescription">Ingredients / crust / details</label><textarea id="adFoodDescription" maxlength="2000"></textarea></div>
       </div>
       <h4>Size-wise prices and stock (blank price = not offered)</h4>
@@ -462,6 +463,7 @@ img{max-width:100%}
         <div class="field"><label for="adNonFoodCategory">Category</label><select id="adNonFoodCategory"><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option></select></div>
         <div class="field"><label for="adNonFoodBasePrice">Base price (₹)</label><input id="adNonFoodBasePrice" type="number" min="1" step=".01"></div>
         <div class="field"><label for="adNonFoodBaseStock">Stock (no variants only)</label><input id="adNonFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adNonFoodImageFile">Product photo (JPG/PNG/WEBP)</label><input id="adNonFoodImageFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
         <div class="field"><label for="adNonFoodDescription">Description / material / offer</label><textarea id="adNonFoodDescription" maxlength="2000"></textarea></div>
       </div>
       <h4>Optional size / colour variants (blank name = skip)</h4>
@@ -579,7 +581,8 @@ img{max-width:100%}
   <div id="adminDashboardContent" style="display:none">
     <div class="card"><h3>📊 Live overview</h3><div id="adminLiveStats" class="form-grid"></div><button class="btn outline" type="button" onclick="renderAdminDashboard()">↻ Refresh Dashboard</button></div>
     <div class="card"><h3>📝 Seller / Delivery applications</h3><p class="small muted">Approval पर account role और संबंधित profile एक transaction में update होंगे।</p><div id="adminApplications"></div></div>
-    <div class="card"><h3>🛡️ Seller / Rider document verification</h3><p class="small muted">यह बटन केवल Admin की वास्तविक दस्तावेज़ जाँच के बाद प्रयोग करें; automatic KYC provider connected नहीं है।</p><div id="adminVerificationQueue"></div></div>
+    <div class="card"><h3>📄 Private Seller / Rider documents</h3><p class="small muted">Files private storage में रहती हैं; केवल आवेदन वाला account और active Admin temporary signed link से देख सकते हैं।</p><div id="adminPrivateDocs"></div></div>
+    <div class="card"><h3>🛡️ Seller / Rider document verification</h3><p class="small muted">पहले private document review/approve करें; तभी profile verification button सफल होगा।</p><div id="adminVerificationQueue"></div></div>
     <div class="card"><h3>📦 Non-food courier booking</h3><p class="small muted">Valmo को booking अपने official/authorized account से confirm करने के बाद ही provider, tracking ID और shipping charge भरें। यह console API booking का दावा नहीं करता।</p><div id="adminCourierShipments"></div></div>
     <div class="card"><h3>🧾 Delivery incidents / customer waiting cases</h3><div id="adminDeliveryIssues"></div></div>
     <div class="card"><h3>⚖️ Rider cancellation penalty review</h3><p class="small muted">₹10 proposed amount automatic deduction नहीं है। Evidence और rider dispute देखने के बाद ही फैसला करें।</p><div id="adminPenaltyCases"></div></div>
@@ -628,6 +631,9 @@ img{max-width:100%}
         <div class="field"><label for="roleSellerType">किस तरह की दुकान?</label>
           <select id="roleSellerType"><option value="food">Food Seller — खाना, पिज़्ज़ा, Veg/Non-Veg, चाय, Snacks</option><option value="non_food">Non-food Seller — कपड़े, जूते, चप्पल</option></select>
         </div>
+        <div class="field"><label for="roleSellerRegistrationDoc">Business registration proof (JPG/PNG/PDF; private)</label><input id="roleSellerRegistrationDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div class="field"><label for="roleSellerShopPhotoDoc">Shop photo (JPG/PNG; private)</label><input id="roleSellerShopPhotoDoc" type="file" accept="image/jpeg,image/png"></div>
+        <div class="field"><label for="roleSellerAddressDoc">Shop address proof (JPG/PNG/PDF; private)</label><input id="roleSellerAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <div class="field"><label for="roleApplicantAddress">पूरा पता</label><textarea id="roleApplicantAddress" maxlength="500"></textarea></div>
       <div class="form-grid">
@@ -638,6 +644,10 @@ img{max-width:100%}
       <div id="roleVehicleFields" style="display:none">
         <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bike">Bike</option><option value="Scooter">Scooter</option><option value="Bicycle">Bicycle</option><option value="Other">Other</option></select></div>
         <div class="field"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30"></div>
+        <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png"></div>
+        <div class="field"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div class="field"><label for="roleDeliveryInsuranceDoc">Vehicle insurance (JPG/PNG/PDF; private)</label><input id="roleDeliveryInsuranceDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <div class="field"><label for="roleApplicationNotes">अतिरिक्त जानकारी (वैकल्पिक)</label><textarea id="roleApplicationNotes" maxlength="1000"></textarea></div>
       <button class="btn primary" type="button" onclick="submitRoleApplication()">📨 आवेदन भेजें</button>
