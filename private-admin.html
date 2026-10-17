@@ -94,7 +94,7 @@ async function loadOperationalCustomers(){
   const card=node("div","item");
   card.append(node("h3","",title+" · "+(code||"no code")),
    node("p","small","Role "+p.role+" · "+(p.mobile||x.mobile||"No mobile")),
-   node("p","small muted","Profile active: "+p.is_active+" · "+(p.role==="seller"?("Seller verified "+x.is_verified+" · shop "+(x.is_open?"open":"closed")+" · "+[x.city,x.state].filter(Boolean).join(", "):p.role==="delivery"?("Rider verified "+x.is_verified+" · "+(x.is_online?"online":"offline")+" · "+[x.city,x.state].filter(Boolean).join(", "):"Customer account"))),
+   node("p","small muted","Profile active: "+p.is_active+" · "+(p.role==="seller" ? ("Seller verified "+x.is_verified+" · shop "+(x.is_open?"open":"closed")+" · "+[x.city,x.state].filter(Boolean).join(", ")) : p.role==="delivery" ? ("Rider verified "+x.is_verified+" · "+(x.is_online?"online":"offline")+" · "+[x.city,x.state].filter(Boolean).join(", ")) : "Customer account")),
    node("p","small muted",p.created_at?new Date(p.created_at).toLocaleString():""));
   const reason=node("input");reason.placeholder="Admin reason / audit note (recommended)";reason.maxLength=1000;
   card.appendChild(reason);
