@@ -18643,7 +18643,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           result.appendChild(card);
         });
       }
-      liveText("adLiveCheckoutResult","");
       await adLiveLoadCustomerOrders();
       toast("Order record बन गया। Payment/courier booking confirm होने तक pending state दिखाई जाएगी।");
     } catch(e) {
@@ -19219,6 +19218,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           const charge=document.createElement("input");charge.id=prefix+"Charge";charge.type="number";charge.min="0";charge.step=".01";charge.value="0";charge.placeholder="Shipping charge ₹";
           card.appendChild(provider);card.appendChild(tracking);card.appendChild(reference);card.appendChild(charge);
           card.appendChild(liveButton("Save confirmed courier booking",()=>adLiveConfigureShipment(sh.id,prefix),"primary"));
+          const stateSelect=document.createElement("select");
+          stateSelect.setAttribute("aria-label","External shipment status");
+          [["booked","Booked"],["picked_up","Picked up"],["in_transit","In transit"],["delivered","Delivered"],["returned","Returned"],["failed","Failed"],["cancelled","Cancelled"]]
+            .forEach(([v,label])=>{const opt=document.createElement("option");opt.value=v;opt.textContent=label;opt.selected=v===sh.shipment_status;stateSelect.appendChild(opt);});
+          card.appendChild(stateSelect);
+          card.appendChild(liveButton("Update courier tracking status",async()=>{
+            const tracking=String($(prefix+"Tracking")?.value||"").trim();
+            const {data,error}=await client.rpc("admin_update_shipment_status",{p_shipment_id:sh.id,p_status:stateSelect.value,p_tracking_number:tracking||null});
+            if(error){alert("Courier status update नहीं हुआ: "+liveErr(error));return;}
+            toast("External shipment status updated.");await adLiveLoadAdminQueues();await renderAdminDashboard();
+          },"outline"));
           card.appendChild(liveButton("Print internal parcel slip",()=>adLivePrintSlip({order_code:sh.order_id,internal_barcode:sh.internal_barcode,total_amount:0},[],{},sh.seller_profile_id),"outline"));
           shipBox.appendChild(card);
         });
