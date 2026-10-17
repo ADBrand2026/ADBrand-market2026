@@ -137,17 +137,47 @@ async function loadReturnsSupport(){
  const ret=el("opsReturns"),sup=el("opsSupport");
  list(ret,"Loading returns/refunds/complaints…");list(sup,"Loading support tickets…");
  const [rr,rf,co,st]=await Promise.all([
-  client.from("return_requests").select("id,order_id,order_item_id,customer_profile_id,reason,status,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
+  client.from("return_requests").select("id,order_id,order_item_id,customer_profile_id,reason,status,created_at,updated_at,review_note").order("created_at",{ascending:false}).limit(100),
   client.from("refunds").select("id,order_id,payment_id,amount,refund_method,refund_status,transaction_reference,reason,created_at,processed_at").order("created_at",{ascending:false}).limit(100),
   client.from("complaints").select("id,profile_id,order_id,subject,description,status,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
   client.from("support_tickets").select("id,ticket_code,profile_id,subject,description,category,priority,status,assigned_to,created_at,updated_at").order("created_at",{ascending:false}).limit(100)
  ]);
- ret.replaceChildren();if(rr.error)ret.appendChild(node("p","", "Returns unavailable: "+errText(rr.error)));else if(!rr.data?.length)ret.appendChild(node("p","muted","No return requests."));else rr.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Return "+x.id+" · "+x.status),node("p","small","Order "+x.order_id+" · Customer profile "+x.customer_profile_id),node("p","",x.reason||""),node("p","small muted",new Date(x.created_at).toLocaleString()));ret.appendChild(c);});
+ ret.replaceChildren();
+ if(rr.error)ret.appendChild(node("p","","Returns unavailable: "+errText(rr.error)));
+ else if(!rr.data?.length)ret.appendChild(node("p","muted","No return requests."));
+ else rr.data.forEach(x=>{
+  const c=node("div","item");
+  c.append(node("h3","", "Return "+x.id+" · "+x.status),
+    node("p","small","Order "+x.order_id+" · Item "+x.order_item_id+" · Customer profile "+x.customer_profile_id),
+    node("p","",x.reason||""),node("p","small muted",new Date(x.created_at).toLocaleString()));
+  if(x.review_note)c.appendChild(node("p","small muted","Review note: "+x.review_note));
+  if(x.status==="pending"){
+   c.appendChild(btn("Approve return (no refund transfer)",async()=>{
+    const note=prompt("Return approve note / evidence:","");
+    if(note===null)return;
+    const {error}=await client.rpc("admin_review_return_request",{p_return_request_id:x.id,p_decision:"approve",p_note:note});
+    if(error){setStatus("Return approval failed: "+errText(error),"error");return;}
+    setStatus("Return approved; payment/refund has not been transferred.","ok");await refreshAll();
+   },"good"));
+   c.appendChild(btn("Reject return",async()=>{
+    const note=prompt("Reason for rejecting this return:","");
+    if(note===null)return;
+    const {error}=await client.rpc("admin_review_return_request",{p_return_request_id:x.id,p_decision:"reject",p_note:note});
+    if(error){setStatus("Return rejection failed: "+errText(error),"error");return;}
+    setStatus("Return rejected; no refund transfer was initiated.","ok");await refreshAll();
+   },"danger"));
+  }
+  ret.appendChild(c);
+ });
  if(!rf.error&&rf.data?.length)rf.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Refund "+x.id+" · "+x.refund_status),node("p","small","Order "+x.order_id+" · "+money(x.amount)+" · "+(x.refund_method||"method pending")),node("p","",x.reason||x.transaction_reference||""));ret.appendChild(c);});
- if(co.error)ret.appendChild(node("p","", "Complaints unavailable: "+errText(co.error)));else if(!co.data?.length)ret.appendChild(node("p","muted","No complaints."));else co.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Complaint "+x.subject+" · "+x.status),node("p","small","Order "+(x.order_id||"—")+" · Profile "+x.profile_id),node("p","",x.description||""));ret.appendChild(c);});
- sup.replaceChildren();if(st.error)sup.appendChild(node("p","", "Support queue unavailable: "+errText(st.error)));else if(!st.data?.length)sup.appendChild(node("p","muted","No support tickets."));else st.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", (x.ticket_code||x.id)+" · "+x.subject+" · "+x.status),node("p","small","Category "+(x.category||"—")+" · Priority "+(x.priority||"normal")+" · Profile "+x.profile_id),node("p","",x.description||""),node("p","small muted",new Date(x.created_at).toLocaleString()));sup.appendChild(c);});
+ if(co.error)ret.appendChild(node("p","", "Complaints unavailable: "+errText(co.error)));
+ else if(!co.data?.length)ret.appendChild(node("p","muted","No complaints."));
+ else co.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", "Complaint "+x.subject+" · "+x.status),node("p","small","Order "+(x.order_id||"—")+" · Profile "+x.profile_id),node("p","",x.description||""));ret.appendChild(c);});
+ sup.replaceChildren();
+ if(st.error)sup.appendChild(node("p","", "Support queue unavailable: "+errText(st.error)));
+ else if(!st.data?.length)sup.appendChild(node("p","muted","No support tickets."));
+ else st.data.forEach(x=>{const c=node("div","item");c.append(node("h3","", (x.ticket_code||x.id)+" · "+x.subject+" · "+x.status),node("p","small","Category "+(x.category||"—")+" · Priority "+(x.priority||"normal")+" · Profile "+x.profile_id),node("p","",x.description||""),node("p","small muted",new Date(x.created_at).toLocaleString()));sup.appendChild(c);});
 }
-
 async function refreshAll(){
  if(!sessionUser)return;
  await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalProducts(),loadReturnsSupport()]);
