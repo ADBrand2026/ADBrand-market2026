@@ -1312,6 +1312,7 @@ async function renderAdminDashboard() {
     card.append(title,count,note);
     out?.appendChild(card);
   }
+  if (typeof adLiveLoadAdminOperations === "function") await adLiveLoadAdminOperations();
   const apps = await client.from("role_applications")
     .select("id,requested_role,applicant_name,mobile,shop_name,seller_type,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id")
     .eq("status","pending").order("created_at",{ascending:true}).limit(100);
@@ -1374,6 +1375,325 @@ function openPrivateAdminPortal() {
 if (window.location.search.includes("admin=1")) {
   document.addEventListener("DOMContentLoaded",openPrivateAdminPortal,{once:true});
 }
+
+
+/* ADBM LIVE WORKFLOWS v1
+   Real Supabase workflows for catalogue, cart/checkout, seller, rider and admin operations.
+   Provider-dependent features never pretend that an external action succeeded.
+*/
+(function(){
+"use strict";
+window.__adBrandLiveCart = Array.isArray(window.__adBrandLiveCart) ? window.__adBrandLiveCart : [];
+window.__adBrandLiveCatalog = [];
+window.__adBrandSellerWorkspace = null;
+window.__adBrandRiderWorkspace = null;
+function liveClient(){return window.adBrandSupabase||null;}
+function liveEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
+function liveMoney(v){var n=Number(v);return Number.isFinite(n)?"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}):"—";}
+function liveEl(tag,cls,text){var n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=String(text);return n;}
+function liveShow(id,msg){var n=$(id);if(n)n.textContent=String(msg||"");}
+function liveError(prefix,error){console.error(prefix,error);toast(prefix+": "+(error&&error.message?error.message:"कृपया फिर प्रयास करें।"));}
+function liveOptions(v){return Array.isArray(v)?v:[];}
+function liveNormalizeCatalogResult(data){if(Array.isArray(data))return data;if(data&&Array.isArray(data.products))return data.products;if(data&&Array.isArray(data.data))return data.data;return [];}
+function liveVariantLabel(v){
+ var a=v&&v.attributes&&typeof v.attributes==="object"?v.attributes:{};
+ var bits=[v.variant_name,a.size,a.color,a.food_type==="veg"?"Veg":a.food_type==="non_veg"?"Non-Veg":a.food_type==="egg"?"Egg":null];
+ return Array.from(new Set(bits.filter(Boolean).map(String))).join(" · ");
+}
+function liveSelectedProductVariant(product,select){
+ var id=select?select.value:"";
+ return liveOptions(product.variants).find(function(v){return v.id===id;})||null;
+}
+function liveRenderCatalog(){
+ var box=$("adLiveCatalog");if(!box)return;box.replaceChildren();
+ var products=window.__adBrandLiveCatalog||[];
+ if(!products.length){box.appendChild(liveEl("div","empty","इस search/category में अभी कोई active product उपलब्ध नहीं है।"));return;}
+ products.forEach(function(p){
+  var card=liveEl("article","card product-card"), img=liveEl("div","product-image","🛍️");
+  var image=liveOptions(p.images)[0];
+  if(image){img.textContent="";var im=liveEl("img");im.src=image;im.alt=p.name||"Product";im.loading="lazy";im.style.width="100%";im.style.height="180px";im.style.objectFit="cover";im.onerror=function(){img.textContent="🛍️";};img.appendChild(im);}
+  var body=liveEl("div","product-info"),title=liveEl("h3","",p.name||"Product"),shop=liveEl("p","small muted",(p.seller_name||"Local seller")+" · "+(p.seller_city||""));
+  var desc=liveEl("p","small",p.description||"");var price=liveEl("div","product-price","");
+  var variants=liveOptions(p.variants),variantSelect=null;
+  if(variants.length){
+   variantSelect=liveEl("select","search-input");variantSelect.setAttribute("aria-label","Size / variant");
+   variants.forEach(function(v){var o=liveEl("option","",liveVariantLabel(v)+" — "+liveMoney(v.sale_price||v.price)+" · Stock "+Number(v.stock||0));o.value=v.id;o.disabled=Number(v.stock||0)<=0;variantSelect.appendChild(o);});
+  }
+  function updatePrice(){var v=liveSelectedProductVariant(p,variantSelect);price.textContent=liveMoney(v?(v.sale_price||v.price):(p.sale_price||p.price))+(v?" · "+liveVariantLabel(v):"");}
+  if(variantSelect)variantSelect.addEventListener("change",updatePrice);updatePrice();
+  var qty=liveEl("input","search-input");qty.type="number";qty.min="1";qty.max="99";qty.value="1";qty.style.marginTop="8px";qty.setAttribute("aria-label","Quantity");
+  var actions=liveEl("div","product-actions"),add=liveEl("button","btn primary","Add to Cart");
+  add.type="button";add.onclick=function(){
+   var v=liveSelectedProductVariant(p,variantSelect),q=Math.floor(Number(qty.value));
+   if(!Number.isInteger(q)||q<1||q>99){toast("Quantity 1 से 99 के बीच चुनें।");return;}
+   if(variants.length&&!v){toast("Available size/variant चुनें।");return;}
+   if(Number((v?v.stock:p.stock)||0)<q){toast("इतना stock उपलब्ध नहीं है।");return;}
+   var existing=window.__adBrandLiveCart.find(function(x){return x.product_id===p.id&&(x.variant_id||null)===(v?v.id:null);});
+   if(existing){if(existing.quantity+q>Number(v?v.stock:p.stock)){toast("Cart quantity उपलब्ध stock से अधिक होगी।");return;}existing.quantity+=q;}
+   else window.__adBrandLiveCart.push({product_id:p.id,variant_id:v?v.id:null,quantity:q,name:p.name,variant_name:v?liveVariantLabel(v):"",unit_price:Number((v?(v.sale_price||v.price):(p.sale_price||p.price))||0),seller_name:p.seller_name,stock:Number(v?v.stock:p.stock)});
+   adLiveRenderCart();toast("Cart में जोड़ दिया गया।");
+  };
+  actions.appendChild(add);body.append(title,shop);if(desc.textContent)body.appendChild(desc);body.appendChild(price);if(variantSelect)body.appendChild(variantSelect);body.appendChild(qty);body.appendChild(actions);card.append(img,body);box.appendChild(card);
+ });
+}
+window.adLiveLoadCatalog=async function(){
+ var client=liveClient(),box=$("adLiveCatalog");if(!client||!box)return;
+ box.replaceChildren(liveEl("div","empty","Products load हो रहे हैं…"));
+ var search=String($("adLiveSearch")?.value||"").trim().slice(0,100),category=String($("adLiveCategory")?.value||"").trim()||null;
+ try{
+  var result=await client.rpc("get_public_marketplace_catalog",{p_search:search||null,p_category_slug:category});
+  if(result.error)throw result.error;
+  window.__adBrandLiveCatalog=liveNormalizeCatalogResult(result.data);
+  liveRenderCatalog();
+ }catch(e){liveError("Live catalogue load नहीं हुआ",e);box.replaceChildren(liveEl("div","empty","Catalogue अभी load नहीं हो पाया। Connection और catalogue permissions जाँचें।"));}
+};
+window.adLiveRenderCart=function(){
+ var box=$("adLiveCart");if(!box)return;box.replaceChildren();
+ var cart=window.__adBrandLiveCart||[];
+ var counter=$("cartCount");if(counter)counter.textContent=String(cart.reduce(function(n,x){return n+Number(x.quantity||0);},0));
+ if(!cart.length){box.appendChild(liveEl("div","empty","Cart खाली है।"));return;}
+ var total=0;
+ cart.forEach(function(item,index){
+  total+=item.unit_price*item.quantity;
+  var card=liveEl("div","card"),title=liveEl("strong","",(item.name||"Product")+(item.variant_name?" · "+item.variant_name:""));
+  var price=liveEl("p","small",liveMoney(item.unit_price)+" × "+item.quantity+" = "+liveMoney(item.unit_price*item.quantity));
+  var actions=liveEl("div","product-actions"),minus=liveEl("button","btn gray small-btn","−"),plus=liveEl("button","btn gray small-btn","+"),remove=liveEl("button","btn red small-btn","Remove");
+  minus.onclick=function(){item.quantity=Math.max(0,item.quantity-1);if(!item.quantity)cart.splice(index,1);adLiveRenderCart();};
+  plus.onclick=function(){if(item.quantity>=Math.min(99,item.stock)){toast("Available stock से अधिक quantity नहीं जोड़ी जा सकती।");return;}item.quantity++;adLiveRenderCart();};
+  remove.onclick=function(){cart.splice(index,1);adLiveRenderCart();};
+  actions.append(minus,plus,remove);card.append(title,price,actions);box.appendChild(card);
+ });
+ box.appendChild(liveEl("h3","", "Items subtotal (delivery charge checkout में confirm होगा): "+liveMoney(total)));
+};
+window.adLiveCheckout=async function(){
+ var client=liveClient(),cart=window.__adBrandLiveCart||[],resultBox=$("adLiveCheckoutResult");
+ if(!client||!window.__adBrandAuthUser||window.__adBrandAuthRole!=="customer"){toast("Order करने के लिए Customer login जरूरी है।");openAccountAccess("customer");return;}
+ if(!cart.length){toast("पहले Cart में product जोड़ें।");return;}
+ var address={full_name:String($("adCheckoutName")?.value||"").trim(),mobile:String($("adCheckoutMobile")?.value||"").replace(/\D/g,""),address_line:String($("adCheckoutAddress")?.value||"").trim(),city:String($("adCheckoutCity")?.value||"").trim(),state:String($("adCheckoutState")?.value||"").trim(),pincode:String($("adCheckoutPincode")?.value||"").trim(),label:"Home"};
+ if(address.full_name.length<2||!/^\d{10}$/.test(address.mobile)||address.address_line.length<5||address.city.length<2||!/^\d{6}$/.test(address.pincode)){toast("नाम, 10-digit मोबाइल, पूरा पता, शहर और 6-digit PIN भरें।");return;}
+ var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
+ var btn=document.querySelector("button[onclick='adLiveCheckout()']");if(btn)btn.disabled=true;
+ try{
+  var res=await client.rpc("checkout_marketplace_order",{p_items:cart.map(function(x){return {product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity};}),p_address:address,p_payment_method:payment,p_notes:notes||null});
+  if(res.error)throw res.error;
+  window.__adBrandLiveCart=[];adLiveRenderCart();
+  if(resultBox){resultBox.textContent="Order database में बन गया। Payment status pending है। Food order local AD rider queue में जाएगा; non-food order बाहरी courier की real booking confirm होने तक pending रहेगा. "+JSON.stringify(res.data?.orders?.map(function(o){return o.order_code+" ("+o.status+")";})||[]);}
+  toast("Order बनाया गया। Payment अभी verified नहीं है।");
+  await adLiveLoadCustomerOrders();await adLiveLoadCatalog();
+ }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
+ finally{if(btn)btn.disabled=false;}
+};
+window.adLiveLoadCustomerOrders=async function(){
+ var client=liveClient(),box=$("adLiveOrders");if(!client||!box)return;box.replaceChildren(liveEl("div","empty","Orders load हो रहे हैं…"));
+ if(window.__adBrandAuthRole!=="customer"){box.replaceChildren(liveEl("div","empty","अपने Customer account से login करें।"));return;}
+ try{
+  var r=await client.rpc("customer_get_workspace");if(r.error)throw r.error;var orders=liveOptions(r.data?.orders);
+  if(!orders.length){box.replaceChildren(liveEl("div","empty","अभी कोई Live Order नहीं है।"));return;}
+  box.replaceChildren();
+  orders.forEach(function(o){
+   var card=liveEl("div","card"),items=liveOptions(o.items).map(function(i){return (i.name||"Item")+" × "+i.quantity+(i.variant_name?" ("+i.variant_name+")":"");}).join(", ");
+   card.appendChild(liveEl("h4","",(o.order_code||"Order")+" · "+(o.status||"pending")));
+   card.appendChild(liveEl("p","small",(o.seller_name||"Seller")+" · "+items));
+   card.appendChild(liveEl("p","", "Total "+liveMoney(o.total_amount)+" · Payment: "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")));
+   card.appendChild(liveEl("p","small muted","Fulfilment: "+(o.fulfillment_mode==="inhouse_food"?"AD local food rider":o.fulfillment_mode==="external_courier"?"External courier booking":o.fulfillment_mode||"pending")+" · Barcode: "+(o.internal_barcode||"—")));
+   if(o.shipment)card.appendChild(liveEl("p","small","Courier: "+(o.shipment.provider||"not booked")+" · "+(o.shipment.status||"pending")+" · Tracking: "+(o.shipment.tracking_number||"pending")));
+   if(o.status==="out_for_delivery"){
+    var confirm=liveEl("button","btn green","✅ Order मिल गया — Confirm");confirm.onclick=async function(){if(!confirmEvent())return;try{var x=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});if(x.error)throw x.error;toast("Receipt confirm हो गया।");await adLiveLoadCustomerOrders();}catch(e){liveError("Delivery confirm नहीं हुई",e);}};
+    card.appendChild(confirm);
+   }
+   box.appendChild(card);
+  });
+ }catch(e){liveError("Live orders load नहीं हुए",e);box.replaceChildren(liveEl("div","empty","Orders load नहीं हो पाए।"));}
+ function confirmEvent(){return window.confirm("क्या parcel/food वास्तव में मिल गया है? केवल सामान मिलने के बाद confirm करें।");}
+};
+window.adLiveAddFoodProduct=async function(){
+ var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Approved Seller login जरूरी है।");return;}
+ var name=String($("adFoodName")?.value||"").trim(),category=String($("adFoodCategory")?.value||"food"),foodType=String($("adFoodKind")?.value||"both");
+ var variants=[],sizes=["Small","Medium","Large"],types=[["Veg","veg"],["NonVeg","non_veg"]];
+ sizes.forEach(function(size){types.forEach(function(tp){var stem="adFood"+size+tp[0],p=String($(stem+"Price")?.value||"").trim(),s=String($(stem+"Stock")?.value||"").trim();if(p!==""){if(s==="")throw new Error(size+" "+tp[0]+" stock भरें।");var price=Number(p),stock=Number(s);if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0)throw new Error(size+" "+tp[0]+" price/stock जाँचें।");variants.push({variant_name:size+" · "+tp[0],price:price,stock:stock,attributes:{size:size,food_type:tp[1],veg_label:tp[1]==="veg"?"Veg":"Non-Veg"}});}});});
+ var basePrice=Number($("adFoodBasePrice")?.value||0),baseStock=Number($("adFoodBaseStock")?.value||0);
+ if(name.length<2){toast("Menu item का नाम भरें।");return;}
+ if(variants.length){basePrice=Math.min.apply(null,variants.map(function(v){return v.price;}));baseStock=variants.reduce(function(n,v){return n+v.stock;},0);}
+ if(!Number.isFinite(basePrice)||basePrice<=0||!Number.isInteger(baseStock)||baseStock<0){toast("Base price और stock सही भरें; pizza/variant price अलग-अलग भरें।");return;}
+ if(foodType==="both"&&!variants.length){toast("Veg + Non-Veg दोनों बनाने हैं तो हर size के लिए अलग price/stock भरें, या एक ही type चुनें।");return;}
+ try{
+  var imageUrl=await adLiveUploadProductImage($("adFoodImageFile")?.files?.[0]);
+  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adFoodDescription")?.value||"").trim().slice(0,2000),p_price:basePrice,p_sale_price:null,p_stock:baseStock,p_variants:variants,p_food_type:foodType,p_image_url:imageUrl});
+  if(r.error)throw r.error;toast("Food/menu item save हो गया। Product code: "+(r.data?.product_code||"created"));
+  ["adFoodName","adFoodBasePrice","adFoodBaseStock","adFoodDescription","adFoodImageFile","adFoodSmallVegPrice","adFoodSmallVegStock","adFoodMediumVegPrice","adFoodMediumVegStock","adFoodLargeVegPrice","adFoodLargeVegStock","adFoodSmallNonVegPrice","adFoodSmallNonVegStock","adFoodMediumNonVegPrice","adFoodMediumNonVegStock","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"].forEach(function(id){if($(id))$(id).value="";});
+  await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();
+ }catch(e){liveError("Food item save नहीं हुआ",e);}
+};
+window.adLiveAddNonFoodProduct=async function(){
+ var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Approved Seller login जरूरी है।");return;}
+ var name=String($("adNonFoodName")?.value||"").trim(),category=String($("adNonFoodCategory")?.value||"clothes"),price=Number($("adNonFoodBasePrice")?.value||0),stock=Number($("adNonFoodBaseStock")?.value||0);
+ if(name.length<2||!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){toast("Product name, positive price और stock सही भरें।");return;}
+ var variants=[];
+ for(var i=1;i<=4;i++){var n=String($("adNfV"+i+"Name")?.value||"").trim();if(!n)continue;var p=Number($("adNfV"+i+"Price")?.value||0),s=Number($("adNfV"+i+"Stock")?.value);if(p<=0||!Number.isInteger(s)||s<0){toast("Variant "+i+" का price और stock सही भरें।");return;}variants.push({variant_name:n,price:p,stock:s,attributes:{size:String($("adNfV"+i+"Size")?.value||"").trim(),color:String($("adNfV"+i+"Color")?.value||"").trim()}});}
+ if(variants.length){price=Math.min.apply(null,variants.map(function(v){return v.price;}));stock=variants.reduce(function(n,v){return n+v.stock;},0);}
+ try{
+  var imageUrl=await adLiveUploadProductImage($("adNonFoodImageFile")?.files?.[0]);
+  var r=await client.rpc("seller_add_catalog_product",{p_name:name,p_category_slug:category,p_description:String($("adNonFoodDescription")?.value||"").trim().slice(0,2000),p_price:price,p_sale_price:null,p_stock:stock,p_variants:variants,p_food_type:"not_applicable",p_image_url:imageUrl});
+  if(r.error)throw r.error;toast("Product save हो गया। Code: "+(r.data?.product_code||"created"));
+  ["adNonFoodName","adNonFoodBasePrice","adNonFoodBaseStock","adNonFoodImageFile","adNonFoodDescription","adNfV1Name","adNfV1Size","adNfV1Color","adNfV1Price","adNfV1Stock","adNfV2Name","adNfV2Size","adNfV2Color","adNfV2Price","adNfV2Stock","adNfV3Name","adNfV3Size","adNfV3Color","adNfV3Price","adNfV3Stock","adNfV4Name","adNfV4Size","adNfV4Color","adNfV4Price","adNfV4Stock"].forEach(function(id){if($(id))$(id).value="";});
+  await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();
+ }catch(e){liveError("Non-food product save नहीं हुआ",e);}
+};
+async function adLiveUploadProductImage(file){
+ if(!file)return null;var client=liveClient();if(!client)throw new Error("Supabase connection unavailable");
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)||file.size>5*1024*1024)throw new Error("Image JPG, PNG या WEBP और 5 MB तक होना चाहिए।");
+ var user=window.__adBrandAuthUser;if(!user)throw new Error("Login required");
+ var ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg",path=user.id+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,10)+"."+ext;
+ var r=await client.storage.from("adbrand-product-images").upload(path,file,{upsert:false,contentType:file.type});if(r.error)throw r.error;
+ var url=client.storage.from("adbrand-product-images").getPublicUrl(path)?.data?.publicUrl;if(!url)throw new Error("Product image URL नहीं मिली");return url;
+}
+window.adLiveLoadSellerWorkspace=async function(){
+ var client=liveClient();if(!client)return;var status=$("adLiveSellerStatus"),profileBox=$("adLiveSellerProfile"),productsBox=$("adLiveSellerProducts"),ordersBox=$("adLiveSellerOrders");
+ if(window.__adBrandAuthRole!=="seller"){if(status)status.textContent="Approved Seller account से login करें।";return;}
+ try{
+  var r=await client.rpc("seller_get_workspace");if(r.error)throw r.error;var w=r.data||{};window.__adBrandSellerWorkspace=w;
+  var seller=w.seller||{};if(status)status.textContent=(seller.shop_name||"Seller shop")+" · "+(seller.seller_type==="food"?"Food Seller":"Non-food Seller")+" · "+(seller.is_verified?"Verified":"Admin verification pending")+" · "+(seller.is_open?"Open":"Closed");
+  if(profileBox){profileBox.replaceChildren();[["Shop",seller.shop_name],["Seller Code",seller.seller_code],["City",seller.city],["Status",seller.is_active?"Active":"Inactive"],["Type",seller.seller_type==="food"?"Food":"Non-food"]].forEach(function(x){var n=liveEl("div","card");n.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));profileBox.appendChild(n);});}
+  var isFood=seller.seller_type==="food",food=$("adLiveFoodSellerTools"),non=$("adLiveNonFoodSellerTools");if(food)food.style.display=isFood?"block":"none";if(non)non.style.display=isFood?"none":"block";
+  var toggle=$("adLiveShopToggle");if(toggle)toggle.textContent=seller.is_open?"🔴 Shop Close":"🟢 Shop Open";
+  adLiveRenderSellerProducts(w.products||[],productsBox);adLiveRenderSellerOrders(w.orders||[],ordersBox);
+ }catch(e){liveError("Seller workspace load नहीं हुआ",e);if(status)status.textContent=e?.message||"Seller profile load नहीं हुआ। Admin approval/document verification required हो सकती है।";}
+};
+function adLiveRenderSellerProducts(products,box){
+ if(!box)return;box.replaceChildren();if(!products.length){box.appendChild(liveEl("div","empty","अभी कोई product नहीं है।"));return;}
+ products.forEach(function(p){var card=liveEl("div","card");card.append(liveEl("h4","",(p.name||"Product")+" · "+(p.product_code||"")),liveEl("p","small",p.category_name||p.category_slug||""));
+  var price=liveEl("input","search-input");price.type="number";price.min="0.01";price.step=".01";price.value=String(p.price||0);price.setAttribute("aria-label","Base price");
+  var sale=liveEl("input","search-input");sale.type="number";sale.min="0";sale.step=".01";sale.placeholder="Sale price optional";sale.value=p.sale_price==null?"":String(p.sale_price);
+  var stock=liveEl("input","search-input");stock.type="number";stock.min="0";stock.step="1";stock.value=String(p.stock||0);stock.setAttribute("aria-label","Stock");
+  var desc=liveEl("textarea","search-input");desc.value=p.description||"";desc.maxLength=2000;
+  var btn=liveEl("button","btn primary small-btn","Save price / stock");btn.onclick=async function(){try{var r=await liveClient().rpc("seller_update_catalog_product",{p_product_id:p.id,p_price:Number(price.value),p_sale_price:sale.value===""?null:Number(sale.value),p_stock:Number(stock.value),p_is_active:p.is_active,p_description:desc.value});if(r.error)throw r.error;toast("Product update हो गया।");await adLiveLoadSellerWorkspace();}catch(e){liveError("Product update नहीं हुआ",e);}};
+  var status=liveEl("span","pill",p.is_active?"Active":"Hidden");var variants=liveOptions(p.variants);card.append(liveEl("p","small","Current: "+liveMoney(p.sale_price||p.price)+" · Stock "+p.stock),price,sale,stock,desc,btn,status);
+  if(variants.length){card.appendChild(liveEl("h5","","Variants / size stock"));variants.forEach(function(v){var row=liveEl("div","card");row.append(liveEl("strong","",liveVariantLabel(v)),liveEl("p","small","SKU "+(v.sku||"")+" · stock "+v.stock+" · "+liveMoney(v.sale_price||v.price)));var form=liveEl("div","form-grid"),vp=liveEl("input","search-input"),vs=liveEl("input","search-input");vp.type="number";vp.step=".01";vp.value=String(v.price);vs.type="number";vs.min="0";vs.step="1";vs.value=String(v.stock);form.append(vp,vs);var save=liveEl("button","btn outline small-btn","Update Variant");save.onclick=async function(){try{var z=await liveClient().rpc("seller_update_catalog_variant",{p_variant_id:v.id,p_price:Number(vp.value),p_sale_price:v.sale_price==null?null:Number(v.sale_price),p_stock:Number(vs.value),p_is_active:true});if(z.error)throw z.error;toast("Variant update हो गया।");await adLiveLoadSellerWorkspace();}catch(e){liveError("Variant update नहीं हुआ",e);}};row.append(form,save);card.appendChild(row);});}
+  box.appendChild(card);
+ });
+}
+function adLiveRenderSellerOrders(orders,box){
+ if(!box)return;box.replaceChildren();if(!orders.length){box.appendChild(liveEl("div","empty","अभी कोई order नहीं है।"));return;}
+ orders.forEach(function(o){var card=liveEl("div","card"),items=liveOptions(o.items).map(function(i){return (i.name||"Item")+" ×"+i.quantity+(i.variant_name?" · "+i.variant_name:"");}).join(", ");
+  card.append(liveEl("h4","",(o.order_code||o.id)+" · "+o.status),liveEl("p","small",items),liveEl("p","small","Customer: "+[o.address?.full_name,o.address?.mobile,o.address?.address_line,o.address?.city,o.address?.pincode].filter(Boolean).join(" · ")),liveEl("p","small","Total "+liveMoney(o.total_amount)+" · "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")));
+  card.appendChild(liveEl("p","small muted","Order barcode reference: "+(o.internal_barcode||"—")));
+  if(o.fulfillment_mode==="inhouse_food"&&!["ready_for_delivery","out_for_delivery","delivered","cancelled"].includes(o.status)){var next=o.status==="pending"?"accepted":o.status==="accepted"?"preparing":"ready_for_delivery";var b=liveEl("button","btn primary","Move to "+next.replace(/_/g," "));b.onclick=async function(){try{var z=await liveClient().rpc("seller_update_food_order_stage",{p_order_id:o.id,p_next_status:next});if(z.error)throw z.error;toast("Food order stage update हुआ।");await adLiveLoadSellerWorkspace();}catch(e){liveError("Food order update नहीं हुआ",e);}};card.appendChild(b);}
+  if(o.fulfillment_mode==="external_courier"&&!["delivered","cancelled","returned"].includes(o.status)){var pack=liveEl("button","btn primary","📦 Mark packed + prepare parcel slip");pack.onclick=async function(){try{var z=await liveClient().rpc("seller_mark_nonfood_packed",{p_order_id:o.id});if(z.error)throw z.error;toast("Parcel packed status save हुआ। Actual courier pickup अलग confirm होगा।");await adLiveLoadSellerWorkspace();adLivePrintParcelSlip(o); }catch(e){liveError("Packing status update नहीं हुआ",e);}};card.appendChild(pack);}
+  if(o.shipment){card.appendChild(liveEl("p","small","Courier "+(o.shipment.provider||"pending")+" · "+(o.shipment.status||"pending")+" · Tracking "+(o.shipment.tracking_number||"pending")));}
+  var pr=liveEl("button","btn outline small-btn","Print packing slip");pr.onclick=function(){adLivePrintParcelSlip(o);};card.appendChild(pr);
+  box.appendChild(card);
+ });
+}
+window.adLivePrintParcelSlip=function(o){
+ var lines=["AD BRAND MARKET — INTERNAL PACKING SLIP","NOT a courier airway bill","Order: "+(o.order_code||o.id),"Order barcode/reference: "+(o.internal_barcode||"pending"),"Customer: "+(o.address?.full_name||""),"Mobile: "+(o.address?.mobile||""),"Address: "+[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", "),"Items: "+liveOptions(o.items).map(function(x){return (x.name||"Item")+" x"+x.quantity+(x.variant_name?" "+x.variant_name:"");}).join("; "),"Amount: "+liveMoney(o.total_amount),"Courier tracking: "+(o.shipment?.tracking_number||"NOT BOOKED")];
+ var w=window.open("","_blank","noopener,noreferrer,width=760,height=700");if(!w){toast("Print window block हुई। Browser pop-up allow करें।");return;}
+ w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:16px Arial;padding:28px}h2{margin-bottom:4px}.code{font:20px monospace;letter-spacing:2px;border:1px dashed #444;padding:12px;display:inline-block}li{margin:8px 0}</style></head><body><h2>AD Brand Market</h2><p>Internal packing slip — not a Valmo airway bill</p><div class='code'>"+liveEsc(o.internal_barcode||o.order_code||o.id)+"</div><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><button onclick='print()'>Print</button></body></html>");w.document.close();
+};
+window.adLiveToggleShop=async function(){var s=window.__adBrandSellerWorkspace?.seller;if(!s)return toast("पहले Seller workspace load करें।");try{var r=await liveClient().rpc("seller_set_shop_open",{p_is_open:!s.is_open});if(r.error)throw r.error;toast(!s.is_open?"Shop open हो गई।":"Shop close हो गई।");await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();}catch(e){liveError("Shop status नहीं बदला",e);}};
+window.adLiveToggleOnline=async function(){var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");try{var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;toast(!d.is_online?"आप online हैं।":"आप offline हैं।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Online status नहीं बदला",e);}};
+window.adLiveLoadDeliveryWorkspace=async function(){
+ var client=liveClient(),status=$("adLiveDeliveryStatus"),prof=$("adLiveDeliveryProfile"),box=$("adLiveDeliveryOrders");if(!client||!box)return;
+ if(window.__adBrandAuthRole!=="delivery"){if(status)status.textContent="Approved Delivery Partner से login करें।";return;}
+ try{var r=await client.rpc("rider_get_workspace");if(r.error)throw r.error;var w=r.data||{};window.__adBrandRiderWorkspace=w;var d=w.delivery||{};
+  if(status)status.textContent=(d.delivery_code||"Delivery Partner")+" · "+(d.is_verified?"Verified":"Verification pending")+" · "+(d.is_online?"Online":"Offline");
+  if(prof){prof.replaceChildren();[["Delivery ID",d.delivery_code],["Verification",d.is_verified?"Verified":"Pending"],["Status",d.is_active?"Active":"Inactive"]].forEach(function(x){var c=liveEl("div","card");c.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));prof.appendChild(c);});}
+  var online=$("adLiveDeliveryOnline");if(online)online.textContent=d.is_online?"🔴 Go Offline":"🟢 Go Online";
+  box.replaceChildren();var orders=liveOptions(w.orders);if(!orders.length){box.appendChild(liveEl("div","empty","कोई active Food delivery assignment नहीं है। Online रहें तो अगला ready order claim कर सकते हैं।"));}
+  orders.forEach(function(o){var card=liveEl("div","card"),items=liveOptions(o.items).map(function(x){return (x.name||"Item")+" ×"+x.quantity+(x.variant_name?" · "+x.variant_name:"");}).join(", ");
+   card.append(liveEl("h4","",(o.order_code||o.order_id)+" · "+o.status),liveEl("p","small",items),liveEl("p","", "Customer: "+[o.address?.full_name,o.address?.mobile,o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(" · ")),liveEl("p","small","Contact attempts: "+(o.contact_attempt_count||0)+" · Barcode "+(o.internal_barcode||"—")));
+   var call=liveEl("a","btn outline","📞 Call customer");call.href=o.address?.mobile?"tel:"+String(o.address.mobile).replace(/[^\d+]/g,""):"#";if(!o.address?.mobile)call.setAttribute("aria-disabled","true");call.onclick=async function(){await adLiveRecordContact(o.order_id,"call","no_answer","Call attempt initiated; outcome must be recorded separately.",null);};
+   card.appendChild(call);
+   if(o.status==="assigned"||o.status==="ready_for_delivery"){var pickup=liveEl("button","btn primary","🍱 Picked up from seller");pickup.onclick=async function(){try{var p=await client.rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});if(p.error)throw p.error;toast("Pickup दर्ज। Customer receipt confirmation के बाद ही Delivered होगा।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Pickup दर्ज नहीं हुआ",e);}};card.appendChild(pickup);}
+   var outcome=liveEl("select","search-input");[["answered","Customer से बात हुई"],["no_answer","फोन नहीं उठाया"],["customer_delay","ग्राहक ने समय माँगा"],["wrong_address","पता गलत / अधूरा"],["wrong_number","नंबर गलत"],["unsafe","जगह असुरक्षित"],["other","अन्य समस्या"]].forEach(function(x){var op=liveEl("option","",x[1]);op.value=x[0];outcome.appendChild(op);});
+   var note=liveEl("input","search-input");note.placeholder="Attempt note (optional)";note.maxLength=500;
+   var save=liveEl("button","btn outline","Record contact result");save.onclick=async function(){var promised=null;if(outcome.value==="customer_delay"){var m=prompt("ग्राहक ने कितने मिनट में आने को कहा? 1–60 मिनट लिखें:","15");var mins=Number(m);if(!Number.isInteger(mins)||mins<1||mins>60){toast("1 से 60 मिनट का सही समय भरें।");return;}promised=new Date(Date.now()+mins*60000).toISOString();}
+    await adLiveRecordContact(o.order_id,"call",outcome.value,note.value,promised);};
+   var cancel=liveEl("button","btn red","Request reassignment");cancel.onclick=async function(){var reason=prompt("कारण चुनें: vehicle_issue / emergency / wrong_assignment / seller_delay / other","other");if(!["vehicle_issue","emergency","wrong_assignment","seller_delay","other"].includes(reason||"")){toast("मान्य reason चुनें।");return;}var n=prompt("संक्षिप्त note (optional):","")||"";try{var z=await client.rpc("rider_cancel_and_request_reassignment",{p_order_id:o.order_id,p_reason:reason,p_note:n});if(z.error)throw z.error;toast("Order फिर delivery queue में गया। Penalty अभी प्रस्ताव है; Admin evidence review के बाद ही फैसला होगा।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Reassignment request fail",e);}};
+   card.append(outcome,note,save,cancel);box.appendChild(card);
+  });
+ }catch(e){liveError("Delivery workspace load नहीं हुआ",e);if(status)status.textContent=e?.message||"Delivery profile verify करें।";}
+};
+async function adLiveRecordContact(orderId,channel,outcome,note,promised){
+ try{var r=await liveClient().rpc("rider_record_contact_attempt",{p_order_id:orderId,p_channel:channel,p_outcome:outcome,p_note:String(note||"").slice(0,500)||null,p_customer_promised_until:promised});if(r.error)throw r.error;toast(r.data?.message||"Contact attempt save हुआ।");await adLiveLoadDeliveryWorkspace();}
+ catch(e){liveError("Contact record save नहीं हुआ",e);}
+}
+window.adLiveClaimFoodOrder=async function(){if(window.__adBrandAuthRole!=="delivery"){toast("Delivery Partner login जरूरी है।");return;}try{var r=await liveClient().rpc("rider_claim_next_food_order");if(r.error)throw r.error;toast(r.data?.message||"Food order claim हुआ।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("अभी कोई order claim नहीं हुआ",e);}};
+window.adLiveLoadAdminOperations=async function(){
+ if(window.__adBrandAdminAuthorized!==true)return;var c=liveClient();if(!c)return;
+ await Promise.allSettled([adLiveAdminDocs(c),adLiveAdminVerifyQueue(c),adLiveAdminShipments(c),adLiveAdminIssues(c),adLiveAdminPenalties(c)]);
+};
+async function adLiveAdminDocs(c){
+ var box=$("adminPrivateDocs");if(!box)return;box.replaceChildren();
+ var r=await c.from("private_document_registry").select("id,application_id,profile_id,user_id,doc_type,storage_path,original_name,mime_type,status,review_note,created_at").order("created_at",{ascending:false}).limit(100);
+ if(r.error){box.textContent="Private document queue load नहीं हुई: "+r.error.message;return;}
+ if(!r.data.length){box.appendChild(liveEl("div","empty","कोई pending private document नहीं है।"));return;}
+ for(var d of r.data){var card=liveEl("div","card");card.append(liveEl("strong","",d.doc_type+" · "+(d.original_name||"document")),liveEl("p","small","Status: "+d.status+" · Application: "+d.application_id));
+  if(d.status==="pending"){var view=liveEl("button","btn outline small-btn","Open private file (60 sec)");view.onclick=async function(doc){var link=await c.storage.from("adbrand-private-documents").createSignedUrl(doc.storage_path,60);if(link.error){liveError("Private link नहीं बन सकी",link.error);return;}GenUIOpenSignedUrl(link.data.signedUrl);}.bind(null,d);card.appendChild(view);
+   var ok=liveEl("button","btn primary small-btn","Approve document"),no=liveEl("button","btn red small-btn","Reject document");
+   ok.onclick=function(id){return async function(){await adLiveReviewDoc(c,id,true);};}(d.id);no.onclick=function(id){return async function(){await adLiveReviewDoc(c,id,false);};}(d.id);card.append(ok,no);
+  }else card.appendChild(liveEl("p","small muted",d.review_note||"Reviewed"));
+  box.appendChild(card);
+ }
+}
+function GenUIOpenSignedUrl(url){window.open(url,"_blank","noopener,noreferrer");}
+async function adLiveReviewDoc(c,id,approve){var note=approve?null:(prompt("दस्तावेज़ reject करने का कारण:","")||"");try{var r=await c.rpc("admin_review_role_document",{p_document_id:id,p_approve:approve,p_note:note});if(r.error)throw r.error;toast("Document review save हुआ।");await adLiveLoadAdminOperations();}catch(e){liveError("Document review fail",e);}}
+async function adLiveAdminVerifyQueue(c){
+ var box=$("adminVerificationQueue");if(!box)return;box.replaceChildren();
+ var [s,d]=await Promise.all([c.from("seller_profiles").select("id,profile_id,seller_code,shop_name,seller_type,is_verified,is_active").order("created_at",{ascending:false}).limit(100),c.from("delivery_profiles").select("id,profile_id,delivery_code,full_name,is_verified,is_active").order("created_at",{ascending:false}).limit(100)]);
+ if(s.error&&d.error){box.textContent="Verification queue load नहीं हुई।";return;}
+ var records=[];liveOptions(s.data).forEach(function(x){records.push({type:"seller",x:x});});liveOptions(d.data).forEach(function(x){records.push({type:"delivery",x:x});});
+ if(!records.length){box.appendChild(liveEl("div","empty","Verification queue खाली है।"));return;}
+ records.forEach(function(item){var x=item.x,card=liveEl("div","card");card.append(liveEl("strong","",(item.type==="seller"?"Seller":"Delivery")+" · "+(x.shop_name||x.full_name||x.seller_code||x.delivery_code)),liveEl("p","small","Verified: "+x.is_verified+" · Active: "+x.is_active));
+  if(!x.is_verified||!x.is_active){var b=liveEl("button","btn primary","Verify + Activate (requires approved document)");b.onclick=async function(){try{var res=await c.rpc(item.type==="seller"?"admin_set_seller_verification":"admin_set_delivery_verification",item.type==="seller"?{p_seller_id:x.id,p_verified:true,p_active:true}:{p_delivery_id:x.id,p_verified:true,p_active:true});if(res.error)throw res.error;toast("Verification update हुआ।");await adLiveLoadAdminOperations();}catch(e){liveError("Verification नहीं हुई",e);}};card.appendChild(b);}
+  box.appendChild(card);
+ });
+}
+async function adLiveAdminShipments(c){
+ var box=$("adminCourierShipments");if(!box)return;box.replaceChildren();var r=await c.from("external_shipments").select("id,order_id,courier_provider,courier_order_reference,tracking_number,shipment_status,internal_barcode,label_reference").order("created_at",{ascending:false}).limit(100);
+ if(r.error){box.textContent="Shipment queue load नहीं हुई: "+r.error.message;return;}if(!r.data.length){box.appendChild(liveEl("div","empty","अभी कोई non-food courier shipment नहीं है।"));return;}
+ r.data.forEach(function(s){var card=liveEl("div","card");card.append(liveEl("strong","", "Order "+s.order_id),liveEl("p","small","Provider: "+s.courier_provider+" · Status: "+s.shipment_status),liveEl("p","small","Tracking: "+(s.tracking_number||"pending")+" · Parcel code: "+(s.internal_barcode||"—")));
+  var config=liveEl("button","btn primary small-btn","Save real courier booking details");config.onclick=async function(){var provider=prompt("Real courier provider (only after actual booking)",s.courier_provider==="valmo_pending_onboarding"?"Valmo":s.courier_provider||"");if(!provider)return;var track=prompt("Provider's actual tracking/AWB number (blank if not booked yet)",s.tracking_number||"");if(track===null)return;var ref=prompt("Courier order/reference ID (optional)",s.courier_order_reference||"");if(ref===null)return;var charge=Number(prompt("Confirmed shipping charge in ₹","0"));if(!Number.isFinite(charge)||charge<0){toast("Shipping charge गलत है।");return;}try{var z=await c.rpc("admin_configure_external_shipment",{p_shipment_id:s.id,p_courier_provider:provider,p_tracking_number:track,p_courier_reference:ref,p_shipping_charge:charge});if(z.error)throw z.error;toast("Courier details saved. API booking का दावा नहीं किया गया।");await adLiveLoadAdminOperations();}catch(e){liveError("Courier data save नहीं हुआ",e);}};
+  var state=liveEl("button","btn outline small-btn","Update shipment status");state.onclick=async function(){var val=prompt("Status: pending_quote, pending_booking, booked, picked_up, in_transit, delivered, returned, cancelled, failed",s.shipment_status);if(!val)return;var track=prompt("Actual tracking number (optional)",s.tracking_number||"");if(track===null)return;try{var z=await c.rpc("admin_update_shipment_status",{p_shipment_id:s.id,p_status:val,p_tracking_number:track||null});if(z.error)throw z.error;toast("Shipment status saved; only actual provider status डालें।");await adLiveLoadAdminOperations();}catch(e){liveError("Shipment status नहीं बदला",e);}};
+  card.append(config,state);box.appendChild(card);
+ });
+}
+async function adLiveAdminIssues(c){
+ var box=$("adminDeliveryIssues");if(!box)return;box.replaceChildren();var r=await c.from("delivery_issue_cases").select("id,order_id,actor_role,reason,details,customer_promised_until,status,decision_note,created_at").order("created_at",{ascending:false}).limit(100);
+ if(r.error){box.textContent="Delivery issues load नहीं हुए: "+r.error.message;return;}var data=liveOptions(r.data).filter(function(x){return ["open","under_review"].includes(x.status);});if(!data.length){box.appendChild(liveEl("div","empty","कोई open delivery issue नहीं है।"));return;}
+ data.forEach(function(x){var card=liveEl("div","card");card.append(liveEl("strong","",x.reason+" · "+x.actor_role),liveEl("p","small","Order "+x.order_id+" · "+x.status),liveEl("p","small",x.details||"No note"),liveEl("p","small","Customer promised until: "+(x.customer_promised_until||"—")));
+  [["resolve","Resolve"],["review","Keep under review"],["dismiss","Dismiss"].forEach?null:null].filter(Boolean);
+  var actions=liveEl("div","product-actions");[["resolve","Resolve"],["review","Review"],["dismiss","Dismiss"]].forEach(function(pair){var b=liveEl("button","btn outline small-btn",pair[1]);b.onclick=async function(){var note=prompt("Admin decision note (optional):","")||"";try{var z=await c.rpc("admin_review_delivery_issue",{p_case_id:x.id,p_decision:pair[0],p_note:note});if(z.error)throw z.error;toast("Delivery incident review save हुई।");await adLiveLoadAdminOperations();}catch(e){liveError("Issue review fail",e);}};actions.appendChild(b);});card.appendChild(actions);box.appendChild(card);
+ });
+}
+async function adLiveAdminPenalties(c){
+ var box=$("adminPenaltyCases");if(!box)return;box.replaceChildren();var r=await c.from("delivery_penalty_cases").select("id,order_id,delivery_profile_id,reason,proposed_amount,status,evidence,decision_note,created_at").order("created_at",{ascending:false}).limit(100);
+ if(r.error){box.textContent="Penalty cases load नहीं हुए: "+r.error.message;return;}var data=liveOptions(r.data).filter(function(x){return ["pending","disputed"].includes(x.status);});if(!data.length){box.appendChild(liveEl("div","empty","कोई pending rider penalty review नहीं है।"));return;}
+ data.forEach(function(x){var card=liveEl("div","card");card.append(liveEl("strong","",x.reason),liveEl("p","small","Order "+x.order_id+" · Proposed amount "+liveMoney(x.proposed_amount)+" · "+x.status),liveEl("p","small",JSON.stringify(x.evidence||[])));
+  var actions=liveEl("div","product-actions");[["approve","Approve"],["reject","Reject"],["waive","Waive"],["dispute","Mark disputed"]].forEach(function(pair){var b=liveEl("button","btn outline small-btn",pair[1]);b.onclick=async function(){var note=prompt("Evidence / decision note (required for audit)", "");if(note===null)return;if(pair[0]==="approve"&&note.trim().length<5){toast("Penalty approve करने के लिए evidence note लिखें।");return;}try{var z=await c.rpc("admin_review_delivery_penalty_case",{p_case_id:x.id,p_decision:pair[0],p_note:note});if(z.error)throw z.error;toast("Penalty review save हुई; automatic money deduction नहीं हुआ।");await adLiveLoadAdminOperations();}catch(e){liveError("Penalty review fail",e);}};actions.appendChild(b);});card.appendChild(actions);box.appendChild(card);
+ });
+}
+window.adLiveLoadDeliveryOrders=window.adLiveLoadDeliveryWorkspace;
+window.adLiveLoadSellerOrders=window.adLiveLoadSellerWorkspace;
+var originalOpenPanel=window.openPanel;
+document.addEventListener("DOMContentLoaded",function(){
+ if($("adLiveSearch"))window.adLiveLoadCatalog();
+ if(window.__adBrandAuthRole==="customer"){window.adLiveLoadCustomerOrders();}
+ if(window.__adBrandAuthRole==="seller"){window.adLiveLoadSellerWorkspace();}
+ if(window.__adBrandAuthRole==="delivery"){window.adLiveLoadDeliveryWorkspace();}
+});
+/* Reload the correct live workspace when a role panel is opened; legacy demo data must not leak into role dashboards. */
+try{
+ var panelFn=openPanel;
+ openPanel=function(panelName){
+  panelFn(panelName);
+  if(panelName==="customer"&&window.__adBrandAuthRole==="customer"){adLiveLoadCatalog();adLiveLoadCustomerOrders();}
+  if(panelName==="seller"&&window.__adBrandAuthRole==="seller")adLiveLoadSellerWorkspace();
+  if(panelName==="delivery"&&window.__adBrandAuthRole==="delivery")adLiveLoadDeliveryWorkspace();
+  if(panelName==="admin"&&window.__adBrandAdminAuthorized===true)adLiveLoadAdminOperations();
+ };
+}catch(e){console.warn("Live panel refresh hook could not attach.",e);}
+})();
+
 
 restoreAdBrandAuthSession();
 
