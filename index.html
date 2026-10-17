@@ -1119,14 +1119,18 @@ async function submitRoleApplication() {
   const selectedDocs = docs.map(([type,id])=>({type,input:$(id),file:$(id)?.files?.[0]})).filter(x=>x.file);
   const selectedTypes = new Set(selectedDocs.map(x=>x.type));
   const sellerDocsComplete = selectedTypes.has("shop_photo") && selectedTypes.has("address_proof");
+  const selectedVehicleType = String($("roleVehicleType")?.value || "").toLowerCase();
+  const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling"].includes(selectedVehicleType);
   const deliveryDocsComplete = selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
-    && (selectedTypes.has("driving_license") || selectedTypes.has("vehicle_insurance"));
+    && (!motorVehicleDocumentsRequired || (selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
   if (requestedRole === "seller" && !sellerDocsComplete) {
     toast("Seller application के लिए Shop Photo और Shop Address Proof दोनों जरूरी हैं; Business Registration optional है।");
     return;
   }
   if (requestedRole === "delivery" && !deliveryDocsComplete) {
-    toast("Delivery application के लिए Address Proof, Vehicle Photo और Driving Licence या Vehicle Insurance में से कम से कम एक जरूरी है।");
+    toast(motorVehicleDocumentsRequired
+      ? "Motor delivery application के लिए Address Proof, Vehicle Photo, Driving Licence और Vehicle Insurance चारों जरूरी हैं।"
+      : "Bicycle delivery application के लिए Address Proof और Vehicle Photo दोनों जरूरी हैं।");
     return;
   }
   for (const doc of selectedDocs) {
