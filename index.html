@@ -465,6 +465,37 @@ img{max-width:100%}
 
 
 
+
+<!-- Private Admin panel: no public navigation link. Open with ?admin=1; role is checked server-side. -->
+<section id="admin" class="panel container" aria-label="Private Admin Dashboard">
+  <div class="card">
+    <h2>🔐 AD Brand Market — Admin Dashboard</h2>
+    <p class="muted">केवल Supabase में active admin role वाले account के लिए।</p>
+    <div class="form-grid">
+      <div class="field"><label for="adminEmail">Admin Email</label><input id="adminEmail" type="email" autocomplete="username"></div>
+      <div class="field"><label for="adminPassword">Password</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
+    </div>
+    <button class="btn primary" type="button" onclick="adminLogin()">Secure Admin Login</button>
+    <button class="btn outline" type="button" onclick="adminLogout()">Logout</button>
+    <p id="adminStatus" class="notice" role="status">Admin sign-in required.</p>
+  </div>
+  <div id="adminDashboardContent" style="display:none">
+    <div class="card"><h3>📊 Live overview</h3><div id="adminLiveStats" class="form-grid"></div><button class="btn outline" type="button" onclick="renderAdminDashboard()">↻ Refresh Dashboard</button></div>
+    <div class="card"><h3>📝 Seller / Delivery applications</h3><p class="small muted">Approval पर account role और संबंधित profile एक transaction में update होंगे।</p><div id="adminApplications"></div></div>
+    <div class="card"><h3>🔒 Security reminder</h3><p>Customer data, order details, seller verification, delivery verification, returns और payment records केवल आवश्यकता के अनुसार access करें। Public page पर Admin button नहीं है।</p></div>
+  </div>
+</section>
+
+<div class="modal" id="adminModal" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
+  <div class="modal-card">
+    <div class="modal-header"><h2 id="adminModalTitle">🔐 Private Admin Login</h2><button class="close-btn" onclick="closeModal('adminModal')" aria-label="Close">×</button></div>
+    <p class="notice">केवल पहले से approved active Admin account login कर सकता है।</p>
+    <div class="field"><label for="adminModalEmail">Admin Email</label><input id="adminModalEmail" type="email" autocomplete="username"></div>
+    <div class="field"><label for="adminModalPassword">Password</label><input id="adminModalPassword" type="password" autocomplete="current-password"></div>
+    <button class="btn primary" type="button" onclick="adminLogin(true)">Secure Admin Login</button>
+  </div>
+</div>
+
 <!-- Cart modal -->
 <div class="modal" id="cartModal" role="dialog" aria-modal="true" aria-labelledby="cartModalTitle">
   <div class="modal-card">
@@ -485,6 +516,29 @@ img{max-width:100%}
     <div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
     <div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="कम से कम 8 characters"></div>
     <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
+
+    <div id="roleApplicationFields" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px">
+      <h3 id="roleApplicationTitle">Seller / Delivery आवेदन</h3>
+      <p class="small muted">पहले Customer के रूप में login करें। आवेदन Admin approval तक pending रहेगा; इससे अपने-आप Seller/Delivery अधिकार नहीं मिलेंगे।</p>
+      <div class="field"><label for="roleApplicantName">पूरा नाम</label><input id="roleApplicantName" autocomplete="name" maxlength="120"></div>
+      <div class="field"><label for="roleApplicantMobile">10-digit मोबाइल</label><input id="roleApplicantMobile" inputmode="numeric" maxlength="10"></div>
+      <div id="roleShopFields">
+        <div class="field"><label for="roleShopName">दुकान का नाम</label><input id="roleShopName" maxlength="120"></div>
+      </div>
+      <div class="field"><label for="roleApplicantAddress">पूरा पता</label><textarea id="roleApplicantAddress" maxlength="500"></textarea></div>
+      <div class="form-grid">
+        <div class="field"><label for="roleApplicantCity">शहर</label><input id="roleApplicantCity" maxlength="80"></div>
+        <div class="field"><label for="roleApplicantState">राज्य</label><input id="roleApplicantState" maxlength="80"></div>
+        <div class="field"><label for="roleApplicantPincode">PIN Code</label><input id="roleApplicantPincode" inputmode="numeric" maxlength="6"></div>
+      </div>
+      <div id="roleVehicleFields" style="display:none">
+        <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bike">Bike</option><option value="Scooter">Scooter</option><option value="Bicycle">Bicycle</option><option value="Other">Other</option></select></div>
+        <div class="field"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30"></div>
+      </div>
+      <div class="field"><label for="roleApplicationNotes">अतिरिक्त जानकारी (वैकल्पिक)</label><textarea id="roleApplicationNotes" maxlength="1000"></textarea></div>
+      <button class="btn primary" type="button" onclick="submitRoleApplication()">📨 आवेदन भेजें</button>
+    </div>
+
     <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="continueAccountAccess('login')">Login</button><button class="btn outline" onclick="continueAccountAccess('signup')">Create Customer Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
@@ -747,7 +801,16 @@ function goHome() {
 function openPanel(panelName) {
   if (["customer","seller","delivery"].includes(panelName)) {
     if (!window.__adBrandAuthUser) { openAccountAccess(panelName); toast("पहले secure login करें।"); return; }
-    if (window.__adBrandAuthRole !== panelName) { toast("इस panel के लिए आपका account role authorized नहीं है।"); return; }
+    if (window.__adBrandAuthRole !== panelName) {
+      if (window.__adBrandAuthRole === "customer" && (panelName === "seller" || panelName === "delivery")) {
+        openAccountAccess(panelName);
+        toast("आपका Customer account सुरक्षित है। Seller/Delivery बनने के लिए नीचे आवेदन भेजें; Admin approval आवश्यक है।");
+      } else {
+        openAccountAccess(panelName);
+        toast("इस panel के लिए approved account से login करें।");
+      }
+      return;
+    }
   }
   if (panelName === "admin" &&
       window.__adBrandAdminAuthorized !== true) {
@@ -888,6 +951,217 @@ async function restoreAdBrandAuthSession() {
     window.__adBrandAuthRole=profile.role;
   } catch(e) { console.warn("Could not restore saved auth session.",e); }
 }
+
+async function submitRoleApplication() {
+  const client = window.adBrandSupabase;
+  const user = window.__adBrandAuthUser;
+  const requestedRole = String($("accountRole")?.value || "");
+  if (!client || !user || window.__adBrandAuthRole !== "customer") {
+    toast("पहले Customer account बनाकर login करें, फिर आवेदन भेजें।");
+    return;
+  }
+  if (!["seller","delivery"].includes(requestedRole)) {
+    toast("पहले Seller या Delivery Partner चुनें।");
+    return;
+  }
+  const name = String($("roleApplicantName")?.value || "").trim();
+  const mobile = String($("roleApplicantMobile")?.value || "").replace(/\D/g,"");
+  const address = String($("roleApplicantAddress")?.value || "").trim();
+  const city = String($("roleApplicantCity")?.value || "").trim();
+  const state = String($("roleApplicantState")?.value || "").trim();
+  const pincode = String($("roleApplicantPincode")?.value || "").trim();
+  const shop = String($("roleShopName")?.value || "").trim();
+  if (name.length < 2 || !validIndianMobile(mobile) || address.length < 5) {
+    toast("नाम, सही 10-digit मोबाइल और पूरा पता भरें।");
+    return;
+  }
+  if (pincode && !validPincode(pincode)) {
+    toast("PIN Code सही 6-digit होना चाहिए।");
+    return;
+  }
+  if (requestedRole === "seller" && shop.length < 2) {
+    toast("दुकान का नाम भरें।");
+    return;
+  }
+  const profile = await client.from("profiles").select("id,role,is_active").eq("user_id",user.id).maybeSingle();
+  if (profile.error || !profile.data || profile.data.role !== "customer" || profile.data.is_active !== true) {
+    toast("Customer profile verify नहीं हुआ। दोबारा login करें।");
+    return;
+  }
+  const payload = {
+    profile_id: profile.data.id,
+    requested_role: requestedRole,
+    applicant_name: name,
+    mobile: mobile,
+    shop_name: requestedRole === "seller" ? shop : null,
+    address, city: city || null, state: state || null, pincode: pincode || null,
+    vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
+    vehicle_number: requestedRole === "delivery" ? String($("roleVehicleNumber").value || "").trim() || null : null,
+    notes: String($("roleApplicationNotes").value || "").trim() || null,
+    status: "pending"
+  };
+  const result = await client.from("role_applications").insert(payload).select("id,status").single();
+  if (result.error) {
+    if (result.error.code === "23505") toast("आपका इस role का आवेदन पहले से pending है।");
+    else { console.error("Role application failed:", result.error); toast("आवेदन save नहीं हुआ। कृपया फिर प्रयास करें।"); }
+    return;
+  }
+  closeModal("accountModal");
+  toast("आवेदन Admin को भेज दिया गया। Approval तक इस role की सुविधाएँ बंद रहेंगी।");
+}
+function updateRoleApplicationFields() {
+  const role = String($("accountRole")?.value || "");
+  const fields = $("roleApplicationFields");
+  if (fields) fields.style.display = (role === "seller" || role === "delivery") ? "block" : "none";
+  const shop = $("roleShopFields");
+  const vehicle = $("roleVehicleFields");
+  if (shop) shop.style.display = role === "seller" ? "block" : "none";
+  if (vehicle) vehicle.style.display = role === "delivery" ? "block" : "none";
+  const title = $("roleApplicationTitle");
+  if (title) title.textContent = role === "seller" ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
+}
+$("accountRole")?.addEventListener("change", updateRoleApplicationFields);
+
+async function adminLogin(fromModal) {
+  const emailNode = $(fromModal ? "adminModalEmail" : "adminEmail");
+  const passwordNode = $(fromModal ? "adminModalPassword" : "adminPassword");
+  const status = $("adminStatus");
+  const client = window.adBrandSupabase;
+  const email = String(emailNode?.value || "").trim().toLowerCase();
+  const password = String(passwordNode?.value || "");
+  if (!client || !email || !password) {
+    if (status) status.textContent = "Admin email और password भरें।";
+    else toast("Admin email और password भरें।");
+    return;
+  }
+  try {
+    const {data,error} = await client.auth.signInWithPassword({email,password});
+    if (error) throw error;
+    const user = data?.user || data?.session?.user;
+    if (!user) throw new Error("Admin login verify नहीं हुआ।");
+    const {data:profile,error:profileError} = await client.from("profiles").select("id,user_id,role,is_active,full_name").eq("user_id",user.id).maybeSingle();
+    if (profileError) throw profileError;
+    if (!profile || profile.role !== "admin" || profile.is_active !== true) {
+      await client.auth.signOut();
+      window.__adBrandAuthUser = null;
+      window.__adBrandAuthRole = null;
+      window.__adBrandAdminAuthorized = false;
+      throw new Error("यह account active Admin नहीं है। Public signup से Admin नहीं बनाया जा सकता।");
+    }
+    window.__adBrandAuthUser = user;
+    window.__adBrandAuthRole = "admin";
+    window.__adBrandAdminAuthorized = true;
+    if (fromModal) closeModal("adminModal");
+    if (status) status.textContent = "Admin verified: " + (profile.full_name || email);
+    openPanel("admin");
+    await renderAdminDashboard();
+  } catch (e) {
+    console.error("Admin login failed:",e);
+    if (status) status.textContent = e?.message || "Admin login असफल।";
+    else toast(e?.message || "Admin login असफल।");
+  }
+}
+async function adminLogout() {
+  if (window.adBrandSupabase) await window.adBrandSupabase.auth.signOut();
+  window.__adBrandAuthUser = null;
+  window.__adBrandAuthRole = null;
+  window.__adBrandAdminAuthorized = false;
+  $("adminDashboardContent") && ($("adminDashboardContent").style.display = "none");
+  goHome();
+  toast("Admin session बंद कर दी गई।");
+}
+async function renderAdminDashboard() {
+  if (window.__adBrandAdminAuthorized !== true || window.__adBrandAuthRole !== "admin") {
+    toast("Admin authorization जरूरी है।");
+    return;
+  }
+  const client = window.adBrandSupabase;
+  const stats = [
+    ["profiles","कुल Accounts"],["customer_profiles","Customers"],["seller_profiles","Sellers"],
+    ["delivery_profiles","Delivery Partners"],["products","Products"],["orders","Orders"],
+    ["return_requests","Return Requests"],["role_applications","Role Applications"]
+  ];
+  const out = $("adminLiveStats");
+  if (out) out.replaceChildren();
+  for (const [table,label] of stats) {
+    const res = await client.from(table).select("*",{count:"exact",head:true});
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.margin = "0";
+    card.innerHTML = "";
+    const title = document.createElement("strong");
+    title.textContent = label;
+    const count = document.createElement("div");
+    count.style.fontSize = "24px";
+    count.style.fontWeight = "800";
+    count.textContent = res.error ? "—" : String(res.count ?? 0);
+    const note = document.createElement("div");
+    note.className = "small muted";
+    note.textContent = res.error ? "Permission / query error" : "Live database count";
+    card.append(title,count,note);
+    out?.appendChild(card);
+  }
+  const apps = await client.from("role_applications")
+    .select("id,requested_role,applicant_name,mobile,shop_name,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id")
+    .eq("status","pending").order("created_at",{ascending:true}).limit(100);
+  const box = $("adminApplications");
+  if (!box) return;
+  if (apps.error) {
+    box.textContent = "Applications load नहीं हुईं। Admin RLS/policies verify करें।";
+    console.error(apps.error);
+    return;
+  }
+  if (!apps.data?.length) {
+    box.innerHTML = '<div class="empty">अभी कोई pending Seller/Delivery आवेदन नहीं है।</div>';
+    return;
+  }
+  box.replaceChildren();
+  for (const app of apps.data) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const title = document.createElement("h4");
+    title.textContent = (app.requested_role === "seller" ? "🏪 Seller: " : "🛵 Delivery: ") + app.applicant_name;
+    const details = document.createElement("p");
+    details.textContent = [app.mobile,app.shop_name,app.address,app.city,app.state,app.pincode,app.vehicle_type,app.vehicle_number,app.notes].filter(Boolean).join(" • ");
+    const approve = document.createElement("button");
+    approve.className = "btn primary";
+    approve.textContent = "Approve";
+    approve.onclick = () => reviewRoleApplication(app.id,true);
+    const reject = document.createElement("button");
+    reject.className = "btn red";
+    reject.textContent = "Reject";
+    reject.onclick = () => reviewRoleApplication(app.id,false);
+    card.append(title,details,approve,reject);
+    box.appendChild(card);
+  }
+}
+async function reviewRoleApplication(id,approve) {
+  if (window.__adBrandAdminAuthorized !== true) return toast("Admin authorization जरूरी है।");
+  const note = approve ? null : (prompt("Reject करने का कारण (optional):","") || "");
+  const {data,error} = await window.adBrandSupabase.rpc("admin_review_role_application", {
+    p_application_id:id, p_approve:approve, p_note:note
+  });
+  if (error) {
+    console.error("Application review failed:",error);
+    toast("Application review नहीं हुई। Admin RPC/policies verify करें।");
+    return;
+  }
+  toast(approve ? "Application approve हो गई।" : "Application reject हो गई।");
+  await renderAdminDashboard();
+}
+function openPrivateAdminPortal() {
+  if (window.__adBrandAdminAuthorized === true) {
+    openPanel("admin");
+    renderAdminDashboard();
+    return;
+  }
+  const modal = $("adminModal");
+  if (modal) modal.classList.add("show");
+}
+if (window.location.search.includes("admin=1")) {
+  document.addEventListener("DOMContentLoaded",openPrivateAdminPortal,{once:true});
+}
+
 restoreAdBrandAuthSession();
 
 /* ---------- CATEGORY FILTER ---------- */
