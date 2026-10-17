@@ -1385,6 +1385,13 @@ window.__adBrandLiveCart = Array.isArray(window.__adBrandLiveCart) ? window.__ad
 window.__adBrandLiveCatalog = [];
 window.__adBrandSellerWorkspace = null;
 window.__adBrandRiderWorkspace = null;
+var liveGpsWatchId = null, liveGpsOrderId = null, liveGpsLastSentAt = 0, liveGpsSending = false, liveGpsFirstNotice = false;
+function liveStopGpsWatch(){
+ if(liveGpsWatchId!==null&&navigator.geolocation){try{navigator.geolocation.clearWatch(liveGpsWatchId);}catch(e){}}
+ liveGpsWatchId=null;liveGpsOrderId=null;liveGpsSending=false;liveGpsFirstNotice=false;
+}
+window.addEventListener("pagehide",liveStopGpsWatch);
+
 function liveClient(){return window.adBrandSupabase||null;}
 function liveEsc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
 function liveMoney(v){var n=Number(v);return Number.isFinite(n)?"₹"+n.toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}):"—";}
@@ -1496,6 +1503,11 @@ window.adLiveLoadCustomerOrders=async function(){
    card.appendChild(liveEl("p","small",(o.seller_name||"Seller")+" · "+items));
    card.appendChild(liveEl("p","", "Total "+liveMoney(o.total_amount)+" · Payment: "+(o.payment_method||"COD")+" / "+(o.payment_status||"pending")));
    card.appendChild(liveEl("p","small muted","Fulfilment: "+(o.fulfillment_mode==="inhouse_food"?"AD local food rider":o.fulfillment_mode==="external_courier"?"External courier booking":o.fulfillment_mode||"pending")+" · Barcode: "+(o.internal_barcode||"—")));
+
+   if(o.tracking&&Number.isFinite(Number(o.tracking.latitude))&&Number.isFinite(Number(o.tracking.longitude))){
+    card.appendChild(liveEl("p","small","Rider latest GPS: "+o.tracking.latitude+", "+o.tracking.longitude+" · "+new Date(o.tracking.recorded_at).toLocaleString()+" · Accuracy ±"+Math.round(Number(o.tracking.accuracy||0))+" m"));
+    var mapLink=liveEl("a","btn outline","🗺️ View rider location on map");mapLink.href="https://www.google.com/maps?q="+encodeURIComponent(o.tracking.latitude+","+o.tracking.longitude);mapLink.target="_blank";mapLink.rel="noopener noreferrer";card.appendChild(mapLink);
+   }
    if(o.shipment)card.appendChild(liveEl("p","small","Courier: "+(o.shipment.provider||"not booked")+" · "+(o.shipment.status||"pending")+" · Tracking: "+(o.shipment.tracking_number||"pending")));
    if(o.status==="out_for_delivery"||o.status==="ready_for_pickup"||o.status==="awaiting_customer_confirmation"){
     var confirm=liveEl("button","btn green",o.status==="ready_for_pickup"?"✅ Shop से सामान ले लिया — Confirm":o.status==="awaiting_customer_confirmation"?"✅ Courier parcel मिल गया — Confirm":"✅ Order मिल गया — Confirm");confirm.onclick=async function(){if(!confirmEvent())return;try{var x=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});if(x.error)throw x.error;toast("Receipt confirm हो गया।");await adLiveLoadCustomerOrders();}catch(e){liveError("Delivery confirm नहीं हुई",e);}};
@@ -1606,7 +1618,7 @@ window.adLiveSaveShopHours=async function(){
  catch(e){liveError("Shop hours save नहीं हुए",e);}
 };
 window.adLiveToggleShop=async function(){var s=window.__adBrandSellerWorkspace?.seller;if(!s)return toast("पहले Seller workspace load करें।");try{var r=await liveClient().rpc("seller_set_shop_open",{p_is_open:!s.is_open});if(r.error)throw r.error;toast(!s.is_open?"Shop open हो गई।":"Shop close हो गई।");await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();}catch(e){liveError("Shop status नहीं बदला",e);}};
-window.adLiveToggleOnline=async function(){var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");try{var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;toast(!d.is_online?"आप online हैं।":"आप offline हैं।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Online status नहीं बदला",e);}};
+window.adLiveToggleOnline=async function(){var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");try{var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;toast(!d.is_online?"आप online हैं।":"आप offline हैं।");if(d.is_online)liveStopGpsWatch();await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Online status नहीं बदला",e);}};
 window.adLiveLoadDeliveryWorkspace=async function(){
  var client=liveClient(),status=$("adLiveDeliveryStatus"),prof=$("adLiveDeliveryProfile"),box=$("adLiveDeliveryOrders");if(!client||!box)return;
  if(window.__adBrandAuthRole!=="delivery"){if(status)status.textContent="Approved Delivery Partner से login करें।";return;}
@@ -1614,7 +1626,7 @@ window.adLiveLoadDeliveryWorkspace=async function(){
   if(status)status.textContent=(d.delivery_code||"Delivery Partner")+" · "+(d.is_verified?"Verified":"Verification pending")+" · "+(d.is_online?"Online":"Offline");
   if(prof){prof.replaceChildren();[["Delivery ID",d.delivery_code],["Verification",d.is_verified?"Verified":"Pending"],["Status",d.is_active?"Active":"Inactive"]].forEach(function(x){var c=liveEl("div","card");c.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));prof.appendChild(c);});}
   var online=$("adLiveDeliveryOnline");if(online)online.textContent=d.is_online?"🔴 Go Offline":"🟢 Go Online";
-  box.replaceChildren();var orders=liveOptions(w.orders);if(!orders.length){box.appendChild(liveEl("div","empty","कोई active Food delivery assignment नहीं है। Online रहें तो अगला ready order claim कर सकते हैं।"));}
+  box.replaceChildren();var orders=liveOptions(w.orders);if(liveGpsOrderId&&(!orders.some(function(x){return x.order_id===liveGpsOrderId&&x.status==="out_for_delivery";})))liveStopGpsWatch();if(!orders.length){box.appendChild(liveEl("div","empty","कोई active Food delivery assignment नहीं है। Online रहें तो अगला ready order claim कर सकते हैं।"));}
   orders.forEach(function(o){var card=liveEl("div","card"),items=liveOptions(o.items).map(function(x){return (x.name||"Item")+" ×"+x.quantity+(x.variant_name?" · "+x.variant_name:"");}).join(", ");
    card.append(liveEl("h4","",(o.order_code||o.order_id)+" · "+o.status),liveEl("p","small",items),liveEl("p","", "Customer: "+[o.address?.full_name,o.address?.mobile,o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(" · ")),liveEl("p","small","Contact attempts: "+(o.contact_attempt_count||0)+" · Barcode "+(o.internal_barcode||"—")));
    var arrived=Boolean(o.arrival_recorded_at);
@@ -1632,7 +1644,33 @@ window.adLiveLoadDeliveryWorkspace=async function(){
    };
    card.appendChild(arrival);
    var call=liveEl("a","btn outline","📞 Call customer");call.href=o.address?.mobile?"tel:"+String(o.address.mobile).replace(/[^\d+]/g,""):"#";if(!o.address?.mobile)call.setAttribute("aria-disabled","true");call.title="यह बटन फोन dialer खोलता है; call का परिणाम नीचे अलग दर्ज करें।";
+
    card.appendChild(call);
+   if(o.status==="out_for_delivery"){
+    var gpsActive=liveGpsOrderId===o.order_id&&liveGpsWatchId!==null;
+    var gpsButton=liveEl("button","btn outline",gpsActive?"⏹ Stop live GPS":"📡 Start live GPS share");
+    gpsButton.title="Your live location is shared only with the customer for this assigned food order while sharing is active.";
+    gpsButton.onclick=function(){
+     if(liveGpsOrderId===o.order_id&&liveGpsWatchId!==null){liveStopGpsWatch();gpsButton.textContent="📡 Start live GPS share";toast("Live GPS sharing stopped.");return;}
+     if(!navigator.geolocation){toast("इस device/browser में GPS उपलब्ध नहीं है।");return;}
+     if(liveGpsWatchId!==null)liveStopGpsWatch();
+     liveGpsOrderId=o.order_id;liveGpsLastSentAt=0;liveGpsFirstNotice=false;
+     liveGpsWatchId=navigator.geolocation.watchPosition(async function(pos){
+      if(liveGpsOrderId!==o.order_id||Date.now()-liveGpsLastSentAt<15000||liveGpsSending)return;
+      liveGpsSending=true;
+      try{
+       var loc=await client.rpc("rider_update_live_location",{p_order_id:o.order_id,p_latitude:pos.coords.latitude,p_longitude:pos.coords.longitude,p_accuracy:pos.coords.accuracy});
+       if(loc.error)throw loc.error;
+       liveGpsLastSentAt=Date.now();
+       if(!liveGpsFirstNotice){liveGpsFirstNotice=true;toast("Live GPS customer के order में share हो रही है।");}
+      }catch(e){liveStopGpsWatch();gpsButton.textContent="📡 Start live GPS share";liveError("Live GPS update fail",e);}
+      finally{liveGpsSending=false;}
+     },function(err){liveStopGpsWatch();gpsButton.textContent="📡 Start live GPS share";toast("GPS permission/position unavailable. Location share नहीं हुई.");console.warn("Live GPS error",err);},
+     {enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+     gpsButton.textContent="⏹ Stop live GPS";toast("Live GPS share शुरू हुई—काम पूरा होने पर Stop दबाएँ।");
+    };
+    card.appendChild(gpsButton);
+   }
    if(o.status==="assigned"||o.status==="ready_for_delivery"){var pickup=liveEl("button","btn primary","🍱 Picked up from seller");pickup.onclick=async function(){try{var p=await client.rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});if(p.error)throw p.error;toast("Pickup दर्ज। Customer receipt confirmation के बाद ही Delivered होगा।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Pickup दर्ज नहीं हुआ",e);}};card.appendChild(pickup);}
    var outcome=liveEl("select","search-input");[["answered","Customer से बात हुई"],["no_answer","फोन नहीं उठाया"],["customer_delay","ग्राहक ने समय माँगा"],["wrong_address","पता गलत / अधूरा"],["wrong_number","नंबर गलत"],["unsafe","जगह असुरक्षित"],["other","अन्य समस्या"]].forEach(function(x){var op=liveEl("option","",x[1]);op.value=x[0];outcome.appendChild(op);});
    var note=liveEl("input","search-input");note.placeholder="Attempt note (optional)";note.maxLength=500;
