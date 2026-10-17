@@ -474,6 +474,7 @@ img{max-width:100%}
         <div class="field"><label for="adFoodKind">Item type</label><select id="adFoodKind"><option value="both">Veg + Non-Veg (हर variant अलग चुनें)</option><option value="veg">Veg</option><option value="non_veg">Non-Veg</option><option value="egg">Egg</option></select></div>
         <div class="field"><label for="adFoodBasePrice">Base price (no size variants में)</label><input id="adFoodBasePrice" type="number" min="1" step="0.01"></div>
         <div class="field"><label for="adFoodBaseStock">Base stock (no variants में)</label><input id="adFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adFoodDiscountPct">Offer / discount (%)</label><input id="adFoodDiscountPct" type="number" min="0" max="90" step="1" value="0"><small class="muted">0 = no offer; 1–90% discount applies to every price/size.</small></div>
         <div class="field"><label for="adFoodImageFile">Product photo (JPG/PNG/WEBP)</label><input id="adFoodImageFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
         <div class="field"><label for="adFoodDescription">Ingredients / crust / details</label><textarea id="adFoodDescription" maxlength="2000"></textarea></div>
       </div>
@@ -496,6 +497,7 @@ img{max-width:100%}
         <div class="field"><label for="adNonFoodCategory">Category</label><select id="adNonFoodCategory"><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option></select></div>
         <div class="field"><label for="adNonFoodBasePrice">Base price (₹)</label><input id="adNonFoodBasePrice" type="number" min="1" step=".01"></div>
         <div class="field"><label for="adNonFoodBaseStock">Stock (no variants only)</label><input id="adNonFoodBaseStock" type="number" min="0" step="1" value="0"></div>
+        <div class="field"><label for="adNonFoodDiscountPct">Offer / discount (%)</label><input id="adNonFoodDiscountPct" type="number" min="0" max="90" step="1" value="0"><small class="muted">0 = no offer; 1–90% discount applies to every price/size.</small></div>
         <div class="field"><label for="adNonFoodImageFile">Product photo (JPG/PNG/WEBP)</label><input id="adNonFoodImageFile" type="file" accept="image/jpeg,image/png,image/webp"></div>
         <div class="field"><label for="adNonFoodDescription">Description / material / offer</label><textarea id="adNonFoodDescription" maxlength="2000"></textarea></div>
       </div>
