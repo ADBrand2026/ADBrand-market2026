@@ -1544,7 +1544,7 @@ window.adLiveLoadCustomerOrders=async function(){
      var category=String(it.category_slug||"").toLowerCase();
      if(!it.order_item_id||["food","veg-food","non-veg-food","tea","snacks"].includes(category))return;
      var existing=liveOptions(o.return_requests).find(function(x){return x.order_item_id===it.order_item_id;});
-     if(existing){card.appendChild(liveEl("p","small","Return status for "+(it.name||"item")+": "+existing.status+" · "+(existing.review_note||""));}
+     if(existing){card.appendChild(liveEl("p","small","Return status for "+(it.name||"item")+": "+existing.status+" · "+(existing.review_note||"")));}
      else {var ret=liveEl("button","btn outline small-btn","↩️ Request return · "+(it.name||"item"));ret.onclick=async function(){var reason=prompt("Return का कारण (उदाहरण: size issue, damaged item):","");if(reason===null)return;if(reason.trim().length<5){toast("Return reason कम से कम 5 characters का होना चाहिए।");return;}try{var rr=await client.rpc("customer_request_return",{p_order_item_id:it.order_item_id,p_reason:reason.trim()});if(rr.error)throw rr.error;toast("Return request Admin review के लिए भेज दी गई।");await adLiveLoadCustomerOrders();}catch(e){liveError("Return request submit नहीं हुई",e);}};card.appendChild(ret);}
     });
    }
