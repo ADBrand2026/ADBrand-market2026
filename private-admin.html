@@ -70,7 +70,7 @@ el("loginForm").addEventListener("submit",async e=>{
  setStatus("Checking Supabase Admin role…");
  const {data,error}=await client.auth.signInWithPassword({email,password});
  if(error){setStatus("Sign-in failed: "+errText(error),"error");return;}
- try{await confirmAdmin(data.user||data.session?.user);}catch(ex){sessionUser=null;hideApp();setStatus(errText(ex),"error");}
+ try{await confirmAdmin(data.user||data.session?.user);}catch(ex){await client.auth.signOut();sessionUser=null;hideApp();setStatus(errText(ex),"error");}
 });
 
 async function loadOperationalOrders(){
