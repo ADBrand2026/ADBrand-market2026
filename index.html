@@ -1681,6 +1681,23 @@ window.adLiveLoadDeliveryWorkspace=async function(){
   }
   orders.forEach(function(o){var card=liveEl("div","card"),items=liveOptions(o.items).map(function(x){return (x.name||"Item")+" ×"+x.quantity+(x.variant_name?" · "+x.variant_name:"");}).join(", ");
    card.append(liveEl("h4","",(o.order_code||o.order_id)+" · "+o.status),liveEl("p","small",items),liveEl("p","", "Customer: "+[o.address?.full_name,o.address?.mobile,o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(" · ")),liveEl("p","small","Contact attempts: "+(o.contact_attempt_count||0)+" · Barcode "+(o.internal_barcode||"—")));
+   if(o.payment_method==="cod"){
+    if(o.cod_collected){
+     card.appendChild(liveEl("p","small","✅ COD cash recorded: ₹"+Number(o.cod_collected_amount||0).toFixed(2)+" · Remittance: "+(o.cod_remittance_status||"pending_remittance")));
+    }else if(o.status==="out_for_delivery"){
+     var cashButton=liveEl("button","btn gold","💵 Record COD cash collected");
+     cashButton.onclick=async function(){
+      var amount=prompt("Customer से वास्तव में कितनी COD cash मिली? Exact order total ₹"+Number(o.total_amount||0).toFixed(2)+" होना चाहिए:",String(Number(o.total_amount||0).toFixed(2)));
+      if(amount===null)return;var cash=Number(amount);
+      if(!Number.isFinite(cash)||Math.abs(cash-Number(o.total_amount||0))>0.01){toast("COD amount exact order total के बराबर होना चाहिए।");return;}
+      var note=prompt("Cash collection note (optional):","")||"";
+      try{var result=await client.rpc("rider_record_cod_collection",{p_order_id:o.order_id,p_amount:cash,p_note:note});if(result.error)throw result.error;toast(result.data?.message||"COD cash recorded; handover reconciliation pending.");await adLiveLoadDeliveryWorkspace();}
+      catch(e){liveError("COD cash record नहीं हुआ",e);}
+     };
+     cashButton.disabled=!o.arrival_recorded_at;cashButton.title=o.arrival_recorded_at?"Cash केवल वास्तव में लेने के बाद दर्ज करें।":"पहले customer location पर arrival दर्ज करें।";
+     card.appendChild(cashButton);
+    }
+   }
    var arrived=Boolean(o.arrival_recorded_at);
    var arrival=liveEl("button","btn primary",arrived?"✅ Arrival recorded":"📍 I have reached customer");
    arrival.style.display=(o.status==="out_for_delivery"&&!arrived)?"":"none";
