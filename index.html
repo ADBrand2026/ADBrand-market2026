@@ -433,6 +433,26 @@ img{max-width:100%}
     <div id="adLiveSellerStatus" class="notice">Live Seller Dashboard: approved account की स्थिति जाँची जा रही है…</div>
     <div id="adLiveSellerProfile" class="form-grid"></div>
     <button id="adLiveShopToggle" class="btn green" type="button" onclick="adLiveToggleShop()">🟢 Shop Open / Closed</button>
+    <div class="section card">
+      <h3>🕒 Shop opening hours (India time)</h3>
+      <p class="small muted">Schedule on करने पर दुकान बंद समय में products public catalogue से hidden रहेंगे और checkout server-side reject होगा। Opening time closing time से बाद में हो तो overnight hours; दोनों बराबर होने पर चुने हुए दिन 24-hour operation माना जाएगा।</p>
+      <label><input id="adLiveHoursEnabled" type="checkbox"> Use a weekly opening schedule</label>
+      <div class="form-grid">
+        <div class="field"><label for="adLiveHoursOpen">Opening time</label><input id="adLiveHoursOpen" type="time" value="09:00"></div>
+        <div class="field"><label for="adLiveHoursClose">Closing time</label><input id="adLiveHoursClose" type="time" value="21:00"></div>
+      </div>
+      <div class="form-grid" id="adLiveHoursDays">
+        <label><input type="checkbox" name="adLiveOpenDay" value="1" checked> Monday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="2" checked> Tuesday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="3" checked> Wednesday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="4" checked> Thursday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="5" checked> Friday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="6" checked> Saturday</label>
+        <label><input type="checkbox" name="adLiveOpenDay" value="0" checked> Sunday</label>
+      </div>
+      <button class="btn outline" type="button" onclick="adLiveSaveShopHours()">💾 Save weekly schedule</button>
+      <div id="adLiveHoursStatus" class="small muted"></div>
+    </div>
     <div id="adLiveFoodSellerTools" class="section" style="display:none">
       <h3>🍕 Food Seller Dashboard — Menu, Sizes, Veg/Non-Veg Price</h3>
       <p class="small muted">हर size की कीमत और stock दुकान खुद भरेगी; वेबसाइट कोई pizza price अनुमान से नहीं डालती। Food: केवल local AD rider delivery, self-pickup या Valmo नहीं।</p>
@@ -1532,10 +1552,16 @@ window.adLiveLoadSellerWorkspace=async function(){
  if(window.__adBrandAuthRole!=="seller"){if(status)status.textContent="Approved Seller account से login करें।";return;}
  try{
   var r=await client.rpc("seller_get_workspace");if(r.error)throw r.error;var w=r.data||{};window.__adBrandSellerWorkspace=w;
-  var seller=w.seller||{};if(status)status.textContent=(seller.shop_name||"Seller shop")+" · "+(seller.seller_type==="food"?"Food Seller":"Non-food Seller")+" · "+(seller.is_verified?"Verified":"Admin verification pending")+" · "+(seller.is_open?"Open":"Closed");
+  var seller=w.seller||{};if(status){var openLabel=!seller.is_open?"Manually closed":seller.hours_enabled?(seller.hours_open_now?"Within scheduled hours":"Outside scheduled hours — catalogue hidden"):"Open";status.textContent=(seller.shop_name||"Seller shop")+" · "+(seller.seller_type==="food"?"Food Seller":"Non-food Seller")+" · "+(seller.is_verified?"Verified":"Admin verification pending")+" · "+openLabel;}
   if(profileBox){profileBox.replaceChildren();[["Shop",seller.shop_name],["Seller Code",seller.seller_code],["City",seller.city],["Status",seller.is_active?"Active":"Inactive"],["Type",seller.seller_type==="food"?"Food":"Non-food"]].forEach(function(x){var n=liveEl("div","card");n.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));profileBox.appendChild(n);});}
   var isFood=seller.seller_type==="food",food=$("adLiveFoodSellerTools"),non=$("adLiveNonFoodSellerTools");if(food)food.style.display=isFood?"block":"none";if(non)non.style.display=isFood?"none":"block";
   var toggle=$("adLiveShopToggle");if(toggle)toggle.textContent=seller.is_open?"🔴 Shop Close":"🟢 Shop Open";
+  var hoursEnabled=$("adLiveHoursEnabled"),hoursOpen=$("adLiveHoursOpen"),hoursClose=$("adLiveHoursClose");
+  if(hoursEnabled)hoursEnabled.checked=!!seller.hours_enabled;
+  if(hoursOpen&&seller.opening_time)hoursOpen.value=String(seller.opening_time).slice(0,5);
+  if(hoursClose&&seller.closing_time)hoursClose.value=String(seller.closing_time).slice(0,5);
+  document.querySelectorAll('input[name="adLiveOpenDay"]').forEach(function(el){el.checked=liveOptions(seller.operating_days).map(Number).includes(Number(el.value));});
+  var hoursStatus=$("adLiveHoursStatus");if(hoursStatus)hoursStatus.textContent=seller.hours_enabled?"Weekly schedule "+String(seller.opening_time||"").slice(0,5)+"–"+String(seller.closing_time||"").slice(0,5)+" · "+(seller.hours_open_now?"currently within hours":"currently outside hours"):"No automatic schedule enabled.";
   adLiveRenderSellerProducts(w.products||[],productsBox);adLiveRenderSellerOrders(w.orders||[],ordersBox);
  }catch(e){liveError("Seller workspace load नहीं हुआ",e);if(status)status.textContent=e?.message||"Seller profile load नहीं हुआ। Admin approval/document verification required हो सकती है।";}
 };
@@ -1569,6 +1595,15 @@ window.adLivePrintParcelSlip=function(o){
  var lines=["AD BRAND MARKET — INTERNAL PACKING SLIP","NOT a courier airway bill","Order: "+(o.order_code||o.id),"Order barcode/reference: "+(o.internal_barcode||"pending"),"Customer: "+(o.address?.full_name||""),"Mobile: "+(o.address?.mobile||""),"Address: "+[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", "),"Items: "+liveOptions(o.items).map(function(x){return (x.name||"Item")+" x"+x.quantity+(x.variant_name?" "+x.variant_name:"");}).join("; "),"Amount: "+liveMoney(o.total_amount),"Courier tracking: "+(o.shipment?.tracking_number||"NOT BOOKED")];
  var w=window.open("","_blank","width=760,height=700");if(!w){toast("Print window block हुई। Browser pop-up allow करें।");return;}
  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:16px Arial;padding:28px}h2{margin-bottom:4px}.code{font:20px monospace;letter-spacing:2px;border:1px dashed #444;padding:12px;display:inline-block}li{margin:8px 0}</style></head><body><h2>AD Brand Market</h2><p>Internal packing slip — not a Valmo airway bill</p><svg id='adbmBarcode'></svg><div class='code'>"+liveEsc(o.internal_barcode||o.order_code||o.id)+"</div><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><button onclick='print()'>Print</button></body></html>");w.document.close();try{if(window.JsBarcode){window.JsBarcode(w.document.getElementById("adbmBarcode"),String(o.internal_barcode||o.order_code||o.id),{format:"CODE128",displayValue:true,margin:12});}}catch(barcodeError){console.warn("Barcode rendering unavailable; printed human-readable code instead.",barcodeError);}
+};
+window.adLiveSaveShopHours=async function(){
+ var client=liveClient();if(!client||window.__adBrandAuthRole!=="seller"){toast("Seller login जरूरी है।");return;}
+ var enabled=!!$("adLiveHoursEnabled")?.checked;
+ var open=$("adLiveHoursOpen")?.value||"",close=$("adLiveHoursClose")?.value||"";
+ var days=Array.from(document.querySelectorAll('input[name="adLiveOpenDay"]:checked')).map(function(x){return Number(x.value);});
+ if(enabled&&(!open||!close||days.length===0)){toast("Opening/closing time और कम से कम एक day चुनें।");return;}
+ try{var r=await client.rpc("seller_set_shop_hours",{p_enabled:enabled,p_opening_time:enabled?open:null,p_closing_time:enabled?close:null,p_operating_days:days});if(r.error)throw r.error;toast(enabled?"Weekly schedule save हो गया।":"Automatic schedule बंद है; Shop Open/Close toggle अभी भी लागू है।");await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();}
+ catch(e){liveError("Shop hours save नहीं हुए",e);}
 };
 window.adLiveToggleShop=async function(){var s=window.__adBrandSellerWorkspace?.seller;if(!s)return toast("पहले Seller workspace load करें।");try{var r=await liveClient().rpc("seller_set_shop_open",{p_is_open:!s.is_open});if(r.error)throw r.error;toast(!s.is_open?"Shop open हो गई।":"Shop close हो गई।");await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();}catch(e){liveError("Shop status नहीं बदला",e);}};
 window.adLiveToggleOnline=async function(){var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");try{var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;toast(!d.is_online?"आप online हैं।":"आप offline हैं।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Online status नहीं बदला",e);}};
