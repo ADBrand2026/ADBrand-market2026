@@ -373,7 +373,7 @@ img{max-width:100%}
         <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
         <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
         <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6"></div>
-        <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi">UPI (gateway verification pending)</option></select></div>
+        <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
         <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — Valmo / external courier (booking confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
         <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
       </div>
@@ -18679,6 +18679,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       return alert("नाम, सही 10-digit मोबाइल, पूरा पता, शहर और 6-digit PIN भरें।");
     }
     const payment=String($("adCheckoutPayment")?.value || "cod");
+    if(payment!=="cod"){
+      alert("Live UPI gateway अभी configure/verify नहीं है। सुरक्षित checkout के लिए COD चुनें; unverified UPI payment accepted नहीं मानी जाएगी.");
+      return;
+    }
     const notes=String($("adCheckoutNotes")?.value || "").trim();
     const items=cart.map(x=>({product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity}));
     const submitButtons = document.querySelectorAll("#adLiveCustomerMarket button");
@@ -18764,8 +18768,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           ("Courier: "+(sh.provider||"External courier")+" • Tracking: "+sh.tracking_number+" • "+(sh.status||"status pending")):
           "Courier booking/tracking अभी confirm नहीं है; AD internal barcode official airway bill नहीं है."));
       }
-      if(o.fulfillment_mode==="self_pickup" && o.seller_location){
-        card.appendChild(liveNode("p","", "Pickup location: "+[o.seller_location.address,o.seller_location.city,o.seller_location.state,o.seller_location.pincode].filter(Boolean).join(", ")));
+      if(o.fulfillment_mode==="self_pickup"){
+        const pickup=await client.rpc("customer_get_pickup_location",{p_order_id:o.id});
+        if(!pickup.error && pickup.data){
+          const loc=pickup.data;
+          card.appendChild(liveNode("p","", "Pickup shop: "+(loc.shop_name||o.seller_name||"Seller")));
+          card.appendChild(liveNode("p","", "Pickup location: "+[loc.address,loc.city,loc.state,loc.pincode].filter(Boolean).join(", ")));
+        } else card.appendChild(liveNode("p","small muted","Pickup address अभी load नहीं हुआ: "+liveErr(pickup.error)));
       }
       if(o.status==="out_for_delivery" || (o.fulfillment_mode==="self_pickup" && o.status==="ready_for_pickup")){
         card.appendChild(liveNode("p","small muted",o.fulfillment_mode==="self_pickup"?"Shop से सामान वास्तव में लेने के बाद ही confirmation दबाएँ.":"Rider के पहुँचने पर package मिलने के बाद ही नीचे confirmation दबाएँ."));
@@ -18778,6 +18787,28 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
       }
       card.appendChild(liveButton("🧾 Print internal packing slip",()=>adLivePrintSlip(o,lines,o.address,o.seller_name),"outline"));
+      if(o.status==="delivered" && o.fulfillment_mode!=="inhouse_food"){
+        card.appendChild(liveButton("↩️ Request return / refund review",async()=>{
+          const {data:items,error:itemsError}=await client.rpc("customer_get_returnable_items",{p_order_id:o.id});
+          if(itemsError){alert("Return eligibility load नहीं हुई: "+liveErr(itemsError));return;}
+          const choices=asList(items).filter(item=>!["pending","approved"].includes(String(item.return_status||"")));
+          if(!choices.length){alert("इस order में अभी returnable item नहीं है; शायद return pending/already approved है या delivery के 7 दिन गुजर गए हैं।");return;}
+          const menu=choices.map((item,index)=>(index+1)+". "+item.name+(item.variant_name?" — "+item.variant_name:"")+" × "+item.quantity+" ("+liveMoney(item.total_price)+")").join("\n");
+          const choice=prompt("कौन-सा item return करना है? Number लिखें:\n"+menu,"1");
+          if(choice===null)return;
+          const index=Number(choice)-1;
+          if(!Number.isInteger(index)||index<0||index>=choices.length){alert("सही item number चुनें।");return;}
+          const reason=prompt("Return का कारण detail में लिखें (गलत size, defective, damaged आदि):","");
+          if(reason===null)return;
+          if(reason.trim().length<5){alert("Return reason कम से कम 5 characters लिखें।");return;}
+          const {data:created,error:requestError}=await client.rpc("customer_request_return",{
+            p_order_id:o.id,p_order_item_id:choices[index].order_item_id,p_reason:reason.trim()
+          });
+          if(requestError){alert("Return request submit नहीं हुई: "+liveErr(requestError));return;}
+          toast(created?.message||"Return request Admin review में भेजी गई। Refund automatic नहीं होगा।");
+          await adLiveLoadCustomerOrders();
+        },"outline"));
+      }
       box.appendChild(card);
     }
   };
