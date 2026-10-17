@@ -375,6 +375,7 @@ img{max-width:100%}
         <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6"></div>
         <div class="field"><label for="adCheckoutFulfillment">Non-food order option</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery by external courier (Valmo when booked)</option><option value="self_pickup">Self pickup from seller (same city only)</option></select><p class="small muted">Food items always use AD local delivery; this option applies only to clothes/shoes/slippers.</p></div>
         <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi">UPI (gateway verification pending)</option></select></div>
+        <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — Valmo / external courier (booking confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
         <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
       </div>
       <p class="small muted">UPI चुनने पर भी gateway से payment verified होने तक order unpaid रहेगा। बाहरी courier की कीमत/booking confirmed न हो तो order booking-pending दिखेगा; कोई काल्पनिक tracking नहीं दी जाएगी।</p>
@@ -18599,8 +18600,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     submitButtons.forEach(b=>b.disabled=true);
     liveStatus("Order request सुरक्षित database में submit हो रही है…",true);
     try {
-      const {data,error}=await client.rpc("checkout_marketplace_order",{
-        p_items:items,p_address:address,p_payment_method:payment,p_notes:notes || null
+      const {data,error}=await client.rpc("checkout_marketplace_order_v2",{
+        p_items:items,p_address:address,p_payment_method:payment,p_notes:notes || null,
+        p_nonfood_fulfillment:String($("adCheckoutFulfillment")?.value || "delivery")
       });
       if(error) throw error;
       const orders=asList(data?.orders);
@@ -18615,7 +18617,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         result.appendChild(liveNode("p","small muted",data.message || "Payment pending."));
         orders.forEach(order=>{
           const card=liveNode("div","card");
-          card.appendChild(liveNode("h4","",order.order_code+" • "+(order.seller_type==="food"?"Food / AD rider":"Non-food / external courier")));
+          card.appendChild(liveNode("h4","",order.order_code+" • "+(order.seller_type==="food"?"Food / AD rider":order.fulfillment_mode==="self_pickup"?"Non-food / self pickup":"Non-food / external courier")));
           card.appendChild(liveNode("p","", "Status: "+order.status+" • Barcode: "+order.internal_barcode));
           card.appendChild(liveNode("p","", "Items: "+liveMoney(order.subtotal)+" • Delivery: "+liveMoney(order.delivery_charge)+" • Total: "+liveMoney(order.total_amount)));
           card.appendChild(liveNode("p","small muted", "Payment status: "+order.payment_status+" — किसी payment को paid नहीं माना गया।"));
@@ -18666,7 +18668,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     for(const o of orders){
       const card=liveNode("div","card");
       card.appendChild(liveNode("h4","",o.order_code+" • "+(o.seller_name||"Seller")));
-      card.appendChild(liveNode("p","", "स्थिति: "+o.status+" • "+(o.fulfillment_mode==="inhouse_food"?"AD Brand Market food delivery":"External courier")));
+      card.appendChild(liveNode("p","", "स्थिति: "+o.status+" • "+(o.fulfillment_mode==="inhouse_food"?"AD Brand Market food delivery":o.fulfillment_mode==="self_pickup"?"Self pickup at seller shop":"External courier")));
       card.appendChild(liveNode("p","", "कुल "+liveMoney(o.total_amount)+" • भुगतान: "+o.payment_status+" ("+o.payment_method+")"));
       if(o.internal_barcode)card.appendChild(liveNode("p","small muted","Internal barcode: "+o.internal_barcode));
       const lines=asList(o.items);
@@ -18677,13 +18679,16 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           ("Courier: "+(sh.provider||"External courier")+" • Tracking: "+sh.tracking_number+" • "+(sh.status||"status pending")):
           "Courier booking/tracking अभी confirm नहीं है; AD internal barcode official airway bill नहीं है."));
       }
-      if(o.status==="out_for_delivery"){
-        card.appendChild(liveNode("p","small muted","Rider के पहुँचने पर package मिलने के बाद ही नीचे confirmation दबाएँ."));
-        card.appendChild(liveButton("✅ मैंने order प्राप्त कर लिया",async()=>{
-          if(!confirm("क्या order सच में आपके हाथ में पहुँच गया है?"))return;
+      if(o.fulfillment_mode==="self_pickup" && o.seller_location){
+        card.appendChild(liveNode("p","", "Pickup location: "+[o.seller_location.address,o.seller_location.city,o.seller_location.state,o.seller_location.pincode].filter(Boolean).join(", ")));
+      }
+      if(o.status==="out_for_delivery" || (o.fulfillment_mode==="self_pickup" && o.status==="ready_for_pickup")){
+        card.appendChild(liveNode("p","small muted",o.fulfillment_mode==="self_pickup"?"Shop से सामान वास्तव में लेने के बाद ही confirmation दबाएँ.":"Rider के पहुँचने पर package मिलने के बाद ही नीचे confirmation दबाएँ."));
+        card.appendChild(liveButton(o.fulfillment_mode==="self_pickup"?"✅ मैंने shop से सामान ले लिया":"✅ मैंने order प्राप्त कर लिया",async()=>{
+          if(!confirm("क्या order सच में आपके हाथ में पहुँच गया है / shop से collect किया है?"))return;
           const {data:res,error:err}=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});
           if(err){alert("Confirmation save नहीं हुई: "+liveErr(err));return;}
-          toast(res?.message||"Delivery confirmation दर्ज हुई।");
+          toast(res?.message||"Receipt confirmation दर्ज हुई।");
           await adLiveLoadCustomerOrders();
         },"primary"));
       }
@@ -18801,7 +18806,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     orders.forEach(o=>{
       const card=liveNode("article","card");
       card.appendChild(liveNode("h4","",o.order_code+" • "+o.status));
-      card.appendChild(liveNode("p","small muted",(o.fulfillment_mode==="inhouse_food"?"Food • AD rider delivery":"Non-food • external courier")+" • "+liveMoney(o.total_amount)+" • payment "+o.payment_status));
+      card.appendChild(liveNode("p","small muted",(o.fulfillment_mode==="inhouse_food"?"Food • AD rider delivery":o.fulfillment_mode==="self_pickup"?"Non-food • self pickup":"Non-food • external courier")+" • "+liveMoney(o.total_amount)+" • payment "+o.payment_status));
       if(o.address){
         card.appendChild(liveNode("p","",o.address.full_name+" • "+o.address.mobile));
         card.appendChild(liveNode("p","",o.address.address_line+", "+[o.address.city,o.address.state,o.address.pincode].filter(Boolean).join(", ")));
@@ -18816,6 +18821,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         }
         if(o.status==="ready_for_delivery"||o.status==="assigned"||o.status==="out_for_delivery")
           controls.appendChild(liveNode("span","small muted","Rider handover/delivery status updates in Delivery dashboard."));
+      } else if(o.fulfillment_mode==="self_pickup") {
+        controls.appendChild(liveNode("span","small muted","Customer will collect this non-food order from the seller shop. No courier or AD rider is assigned."));
+        if(o.status==="pending")controls.appendChild(liveButton("Mark ready for customer pickup",()=>adLiveMarkSelfPickupReady(o.id),"primary"));
+        controls.appendChild(liveButton("Print pickup slip",()=>adLivePrintSlip(o,o.items,o.address,seller.shop_name),"outline"));
       } else {
         const sh=o.shipment||{};
         if(sh.status==="booked"&&sh.tracking_number&&["pending","external_booking_pending"].includes(o.status))
@@ -18956,6 +18965,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(error){alert("Parcel pack status update नहीं हुआ: "+liveErr(error));return;}
     toast("Parcel ready; internal slip print करें और courier के official AWB/label को भी लगाएँ.");
     await adLiveLoadSellerWorkspace();
+  };
+  window.adLiveMarkSelfPickupReady=async function(orderId){
+    const {data,error}=await supa().rpc("seller_mark_self_pickup_ready",{p_order_id:orderId});
+    if(error){alert("Self-pickup status update नहीं हुआ: "+liveErr(error));return;}
+    toast("Order customer pickup के लिए ready है। Customer receipt confirm करेगा।");
+    await adLiveLoadSellerWorkspace();await adLiveLoadCustomerOrders();
   };
 
   /* -------- Delivery partner: no-answer waiting and reassignment -------- */
