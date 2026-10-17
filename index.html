@@ -1742,6 +1742,13 @@ async function adLiveAdminPenalties(c){
 window.adLiveLoadDeliveryOrders=window.adLiveLoadDeliveryWorkspace;
 window.adLiveLoadSellerOrders=window.adLiveLoadSellerWorkspace;
 var originalOpenPanel=window.openPanel;
+if(!window.__adBrandCustomerTrackRefreshInterval){
+ window.__adBrandCustomerTrackRefreshInterval=window.setInterval(function(){
+  if(window.__adBrandAuthRole==="customer"&&!document.hidden&&$("customer")?.classList.contains("active")){
+   window.adLiveLoadCustomerOrders();
+  }
+ },30000);
+}
 document.addEventListener("DOMContentLoaded",function(){
  if($("adLiveSearch"))window.adLiveLoadCatalog();
  if(window.__adBrandAuthRole==="customer"){window.adLiveLoadCustomerOrders();}
