@@ -18981,6 +18981,19 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       } else if(o.fulfillment_mode==="self_pickup") {
         controls.appendChild(liveNode("span","small muted","Customer will collect this non-food order from the seller shop. No courier or AD rider is assigned."));
         if(o.status==="pending")controls.appendChild(liveButton("Mark ready for customer pickup",()=>adLiveMarkSelfPickupReady(o.id),"primary"));
+        if(o.status==="ready_for_pickup" && o.payment_method==="cod" && o.payment_status!=="paid"){
+          controls.appendChild(liveButton("💵 Record cash received from customer",async()=>{
+            const raw=prompt("Cash actually received (must equal "+liveMoney(o.total_amount)+"):",String(o.total_amount));
+            if(raw===null)return;
+            const amount=Number(raw);
+            if(!Number.isFinite(amount)||amount<0){alert("Valid received amount भरें।");return;}
+            const note=prompt("Optional cash handover note:","")||null;
+            const {data,error}=await supa().rpc("seller_record_pickup_cod_collection",{p_order_id:o.id,p_amount:amount,p_note:note});
+            if(error){alert("COD cash record नहीं हुआ: "+liveErr(error));return;}
+            toast(data?.message||"COD recorded; platform remittance remains pending.");
+            await adLiveLoadSellerWorkspace();await adLiveLoadCustomerOrders();
+          },"primary"));
+        }
         controls.appendChild(liveButton("Print pickup slip",()=>adLivePrintSlip(o,o.items,o.address,seller.shop_name),"outline"));
       } else {
         const sh=o.shipment||{};
@@ -19203,6 +19216,22 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           if(error){alert("Pickup save नहीं हुआ: "+liveErr(error));return;}
           toast(data?.message||"Order out for delivery.");await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
         },"primary"));
+      if(o.payment_method==="cod" && o.status==="out_for_delivery"){
+        actions.appendChild(liveButton("💵 Record COD cash received",async()=>{
+          const {data:status,error:statusError}=await supa().rpc("rider_get_cod_status",{p_order_id:o.order_id});
+          if(statusError){alert("COD status नहीं मिली: "+liveErr(statusError));return;}
+          if(status?.cod_collected){alert("COD पहले ही record हो चुका है: "+liveMoney(status.cod_collected_amount));return;}
+          const raw=prompt("Customer से कितना cash मिला? Exact total "+liveMoney(status.total_amount)+" होना चाहिए:",String(status.total_amount));
+          if(raw===null)return;
+          const amount=Number(raw);
+          if(!Number.isFinite(amount)||amount<0){alert("Valid cash amount भरें।");return;}
+          const note=prompt("Optional cash receipt note:","")||null;
+          const {data:result,error}=await supa().rpc("rider_record_cod_collection",{p_order_id:o.order_id,p_amount:amount,p_note:note});
+          if(error){alert("COD collection record नहीं हुई: "+liveErr(error));return;}
+          toast(result?.message||"COD recorded; platform remittance pending.");
+          await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
+        },"primary"));
+      }
       actions.appendChild(liveButton("☎️ Customer didn't answer",()=>adLiveRecordContact(o.order_id,"no_answer",0),"outline"));
       actions.appendChild(liveButton("⏱️ Customer asks 10 minutes",()=>adLiveRecordContact(o.order_id,"customer_delay",10),"outline"));
       actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
