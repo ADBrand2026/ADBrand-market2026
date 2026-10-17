@@ -31,6 +31,7 @@
 <div class="card"><div class="sectionhead"><h2>Delivery incidents / customer waiting</h2></div><p class="small muted">A customer's missed call or request for ten minutes does not automatically cancel the order and does not create a customer penalty.</p><div id="issues"></div></div>
 <div class="card"><div class="sectionhead"><h2>Rider cancellation penalty review</h2></div><p class="small muted">₹10–₹15 is only a proposed case amount. Review evidence and disputes; no automatic payout deduction is made.</p><div id="penalties"></div></div>
 <div class="card"><div class="sectionhead"><h2>Customer accounts & live orders</h2><span class="pill">Read-only operations view</span></div><div id="opsOrders"></div></div>
+<div class="card"><div class="sectionhead"><h2>Customer / Seller / Rider account directory</h2></div><div id="opsAccounts"></div></div>
 <div class="card"><div class="sectionhead"><h2>Product catalogue & seller stock</h2></div><div id="opsProducts"></div></div>
 <div class="card"><div class="sectionhead"><h2>Returns, refunds, complaints & support</h2></div><div id="opsReturns"></div><div id="opsSupport"></div></div>
 <div class="card"><div class="sectionhead"><h2>Admin audit note</h2></div><p class="small muted">This portal is a separate HTML file and is not linked from the store. Static GitHub Pages cannot hide source files at the hosting layer; sensitive data and admin actions are protected by Supabase Auth/RLS and RPC role checks. For a truly private network URL, put this page behind a host-side access gateway.</p></div>
@@ -74,6 +75,43 @@ el("loginForm").addEventListener("submit",async e=>{
  try{await confirmAdmin(data.user||data.session?.user);}catch(ex){await client.auth.signOut();sessionUser=null;hideApp();setStatus(errText(ex),"error");}
 });
 
+async function loadOperationalCustomers(){
+ const box=el("opsAccounts");list(box,"Loading account directory…");
+ const [pr,cu,se,de]=await Promise.all([
+  client.from("profiles").select("id,role,full_name,mobile,is_active,created_at").in("role",["customer","seller","delivery"]).order("created_at",{ascending:false}).limit(500),
+  client.from("customer_profiles").select("profile_id,customer_code,full_name,mobile").limit(1000),
+  client.from("seller_profiles").select("profile_id,seller_code,shop_name,seller_type,is_verified,is_active,is_open,city,state").limit(1000),
+  client.from("delivery_profiles").select("profile_id,delivery_code,full_name,is_verified,is_active,is_online,city,state").limit(1000)
+ ]);
+ if(pr.error)return list(box,"Account directory unavailable: "+errText(pr.error));
+ const cus=new Map((cu.data||[]).map(x=>[x.profile_id,x])),sel=new Map((se.data||[]).map(x=>[x.profile_id,x])),del=new Map((de.data||[]).map(x=>[x.profile_id,x]));
+ if(!pr.data?.length)return list(box,"No customer/seller/delivery accounts have registered yet.");
+ box.replaceChildren();
+ pr.data.forEach(p=>{
+  const x=p.role==="customer"?cus.get(p.id)||{}:p.role==="seller"?sel.get(p.id)||{}:del.get(p.id)||{};
+  const title=p.role==="customer"?(x.full_name||p.full_name||"Customer"):p.role==="seller"?(x.shop_name||p.full_name||"Seller"):(x.full_name||p.full_name||"Delivery partner");
+  const code=p.role==="customer"?x.customer_code:p.role==="seller"?x.seller_code:x.delivery_code;
+  const card=node("div","item");
+  card.append(node("h3","",title+" · "+(code||"no code")),
+   node("p","small","Role "+p.role+" · "+(p.mobile||x.mobile||"No mobile")),
+   node("p","small muted","Profile active: "+p.is_active+" · "+(p.role==="seller"?("Seller verified "+x.is_verified+" · shop "+(x.is_open?"open":"closed")+" · "+[x.city,x.state].filter(Boolean).join(", "):p.role==="delivery"?("Rider verified "+x.is_verified+" · "+(x.is_online?"online":"offline")+" · "+[x.city,x.state].filter(Boolean).join(", "):"Customer account"))),
+   node("p","small muted",p.created_at?new Date(p.created_at).toLocaleString():""));
+  const reason=node("input");reason.placeholder="Admin reason / audit note (recommended)";reason.maxLength=1000;
+  card.appendChild(reason);
+  card.appendChild(btn(p.is_active?"Disable account":"Enable account",async()=>{
+   const active=!p.is_active;
+   const promptText=active?"Enable this account? Seller will remain closed and rider offline.":"Disable this account? Its seller shop will close or rider go offline.";
+   if(!confirm(promptText))return;
+   if(!active&&reason.value.trim().length<5){setStatus("Write at least 5 characters for an account suspension note.","error");return;}
+   const {error}=await client.rpc("admin_set_profile_active",{p_profile_id:p.id,p_active:active,p_note:reason.value.trim()||null});
+   if(error){setStatus("Account status update failed: "+errText(error),"error");return;}
+   setStatus("Account status updated. Reopen/reactivate seller shop and rider online state separately if appropriate.","ok");
+   await refreshAll();
+  },p.is_active?"danger":"good"));
+  box.appendChild(card);
+ });
+ if(cu.error||se.error||de.error)box.prepend(node("p","small muted","Some role-specific detail queries were unavailable; core profile roles and active status remain visible."));
+}
 async function loadOperationalOrders(){
  const box=el("opsOrders");list(box,"Loading customers and orders…");
  const [ordersR,customersR,sellersR,addressesR,itemsR,shipR]=await Promise.all([
@@ -238,7 +276,7 @@ async function loadReturnsSupport(){
 }
 async function refreshAll(){
  if(!sessionUser)return;
- await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalProducts(),loadReturnsSupport(),loadCodRemittance()]);
+ await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalCustomers(),loadOperationalProducts(),loadReturnsSupport(),loadCodRemittance()]);
 }
 el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
 el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
