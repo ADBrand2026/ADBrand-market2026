@@ -19515,12 +19515,36 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           toast("Live GPS share शुरू हुई—delivery पूरी होने पर Stop दबाएँ।");
         },"outline"));
       }
-      if(["assigned","ready_for_delivery"].includes(o.status))
-        actions.appendChild(liveButton("✅ Picked up from seller",async()=>{
-          const {data,error}=await supa().rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});
-          if(error){alert("Pickup save नहीं हुआ: "+liveErr(error));return;}
-          toast(data?.message||"Order out for delivery.");await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
-        },"primary"));
+      if(["assigned","ready_for_delivery"].includes(o.status)){
+        const barcodeVerified=Boolean(o.pickup_barcode_verified_at)&&String(o.pickup_barcode_scanned||"").toUpperCase()===String(o.internal_barcode||"").toUpperCase();
+        if(!barcodeVerified){
+          card.appendChild(liveNode("p","small muted","Pickup से पहले seller के printed AD packing-slip barcode को scan करें। Mismatch हो तो parcel न लें; barcode courier AWB से अलग internal order code है."));
+          const barcodeInput=document.createElement("input");
+          barcodeInput.type="text";barcodeInput.autocomplete="off";barcodeInput.spellcheck=false;
+          barcodeInput.placeholder="Scan/type seller's AD barcode";
+          barcodeInput.setAttribute("aria-label","Scan internal food order barcode");
+          barcodeInput.style.cssText="width:100%;max-width:440px;padding:10px;border-radius:8px;margin:6px 0;";
+          const verifyPickup=async()=>{
+            const code=String(barcodeInput.value||"").trim();
+            if(!code){alert("Seller packing slip का barcode scan करें या पूरा code डालें.");return;}
+            const {data,error}=await supa().rpc("rider_verify_food_pickup_barcode",{p_order_id:o.order_id,p_scanned_barcode:code});
+            if(error){alert("Barcode verify नहीं हुआ; parcel न लें: "+liveErr(error));return;}
+            toast(data?.message||"Pickup barcode verified.");
+            await adLiveLoadDeliveryWorkspace();
+          };
+          barcodeInput.addEventListener("keydown",function(event){if(event.key==="Enter"){event.preventDefault();verifyPickup();}});
+          actions.appendChild(barcodeInput);
+          actions.appendChild(liveButton("🔎 Verify pickup barcode",verifyPickup,"outline"));
+        }else{
+          card.appendChild(liveNode("p","small muted","✅ Seller packing barcode verified: "+new Date(o.pickup_barcode_verified_at).toLocaleString()));
+          actions.appendChild(liveButton("✅ Picked up from seller",async()=>{
+            if(!confirm("Barcode match है। क्या parcel वास्तव में seller से आपके हाथ में आ गया है?"))return;
+            const {data,error}=await supa().rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});
+            if(error){alert("Pickup save नहीं हुआ: "+liveErr(error));return;}
+            toast(data?.message||"Order out for delivery.");await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
+          },"primary"));
+        }
+      }
       if(o.payment_method==="cod"&&o.status==="out_for_delivery"&&arrived){
         actions.appendChild(liveButton("💵 Record COD cash received",async()=>{
           const {data:status,error:statusError}=await supa().rpc("rider_get_cod_status",{p_order_id:o.order_id});
