@@ -312,8 +312,6 @@ img{max-width:100%}
 .ad-home-market-button>b{grid-column:2;color:var(--primary);font-size:.9rem}
 .role-grid,.category-grid,.footer-links{display:none!important}
 .ad-customer-quick-categories{display:none!important}
-#adLiveCategory{display:none!important}
-#adLiveCategory{visibility:hidden}
 @media(max-width:640px){.ad-simple-market-actions{grid-template-columns:1fr}.ad-home-market-button{grid-template-columns:94px 1fr;min-height:118px}.ad-home-market-photo{width:94px;height:96px}}
 </style>
 
@@ -328,7 +326,6 @@ img{max-width:100%}
 #customer .ad-customer-market-switch,
 #adCustomer .ad-customer-quick-categories,
 #customer .ad-customer-quick-categories,
-#customer #adLiveCategory,
 #customer .ad-customer-category-tiles {display:none!important}
 /* Keep the customer search, seller-uploaded catalogue, filters, cart and checkout available. */
 </style>
@@ -20982,6 +20979,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(f)f.classList.toggle("active",isFood);if(p)p.classList.toggle("active",!isFood);
     document.querySelectorAll(".ad-quick-category").forEach(function(button){button.classList.toggle("active",button.getAttribute("data-category")===String(category&&category.value||""));});
     if(zone)zone.style.display=isFood?"grid":"none";
+    var categoryField=category?category.closest(".field"):null;if(categoryField)categoryField.style.display=isFood?"none":"";
+    var foodBar=document.getElementById("adFoodCategoryBar");if(foodBar)foodBar.hidden=!isFood;
+    if(isFood&&typeof window.adCustomerSetFoodCategoryActive==="function")window.adCustomerSetFoodCategoryActive(category?category.value:"");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
   };
   window.adCustomerSetMarketMode=function(mode){
@@ -20998,6 +20998,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     }
     var zone=document.getElementById("adLiveFoodZoneFilter");
     if(zone)zone.style.display=mode==="food"?"grid":"none";
+    var categoryField=category?category.closest(".field"):null;
+    if(categoryField)categoryField.style.display=mode==="food"?"none":"";
     var foodBar=document.getElementById("adFoodCategoryBar");
     if(foodBar)foodBar.hidden=mode!=="food";
     if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile/i.test(search.value))search.value="";
@@ -21014,6 +21016,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(category)category.value=slug;
     var zone=document.getElementById("adLiveFoodZoneFilter");
     if(zone)zone.style.display="grid";
+    if(category&&category.closest(".field"))category.closest(".field").style.display="none";
     var bar=document.getElementById("adFoodCategoryBar");
     if(bar)bar.hidden=false;
     window.adCustomerSetFoodCategoryActive(slug);
