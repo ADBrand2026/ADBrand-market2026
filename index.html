@@ -19080,14 +19080,21 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     });
   }
   window.adLiveAddFoodProduct = async function(){
-    const client=supa();if(!client||!liveRole("seller"))return alert("Seller login required.");
+    const client=supa();
+    if(!client||!liveRole("seller"))return alert("Approved Seller login required.");
     try{
       const name=String($("adFoodName")?.value||"").trim();
       const category=String($("adFoodCategory")?.value||"food");
       const description=String($("adFoodDescription")?.value||"").trim();
-      const basePriceRaw=String($("adFoodBasePrice")?.value||"").trim();
-      const kind=String($("adFoodKind")?.value||"both");
-      const rows=[
+      const kindInput=String($("adFoodKind")?.value||"both");
+      const discountPct=Number($("adFoodDiscountPct")?.value||0);
+      if(name.length<2)throw new Error("Menu item का नाम कम से कम 2 characters होना चाहिए।");
+      if(!Number.isFinite(discountPct)||discountPct<0||discountPct>90)throw new Error("Offer/discount 0 से 90 percent के बीच होना चाहिए।");
+      // Keep the item category and food type aligned so a Veg item cannot be listed as Non-Veg.
+      let foodType=category==="veg-food"?"veg":category==="non-veg-food"?"non_veg":kindInput;
+      if($("adFoodKind")&&foodType!==kindInput)$("adFoodKind").value=foodType;
+      if(!["food","veg-food","non-veg-food","tea","snacks"].includes(category))throw new Error("Food seller के लिए active food category चुनें।");
+      const allRows=[
         ["Small","veg","adFoodSmallVegPrice","adFoodSmallVegStock"],
         ["Medium","veg","adFoodMediumVegPrice","adFoodMediumVegStock"],
         ["Large","veg","adFoodLargeVegPrice","adFoodLargeVegStock"],
@@ -19095,44 +19102,61 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         ["Medium","non_veg","adFoodMediumNonVegPrice","adFoodMediumNonVegStock"],
         ["Large","non_veg","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"]
       ];
+      const rows=foodType==="veg"?allRows.filter(r=>r[1]==="veg")
+        :foodType==="non_veg"?allRows.filter(r=>r[1]==="non_veg")
+        :foodType==="egg"?[]:allRows;
       const variants=[];
       rows.forEach(([size,type,pid,sid])=>{
         const raw=String($(pid)?.value||"").trim();
         if(!raw)return;
         const price=Number(raw),stockRaw=String($(sid)?.value??"").trim();
         if(!Number.isFinite(price)||price<=0||stockRaw===""||!Number.isInteger(Number(stockRaw))||Number(stockRaw)<0)
-          throw new Error(size+" "+type+": price positive और stock (0 या अधिक) भरें।");
-        variants.push({variant_name:size+" • "+(type==="veg"?"Veg":"Non-Veg"),price,stock:Number(stockRaw),attributes:{size,food_type:type}});
+          throw new Error(size+" "+type+": positive price और 0 या अधिक stock भरें।");
+        const salePrice=discountPct>0?Math.round(price*(1-discountPct/100)*100)/100:null;
+        variants.push({
+          variant_name:size+" • "+(type==="veg"?"Veg":"Non-Veg"),
+          price,sale_price:salePrice,stock:Number(stockRaw),
+          attributes:{size,food_type:type,veg_label:type==="veg"?"Veg":"Non-Veg"}
+        });
       });
-      let price,stock,foodType;
+      let price=Number(String($("adFoodBasePrice")?.value||"").trim());
+      let stock=Number($("adFoodBaseStock")?.value||0);
       if(variants.length){
-        price=Math.min(...variants.map(v=>v.price));stock=variants.reduce((sum,v)=>sum+v.stock,0);foodType="both";
-      }else{
-        price=Number(basePriceRaw);stock=Number($("adFoodBaseStock")?.value||0);foodType=kind;
-        if(kind==="both")throw new Error("Veg + Non-Veg item में कम से कम एक size-wise variant price डालें; या सिर्फ Veg/Non-Veg चुनें।");
-        if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0)throw new Error("Base price और stock सही भरें।");
+        price=Math.min(...variants.map(v=>v.price));
+        stock=variants.reduce((sum,v)=>sum+v.stock,0);
+      }else if(foodType==="both"){
+        throw new Error("Veg + Non-Veg menu item के लिए size-wise prices भरें, या एक food type चुनें।");
+      }else if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){
+        throw new Error("Size variants नहीं हैं तो positive base price और valid stock भरें।");
       }
-      if(name.length<2)throw new Error("Menu item का नाम डालें।");
+      const salePrice=discountPct>0?Math.round(price*(1-discountPct/100)*100)/100:null;
       const imageUrl=await adLiveUploadProductImage($("adFoodImageFile")?.files?.[0]||null);
       const {data,error}=await client.rpc("seller_add_catalog_product",{
-        p_name:name,p_category_slug:category,p_description:description||null,p_price:price,
-        p_sale_price:null,p_stock:stock,p_variants:variants,p_food_type:foodType,p_image_url:imageUrl
+        p_name:name,p_category_slug:category,p_description:description||null,
+        p_price:price,p_sale_price:salePrice,p_stock:stock,p_variants:variants,
+        p_food_type:foodType,p_image_url:imageUrl
       });
       if(error)throw error;
-      toast("Food menu item save हुआ"+(data?.catalogue_visible?" और catalogue में दिखेगा।":"; Admin verification/shop open होने पर दिखेगा।"));
-      ["adFoodName","adFoodBasePrice","adFoodBaseStock","adFoodDescription","adFoodImageFile",
+      toast("Food item save हुआ"+(data?.catalogue_visible?" और eligible catalogue में दिखाई देगा।":"; Admin verification और shop open होने तक hidden रहेगा."));
+      ["adFoodName","adFoodBasePrice","adFoodBaseStock","adFoodDiscountPct","adFoodDescription","adFoodImageFile",
        "adFoodSmallVegPrice","adFoodSmallVegStock","adFoodMediumVegPrice","adFoodMediumVegStock","adFoodLargeVegPrice","adFoodLargeVegStock",
        "adFoodSmallNonVegPrice","adFoodSmallNonVegStock","adFoodMediumNonVegPrice","adFoodMediumNonVegStock","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"]
        .forEach(id=>{if($(id))$(id).value="";});
+      if($("adFoodKind"))$("adFoodKind").value="both";
       await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();
     }catch(e){console.error("Food product save failed:",e);alert("Food product save नहीं हुआ: "+liveErr(e));}
   };
   window.adLiveAddNonFoodProduct = async function(){
-    const client=supa();if(!client||!liveRole("seller"))return alert("Seller login required.");
+    const client=supa();
+    if(!client||!liveRole("seller"))return alert("Approved Seller login required.");
     try{
       const name=String($("adNonFoodName")?.value||"").trim();
       const category=String($("adNonFoodCategory")?.value||"clothes");
       const description=String($("adNonFoodDescription")?.value||"").trim();
+      const discountPct=Number($("adNonFoodDiscountPct")?.value||0);
+      if(name.length<2)throw new Error("Product name कम से कम 2 characters का होना चाहिए।");
+      if(!["clothes","shoes","slippers"].includes(category))throw new Error("Non-food seller के लिए clothes, shoes या slippers category चुनें।");
+      if(!Number.isFinite(discountPct)||discountPct<0||discountPct>90)throw new Error("Offer/discount 0 से 90 percent के बीच होना चाहिए।");
       const defs=[
         ["adNfV1Name","adNfV1Size","adNfV1Color","adNfV1Price","adNfV1Stock"],
         ["adNfV2Name","adNfV2Size","adNfV2Color","adNfV2Price","adNfV2Stock"],
@@ -19140,18 +19164,26 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         ["adNfV4Name","adNfV4Size","adNfV4Color","adNfV4Price","adNfV4Stock"]
       ];
       const variants=defs.map(row=>adLiveBuildVariantRow(...row)).filter(Boolean);
+      variants.forEach(v=>{v.sale_price=discountPct>0?Math.round(Number(v.price)*(1-discountPct/100)*100)/100:null;});
       let price,stock;
-      if(variants.length){price=Math.min(...variants.map(v=>v.price));stock=variants.reduce((sum,v)=>sum+v.stock,0);}
-      else {price=Number($("adNonFoodBasePrice")?.value);stock=Number($("adNonFoodBaseStock")?.value||0);}
-      if(name.length<2||!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0)throw new Error("Product name, price और stock सही भरें।");
+      if(variants.length){
+        price=Math.min(...variants.map(v=>Number(v.price)));
+        stock=variants.reduce((sum,v)=>sum+Number(v.stock||0),0);
+      }else{
+        price=Number($("adNonFoodBasePrice")?.value);
+        stock=Number($("adNonFoodBaseStock")?.value||0);
+      }
+      if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0)throw new Error("Product के लिए सही positive price और 0 या अधिक stock भरें।");
+      const salePrice=discountPct>0?Math.round(price*(1-discountPct/100)*100)/100:null;
       const imageUrl=await adLiveUploadProductImage($("adNonFoodImageFile")?.files?.[0]||null);
       const {data,error}=await client.rpc("seller_add_catalog_product",{
-        p_name:name,p_category_slug:category,p_description:description||null,p_price:price,p_sale_price:null,
-        p_stock:stock,p_variants:variants,p_food_type:"not_applicable",p_image_url:imageUrl
+        p_name:name,p_category_slug:category,p_description:description||null,
+        p_price:price,p_sale_price:salePrice,p_stock:stock,p_variants:variants,
+        p_food_type:"not_applicable",p_image_url:imageUrl
       });
       if(error)throw error;
-      toast("Non-food product save हुआ। हर order का internal barcode अलग होगा; Valmo/other courier booking अलग से confirm होनी होगी।");
-      ["adNonFoodName","adNonFoodBasePrice","adNonFoodBaseStock","adNonFoodImageFile","adNonFoodDescription",
+      toast("Non-food product save हुआ। हर order का internal barcode अलग है; courier का official AWB अलग से book/attach करना होगा।");
+      ["adNonFoodName","adNonFoodBasePrice","adNonFoodBaseStock","adNonFoodDiscountPct","adNonFoodImageFile","adNonFoodDescription",
        "adNfV1Name","adNfV1Size","adNfV1Color","adNfV1Price","adNfV1Stock",
        "adNfV2Name","adNfV2Size","adNfV2Color","adNfV2Price","adNfV2Stock",
        "adNfV3Name","adNfV3Size","adNfV3Color","adNfV3Price","adNfV3Stock",
@@ -19283,21 +19315,52 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         const call=document.createElement("a");call.className="btn outline";call.href="tel:+91"+mobile;call.textContent="📞 Call customer";actions.appendChild(call);
         const sms=document.createElement("a");sms.className="btn outline";sms.href="sms:+91"+mobile+"?body="+encodeURIComponent("AD Brand Market order "+o.order_code+": delivery partner is at your location.");sms.textContent="SMS";actions.appendChild(sms);
       }
+      // The database only accepts no-answer / extra-time events after an arrival record exists.
+      // Record arrival explicitly first, with optional GPS evidence; never auto-cancel from a timer.
+      const arrived=Boolean(o.arrival_recorded_at);
+      if(o.status==="out_for_delivery"&&!arrived){
+        actions.appendChild(liveButton("📍 I have reached customer",async()=>{
+          if(!confirm("क्या आप सच में customer के दिए location पर पहुँच गए हैं? Arrival record करने के बाद ही no-answer या extra-time दर्ज होगा."))return;
+          let finished=false;
+          const sendArrival=async coords=>{
+            if(finished)return;finished=true;
+            const {data,error}=await supa().rpc("rider_record_delivery_arrival",{
+              p_order_id:o.order_id,
+              p_latitude:coords?coords.latitude:null,
+              p_longitude:coords?coords.longitude:null,
+              p_accuracy:coords?coords.accuracy:null
+            });
+            if(error){alert("Arrival record नहीं हुआ: "+liveErr(error));return;}
+            toast(data?.message||"Customer location पर arrival record हो गया।");
+            await adLiveLoadDeliveryWorkspace();
+          };
+          if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(
+              pos=>sendArrival({latitude:pos.coords.latitude,longitude:pos.coords.longitude,accuracy:pos.coords.accuracy}),
+              ()=>sendArrival(null),
+              {enableHighAccuracy:true,timeout:8000,maximumAge:0}
+            );
+          }else sendArrival(null);
+        },"primary"));
+        card.appendChild(liveNode("p","small muted","पहले location पर पहुँचकर Arrival record करें। GPS deny होने पर भी arrival manual record हो सकता है; no-answer से order/customer अपने-आप penalize नहीं होंगे."));
+      }else if(o.status==="out_for_delivery"&&arrived){
+        card.appendChild(liveNode("p","small muted","✅ Arrival recorded"+(o.arrival_recorded_at?" • "+new Date(o.arrival_recorded_at).toLocaleString():"")+". Customer-requested extra time does not auto-cancel this order."));
+      }
       if(["assigned","ready_for_delivery"].includes(o.status))
         actions.appendChild(liveButton("✅ Picked up from seller",async()=>{
           const {data,error}=await supa().rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});
           if(error){alert("Pickup save नहीं हुआ: "+liveErr(error));return;}
           toast(data?.message||"Order out for delivery.");await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
         },"primary"));
-      if(o.payment_method==="cod" && o.status==="out_for_delivery"){
+      if(o.payment_method==="cod"&&o.status==="out_for_delivery"&&arrived){
         actions.appendChild(liveButton("💵 Record COD cash received",async()=>{
           const {data:status,error:statusError}=await supa().rpc("rider_get_cod_status",{p_order_id:o.order_id});
           if(statusError){alert("COD status नहीं मिली: "+liveErr(statusError));return;}
           if(status?.cod_collected){alert("COD पहले ही record हो चुका है: "+liveMoney(status.cod_collected_amount));return;}
-          const raw=prompt("Customer से कितना cash मिला? Exact total "+liveMoney(status.total_amount)+" होना चाहिए:",String(status.total_amount));
+          const raw=prompt("Customer से कितना cash वास्तव में मिला? Exact total "+liveMoney(status.total_amount)+" होना चाहिए:",String(status.total_amount));
           if(raw===null)return;
           const amount=Number(raw);
-          if(!Number.isFinite(amount)||amount<0){alert("Valid cash amount भरें।");return;}
+          if(!Number.isFinite(amount)||Math.abs(amount-Number(status.total_amount))>0.01){alert("COD amount exact order total के बराबर होना चाहिए।");return;}
           const note=prompt("Optional cash receipt note:","")||null;
           const {data:result,error}=await supa().rpc("rider_record_cod_collection",{p_order_id:o.order_id,p_amount:amount,p_note:note});
           if(error){alert("COD collection record नहीं हुई: "+liveErr(error));return;}
@@ -19305,26 +19368,28 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           await adLiveLoadDeliveryWorkspace();await adLiveLoadCustomerOrders();
         },"primary"));
       }
-      actions.appendChild(liveButton("☎️ Customer didn't answer",()=>adLiveRecordContact(o.order_id,"no_answer",0),"outline"));
-      actions.appendChild(liveButton("⏱️ Customer asks more time",()=>adLiveRecordContact(o.order_id,"customer_delay",null),"outline"));
-      actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
-      actions.appendChild(liveButton("🛡️ Safety concern / unsafe location",()=>adLiveRecordContact(o.order_id,"unsafe",0),"red"));
+      if(o.status==="out_for_delivery"&&arrived){
+        actions.appendChild(liveButton("☎️ Customer didn't answer",()=>adLiveRecordContact(o.order_id,"no_answer",0),"outline"));
+        actions.appendChild(liveButton("⏱️ Customer asks more time",()=>adLiveRecordContact(o.order_id,"customer_delay",null),"outline"));
+        actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
+        actions.appendChild(liveButton("🛡️ Safety concern / unsafe location",()=>adLiveRecordContact(o.order_id,"unsafe",0),"red"));
+      }
       if(!["out_for_delivery","delivered","cancelled"].includes(o.status)){
         const reason=document.createElement("select");reason.setAttribute("aria-label","Rider cancellation reason");
         [["vehicle_issue","Vehicle issue"],["emergency","Emergency"],["wrong_assignment","Wrong assignment"],["seller_delay","Seller delay"],["other","Other reason"]]
           .forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;reason.appendChild(option);});
         actions.appendChild(reason);
         actions.appendChild(liveButton("Cancel assignment / reassign",async()=>{
-          if(!confirm("Order pickup से पहले reassignment के लिए वापस जाएगा। Proposed ₹10–₹15 penalty automatic नहीं है; Admin evidence review के बाद ही निर्णय होगा। आगे बढ़ें?"))return;
+          if(!confirm("Order pickup से पहले reassignment के लिए वापस जाएगा। Proposed ₹10–₹15 penalty automatic नहीं है; Admin evidence review और rider की बात सुनने के बाद ही निर्णय होगा। आगे बढ़ें?"))return;
           const {data,error}=await supa().rpc("rider_cancel_and_request_reassignment",{
             p_order_id:o.order_id,p_reason:reason.value,p_note:"Rider requested reassignment from live delivery dashboard"
           });
           if(error){alert("Order reassign नहीं हुआ: "+liveErr(error));return;}
-          alert((data?.message||"Reassignment requested.")+" Proposed amount: "+liveMoney(data?.proposed_penalty||10)+" (pending review)");
+          alert((data?.message||"Reassignment requested.")+" Proposed amount: "+liveMoney(data?.proposed_penalty||10)+" (pending Admin review; no automatic deduction)");
           await adLiveLoadDeliveryWorkspace();
         },"red"));
-      } else if(o.status==="out_for_delivery"){
-        card.appendChild(liveNode("p","small muted","Order customer के रास्ते में है। Customer account में 'मैंने order प्राप्त कर लिया' दबाए बिना Delivered नहीं होगा। Rider cancel करके बिना support approval auto-reassign नहीं कर सकता।"));
+      }else if(o.status==="out_for_delivery"){
+        card.appendChild(liveNode("p","small muted","Order customer के रास्ते में है। Arrival record करें, फिर contact outcome दर्ज करें। Customer के account से receipt confirm होने से पहले Delivered नहीं होगा; rider द्वारा auto-reassign pickup के बाद allowed नहीं है."));
       }
       card.appendChild(actions);box.appendChild(card);
     });
