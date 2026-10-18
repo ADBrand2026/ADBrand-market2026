@@ -20420,11 +20420,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(el("adCustomerAuthExtras"))el("adCustomerAuthExtras").style.display="none";
     }
   }
-  const originalOpenCart=window.openCartModal;
   window.openCartModal=function(){
     if(typeof window.openPanel==="function")window.openPanel("customer");
     setTimeout(()=>{if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();el("adLiveCart")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
-    return originalOpenCart?undefined:undefined;
   };
   const categorySlug={"कपड़े":"clothes","जूते":"shoes","चप्पल":"slippers","खाना":"food","Veg":"veg-food","Non-Veg":"non-veg-food","चाय":"tea","Snacks":"snacks"};
   window.selectCategory=function(category){
@@ -20495,6 +20493,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       },0);
     }else if(event==="SIGNED_OUT"){
       window.__adBrandCustomerCartLoadedFor=null;
+      window.__adBrandCustomerWishlistItems=[];
+      window.__adBrandCustomerWishlistIds=new Set();
+      if(window.__adBrandLiveCart)window.__adBrandLiveCart.splice(0,window.__adBrandLiveCart.length);
+      try{localStorage.removeItem(cartKey);}catch(e){}
+      ["adCustomerAccountName","adCustomerAccountMobile","adCustomerAccountEmail","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>{if(el(id))el(id).value="";});
+      if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+      if(el("adCustomerWishlist"))el("adCustomerWishlist").replaceChildren(node("div","empty","Wishlist के लिए Customer login करें।"));
       setAccountVisibility(null);
     }
   });
