@@ -18919,7 +18919,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
       }
       card.appendChild(liveButton("🧾 Print internal packing slip",()=>adLivePrintSlip(o,lines,o.address,o.seller_name),"outline"));
-      if(["pending","accepted","external_booking_pending"].includes(String(o.status||""))){
+      if(["pending","accepted","external_booking_pending","packed_for_courier"].includes(String(o.status||""))){
         card.appendChild(liveButton("Cancel order (before preparation/booking)",async()=>{
           const reason=prompt("Order cancel करने का कारण लिखें (कम से कम 3 characters):","");
           if(reason===null)return;
@@ -19203,8 +19203,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         controls.appendChild(liveButton("Print pickup slip",()=>adLivePrintSlip(o,o.items,o.address,seller.shop_name),"outline"));
       } else {
         const sh=o.shipment||{};
-        if(sh.status==="booked"&&sh.tracking_number&&["pending","external_booking_pending"].includes(o.status))
-          controls.appendChild(liveButton("Mark parcel packed",()=>adLiveMarkNonFoodPacked(o.id),"primary"));
+        if(!sh.seller_packed_at && ["pending","external_booking_pending"].includes(o.status))
+          controls.appendChild(liveButton("📦 Mark packed — ready for courier quote",()=>adLiveMarkNonFoodPacked(o.id),"primary"));
+        else if(sh.seller_packed_at)
+          controls.appendChild(liveNode("span","small muted","✅ Seller packed "+new Date(sh.seller_packed_at).toLocaleString()+" • Courier: "+(sh.provider||"quote pending")+" • "+(sh.status||"quote pending")+(sh.tracking_number?" • "+sh.tracking_number:"")));
         else
           controls.appendChild(liveNode("span","small muted","Courier: "+(sh.provider||"Not booked")+" • "+(sh.status||"booking pending")+(sh.tracking_number?" • "+sh.tracking_number:"")));
         controls.appendChild(liveButton("Print packing slip",()=>adLivePrintSlip(o,o.items,o.address,seller.shop_name),"outline"));
