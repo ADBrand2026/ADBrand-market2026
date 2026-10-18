@@ -1624,7 +1624,7 @@ window.adLiveCheckout=async function(){
  var client=liveClient(),cart=window.__adBrandLiveCart||[],resultBox=$("adLiveCheckoutResult");
  if(!client||!window.__adBrandAuthUser||window.__adBrandAuthRole!=="customer"){toast("Order करने के लिए Customer login जरूरी है।");openAccountAccess("customer");return;}
  if(!cart.length){toast("पहले Cart में product जोड़ें।");return;}
- var address={full_name:String($("adCheckoutName")?.value||"").trim(),mobile:String($("adCheckoutMobile")?.value||"").replace(/\D/g,""),address_line:String($("adCheckoutAddress")?.value||"").trim(),city:String($("adCheckoutCity")?.value||"").trim(),state:String($("adCheckoutState")?.value||"").trim(),pincode:String($("adCheckoutPincode")?.value||"").trim(),label:"Home"};
+ var address={full_name:String($("adCheckoutName")?.value||"").trim(),mobile:String($("adCheckoutMobile")?.value||"").replace(/\D/g,""),address_line:String($("adCheckoutAddress")?.value||"").trim(),city:String($("adCheckoutCity")?.value||"").trim(),state:String($("adCheckoutState")?.value||"").trim(),pincode:String($("adCheckoutPincode")?.value||"").trim(),label:String($("adCheckoutAddressLabel")?.value||"Home"),latitude:String($("adCheckoutLatitude")?.value||""),longitude:String($("adCheckoutLongitude")?.value||"")};
  if(address.full_name.length<2||!/^\d{10}$/.test(address.mobile)||address.address_line.length<5||address.city.length<2||address.state.length<2||!/^\d{6}$/.test(address.pincode)){toast("नाम, 10-digit मोबाइल, पूरा पता, शहर, राज्य और valid 6-digit PIN भरें।");return;}
  var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
  var btn=document.querySelector("button[onclick='adLiveCheckout()']");if(btn)btn.disabled=true;
@@ -1716,6 +1716,8 @@ window.adCustomerVerifyOtp=async function(){
    if(saved.error)throw saved.error;
   }
   window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
+  if($("adCheckoutName")&&!$("adCheckoutName").value)$("adCheckoutName").value=pr.data.full_name||name;
+  if($("adCheckoutMobile")&&!$("adCheckoutMobile").value)$("adCheckoutMobile").value=String(pr.data.mobile||mobile).replace(/\D/g,"").slice(-10);
   updateCustomerOtpVisibility();
   customerOtpMessage("Customer login सफल हुआ।",false);
   if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
@@ -20979,10 +20981,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       setTimeout(function(){
         (async function(){
           try{
-            const {data:profile,error}=await client().from("profiles").select("role,is_active").eq("user_id",user.id).maybeSingle();
+            const {data:profile,error}=await client().from("profiles").select("role,is_active,full_name,mobile").eq("user_id",user.id).maybeSingle();
             if(error||!profile||profile.is_active!==true)return;
             window.__adBrandAuthUser=user;
             window.__adBrandAuthRole=profile.role;
+            if(profile.role==="customer"){
+              if(el("adCheckoutName")&&!el("adCheckoutName").value)el("adCheckoutName").value=profile.full_name||"";
+              if(el("adCheckoutMobile")&&!el("adCheckoutMobile").value)el("adCheckoutMobile").value=String(profile.mobile||"").replace(/\D/g,"").slice(-10);
+            }
             updateCustomerOtpVisibility();
             if(profile.role==="customer"){
               var otpName=el("adCustomerOtpName"),otpMobile=el("adCustomerOtpMobile");
