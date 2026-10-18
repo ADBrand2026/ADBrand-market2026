@@ -1309,6 +1309,7 @@ async function continueAccountAccess(mode) {
 
     window.__adBrandAuthUser = user;
     window.__adBrandAuthRole = actualRole;
+    if (actualRole === "customer") window.__adBrandCustomerMarketMode = null;
     if (actualRole === "customer" && typeof updateCustomerOtpVisibility === "function") updateCustomerOtpVisibility();
     currentAccountRole = actualRole;
 
@@ -1896,7 +1897,7 @@ window.adLiveLoadCustomerOrders=async function(){
    if(o.status==="delivered"&&o.fulfillment_mode!=="inhouse_food"){
     liveOptions(o.items).forEach(function(it){
      var category=String(it.category_slug||"").toLowerCase();
-     if(!it.order_item_id||["food","veg-food","non-veg-food","tea","snacks"].includes(category))return;
+     if(!it.order_item_id||["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category))return;
      var existing=liveOptions(o.return_requests).find(function(x){return x.order_item_id===it.order_item_id;});
      if(existing){card.appendChild(liveEl("p","small","Return status for "+(it.name||"item")+": "+existing.status+" · "+(existing.review_note||"")));}
      else {var ret=liveEl("button","btn outline small-btn","↩️ Request return · "+(it.name||"item"));ret.onclick=async function(){var reason=prompt("Return का कारण (उदाहरण: size issue, damaged item):","");if(reason===null)return;if(reason.trim().length<5){toast("Return reason कम से कम 5 characters का होना चाहिए।");return;}try{var rr=await client.rpc("customer_request_return",{p_order_item_id:it.order_item_id,p_reason:reason.trim()});if(rr.error)throw rr.error;toast("Return request Admin review के लिए भेज दी गई।");await adLiveLoadCustomerOrders();}catch(e){liveError("Return request submit नहीं हुई",e);}};card.appendChild(ret);}
@@ -19392,6 +19393,21 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       }
       const lines=asList(o.items);
       lines.forEach(line=>card.appendChild(liveNode("p","small",line.name+(line.variant_name?" — "+line.variant_name:"")+" × "+line.quantity+" = "+liveMoney(line.total_price))));
+      if(["pending","accepted","external_booking_pending","packed_for_courier"].includes(o.status)&&o.payment_status==="pending"&&!o.cod_collected){
+        card.appendChild(liveButton("✖️ Cancel order",async()=>{
+          const reason=prompt("Order cancel करने का कारण लिखें (कम से कम 3 अक्षर):","");
+          if(reason===null)return;
+          if(reason.trim().length<3){alert("Cancellation reason कम से कम 3 अक्षर का होना चाहिए।");return;}
+          if(!confirm("क्या आप यह order cancel करना चाहते हैं? अभी eligible order cancel करने पर automatic customer penalty नहीं लगेगी; stock वापस किया जाएगा."))return;
+          try{
+            const {data:cancelResult,error:cancelError}=await client.rpc("customer_cancel_marketplace_order",{p_order_id:o.id,p_reason:reason.trim()});
+            if(cancelError)throw cancelError;
+            toast(cancelResult?.message||"Order cancellation request process हो गई।");
+            await adLiveLoadCustomerOrders();
+            if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
+          }catch(e){liveError("Order cancel नहीं हुआ",e);alert(e?.message||"यह order सीधे cancel नहीं हो सकता। Support ticket दर्ज करें।");}
+        },"outline"));
+      }
       if(o.fulfillment_mode==="external_courier"){
         const sh=o.shipment||{};
         const fee=sh.quoted_shipping_charge==null?null:Number(sh.quoted_shipping_charge);
