@@ -21138,6 +21138,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
   window.adCustomerSetMarketMode=function(mode){
     mode=mode==="food"?"food":"products";
+    var previousMode=window.__adBrandCustomerMarketMode;
+    var search=document.getElementById("adLiveSearch");
+    if(previousMode!==mode&&search)search.value="";
     window.__adBrandCustomerMarketMode=mode;
     var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
     if(food)food.classList.toggle("active",mode==="food");
