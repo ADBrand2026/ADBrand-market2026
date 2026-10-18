@@ -18940,8 +18940,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         }
       }
       card.appendChild(liveButton("🧾 Print internal packing slip",()=>adLivePrintSlip(o,lines,o.address,o.seller_name),"outline"));
-      if(["pending","accepted","external_booking_pending","packed_for_courier"].includes(String(o.status||""))){
-        card.appendChild(liveButton("Cancel order (before preparation/booking)",async()=>{
+      const canCancelBeforeCourierBooking=["pending","accepted","external_booking_pending","packed_for_courier"].includes(String(o.status||""))
+        && (o.fulfillment_mode!=="external_courier" || !o.shipment
+          || ["pending_quote","quote_awaiting_customer","pending_booking","cancelled","failed"].includes(String(o.shipment.status||"")));
+      if(canCancelBeforeCourierBooking){
+        card.appendChild(liveButton(o.status==="packed_for_courier"?"Cancel packed parcel before courier booking":"Cancel order (before preparation/booking)",async()=>{
           const reason=prompt("Order cancel करने का कारण लिखें (कम से कम 3 characters):","");
           if(reason===null)return;
           if(reason.trim().length<3){alert("Cancellation reason कम से कम 3 characters का होना चाहिए।");return;}
