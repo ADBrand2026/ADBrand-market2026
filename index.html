@@ -19751,7 +19751,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   if ($("accountRole")) $("accountRole").addEventListener("change",updateRoleApplicationFields);
   if ($("roleSellerType")) $("roleSellerType").addEventListener("change",updateRoleApplicationFields);
   if ($("adLiveCatalog")) adLiveLoadCatalog();
-  // Admin UI is served from private-admin.html, not embedded in the storefront.
+  // Admin UI is served only by the role-checked Supabase Edge Function; never link it from this public storefront.
 })();
 </script>
 
