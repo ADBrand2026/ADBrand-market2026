@@ -1131,8 +1131,12 @@ async function submitRoleApplication() {
     toast("नाम, सही 10-digit मोबाइल और पूरा पता भरें।");
     return;
   }
-  if (pincode && !validPincode(pincode)) {
-    toast("PIN Code सही 6-digit होना चाहिए।");
+  if (city.length < 2 || state.length < 2) {
+    toast("Service zone बनाने के लिए City और State दोनों भरें।");
+    return;
+  }
+  if (!validPincode(pincode)) {
+    toast("Service zone के लिए सही 6-digit PIN Code जरूरी है।");
     return;
   }
   if (requestedRole === "seller" && shop.length < 2) {
@@ -18978,6 +18982,91 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       size:String($(sizeId)?.value||"").trim(),color:String($(colorId)?.value||"").trim()
     }};
   }
+  window.adLiveRenderServiceAreaEditor = async function(container,kind){
+    if(!container)return;
+    const client=supa();
+    if(!client||!liveRole(kind==="seller"?"seller":"delivery"))return;
+    const isSeller=kind==="seller";
+    const getter=isSeller?"seller_get_service_areas":"delivery_get_service_areas";
+    const setter=isSeller?"seller_set_service_areas":"delivery_set_service_areas";
+    const {data,error}=await client.rpc(getter);
+    if(error){container.appendChild(liveNode("div","notice","Service-zone settings load नहीं हुईं: "+liveErr(error)));return;}
+    if(isSeller&&data?.base?.seller_type!=="food"){
+      container.appendChild(liveNode("div","notice","Non-food orders Valmo/other authorized courier booking या same-city Self Pickup flow से जाएंगे; AD Food rider को assign नहीं होंगे."));
+      return;
+    }
+    let areas=asList(data?.areas).map(a=>({pincode:a.pincode||"",city:a.city,state:a.state}));
+    const base=data?.base||{};
+    const verified=isSeller
+      ? Boolean(window.__adBrandLiveSellerState?.seller?.is_verified)
+      : Boolean(base.is_verified);
+    const card=liveNode("section","card");
+    card.style.marginTop="12px";
+    const heading=liveNode("h3","",isSeller?"📍 Food delivery PIN zones":"🗺️ Rider dispatch PIN zones");
+    const explain=liveNode("p","small muted", "Registered location: "+[base.city,base.state].filter(Boolean).join(", ")+". "+(isSeller
+      ?"Food orders checkout तभी accept करेगा जब customer का city/state और PIN इस list में match करे."
+      :"Rider को सिर्फ उन्हीं local Food orders का claim मिलेगा जो उसकी active PIN zones में आते हैं."));
+    const render=()=>{
+      card.replaceChildren(heading,explain);
+      if(!verified){
+        card.appendChild(liveNode("p","small muted","Admin verification के बाद service PIN list edit कर सकते हैं। अभी कोई delivery zone change नहीं किया जा सकता."));
+      }
+      const list=liveNode("div","form-grid");
+      if(!areas.length)list.appendChild(liveNode("p","small muted","कोई active zone नहीं है। PIN जोड़ें, फिर Save करें."));
+      areas.forEach((area,index)=>{
+        const row=liveNode("div","card");
+        row.style.margin="4px 0";
+        row.appendChild(liveNode("strong","",area.pincode?"PIN "+area.pincode:"पूरा registered city (all PIN codes)"));
+        row.appendChild(liveNode("p","small muted",[area.city,area.state].filter(Boolean).join(", ")));
+        const remove=liveButton("Remove",()=>{
+          if(!verified)return;
+          areas.splice(index,1);render();
+        },"red");
+        remove.disabled=!verified;
+        row.appendChild(remove);list.appendChild(row);
+      });
+      card.appendChild(list);
+      const controls=liveNode("div","ad-live-actions");
+      const pin=document.createElement("input");
+      pin.type="text";pin.inputMode="numeric";pin.maxLength=6;pin.placeholder="6-digit PIN (blank = entire city)";
+      pin.setAttribute("aria-label","Service PIN code");pin.disabled=!verified;
+      const add=liveButton("➕ Add PIN zone",()=>{
+        if(!verified)return;
+        const value=String(pin.value||"").trim();
+        if(value&&!/^[1-9]\d{5}$/.test(value)){alert("Valid 6-digit PIN डालें, या blank छोड़कर पूरे registered city को चुनें।");return;}
+        if(!value){
+          if(areas.length&&!confirm("Blank PIN पूरे registered city को cover करेगा और existing individual PIN zones को replace करेगा। Continue?"))return;
+          areas=[{pincode:"",city:base.city,state:base.state}];
+        }else{
+          if(areas.some(a=>!a.pincode)){
+            if(!confirm("अभी whole-city zone active है। इसे specific PIN zones से replace किया जाएगा। Continue?"))return;
+            areas=[];
+          }
+          if(areas.some(a=>String(a.pincode)===value)){alert("यह PIN पहले से जोड़ा हुआ है।");return;}
+          if(areas.length>=50){alert("एक seller/rider के लिए अधिकतम 50 PIN zones हैं।");return;}
+          areas.push({pincode:value,city:base.city,state:base.state});
+        }
+        pin.value="";render();
+      },"outline");
+      add.disabled=!verified;
+      controls.append(pin,add);
+      const save=liveButton("💾 Save service zones",async()=>{
+        if(!verified)return;
+        if(!areas.length){alert("कम से कम एक service zone रखना होगा; whole city के लिए PIN blank छोड़ें।");return;}
+        save.disabled=true;
+        try{
+          const {data:result,error:saveError}=await client.rpc(setter,{p_areas:areas.map(a=>({pincode:a.pincode||null}))});
+          if(saveError)throw saveError;
+          areas=asList(result?.areas).map(a=>({pincode:a.pincode||"",city:a.city,state:a.state}));
+          toast(result?.message||"Service PIN zones save हुए।");render();
+        }catch(e){alert("Zone save नहीं हुए: "+liveErr(e));save.disabled=false;}
+      },"primary");
+      save.disabled=!verified;
+      controls.appendChild(save);card.appendChild(controls);
+    };
+    render();container.appendChild(card);
+  };
+
   window.adLiveLoadSellerWorkspace = async function(){
     const client=supa(),box=$("adLiveSellerProfile");
     if(!client||!box)return;
@@ -18992,6 +19081,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     title.appendChild(liveNode("p","small muted","Seller code: "+(seller.seller_code||"Pending")+" • "+[seller.city,seller.state].filter(Boolean).join(", ")));
     title.appendChild(liveNode("p","small muted","Documents: "+(seller.is_verified?"Verified":"Waiting Admin verification")+" • Shop: "+(seller.is_open?"Open":"Closed")));
     box.appendChild(title);
+    if(seller.seller_type==="food")await adLiveRenderServiceAreaEditor(box,"seller");
+    else await adLiveRenderServiceAreaEditor(box,"seller");
     const food=seller.seller_type==="food";
     if($("adLiveFoodSellerTools"))$("adLiveFoodSellerTools").style.display=food?"block":"none";
     if($("adLiveNonFoodSellerTools"))$("adLiveNonFoodSellerTools").style.display=food?"none":"block";
@@ -19261,6 +19352,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     box.replaceChildren();
     box.appendChild(liveNode("div","card","Delivery ID: "+(d.delivery_code||"Pending")));
     box.appendChild(liveNode("div","card","Verification: "+(d.is_verified?"Verified":"Pending Admin verification")+" • Status: "+(d.is_online?"Online":"Offline")));
+    await adLiveRenderServiceAreaEditor(box,"delivery");
     if($("adLiveDeliveryOnline")){
       $("adLiveDeliveryOnline").textContent=d.is_online?"🔴 Go Offline":"🟢 Go Online";
       $("adLiveDeliveryOnline").disabled=!d.is_verified;
