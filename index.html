@@ -486,7 +486,7 @@ img{max-width:100%}
   <section class="ad-customer-market-switch" aria-label="Choose shopping department">
     <button type="button" id="adMarketFoodButton" class="ad-market-tile ad-market-food" onclick="adCustomerSetMarketMode('food')">
       <span class="ad-market-image" aria-hidden="true"></span>
-      <span class="ad-market-copy"><strong>🍕 Food &amp; Drinks</strong><small>Pizza, Veg, Non-Veg, मिठाई, चाय और Snacks</small><b>खाना ऑर्डर करें →</b></span>
+      <span class="ad-market-copy"><strong>🍕 Food &amp; Drinks</strong><small>खाना, Veg / Non-Veg, मिठाई, चाय, Snacks, Cold Drinks &amp; Beverages</small><b>खाना ऑर्डर करें →</b></span>
     </button>
     <button type="button" id="adMarketProductsButton" class="ad-market-tile ad-market-products" onclick="adCustomerSetMarketMode('products')">
       <span class="ad-market-image" aria-hidden="true"></span>
@@ -495,8 +495,8 @@ img{max-width:100%}
   </section>
 
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel">
-    <h3>📱 Customer Mobile OTP Login</h3>
-    <p class="small muted">Phone-auth Customer accounts में password के बिना OTP login करें। पुराने email/password accounts के लिए नीचे fallback है। Duplicate account से बचने के लिए नया phone account तब तक नहीं बनाया जाएगा जब तक mobile uniqueness protection confirm न हो। SMS provider / Phone Auth चालू होना जरूरी है।</p>
+    <h3>📱 Customer Login / Register — Mobile OTP</h3>
+    <p class="small muted">पहली बार: नाम और मोबाइल डालकर OTP verify करें—Customer account बन जाएगा। उसी OTP-registered नंबर से अगली बार login होगा; मोबाइल नंबर की database-level uniqueness सुरक्षा duplicate profile रोकती है। पहले से email/password वाला account है तो नीचे Existing account login चुनें। SMS OTP तभी काम करेगा जब Supabase Phone Auth और SMS provider configure और enabled हों।</p>
     <div class="form-grid">
       <div class="field"><label for="adCustomerOtpName">पूरा नाम</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" placeholder="आपका नाम"></div>
       <div class="field"><label for="adCustomerOtpMobile">10-digit मोबाइल नंबर</label><input id="adCustomerOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
