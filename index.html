@@ -18850,44 +18850,66 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const box = $("adLiveCatalog");
     if (!client || !box) return;
     const search = String($("adLiveSearch")?.value || "").trim().slice(0,100);
-    const category = String($("adLiveCategory")?.value || "").trim();
+    const marketMode = window.__adBrandCustomerMarketMode === "food" ? "food" : "products";
+    const selectedCategory = String($("adLiveCategory")?.value || "").trim();
+    const category = marketMode === "food" ? "" : selectedCategory;
     const city = String($("adLiveDeliveryCity")?.value || $("adCheckoutCity")?.value || "").trim().slice(0,80);
     const state = String($("adLiveDeliveryState")?.value || $("adCheckoutState")?.value || "").trim().slice(0,80);
     const pincode = String($("adLiveDeliveryPincode")?.value || $("adCheckoutPincode")?.value || "").replace(/\D/g,"").slice(0,6);
+    const zoneReady = city.length >= 2 && state.length >= 2 && /^[1-9][0-9]{5}$/.test(pincode);
     const request = ++catalogRequest;
-    box.replaceChildren(liveNode("div","empty","Live products load हो रहे हैं…"));
+    if (marketMode === "food" && !zoneReady) {
+      box.replaceChildren(liveNode("div","empty","🍽️ Food delivery देखने के लिए पहले अपना City, State और 6-digit PIN Code भरें। दिल्ली के sellers तभी दिखेंगे जब delivery address उनकी active local service zone में हो।"));
+      return;
+    }
+    box.replaceChildren(liveNode("div","empty",marketMode === "food" ? "आपके इलाके के food sellers खोज रहे हैं…" : "Live products load हो रहे हैं…"));
     const searchCandidates = [];
     if (search) {
       searchCandidates.push(search);
       const q = search.toLocaleLowerCase("hi-IN").trim();
       const synonyms = {
         "साड़ी":["saree","sari"],"saree":["sari","साड़ी"],"sari":["saree","साड़ी"],
-        "पैंट":["pant","pants","trouser"],"pant":["pants","trouser","पैंट"],"pants":["pant","trouser"],
-        "phone cover":["mobile cover","cover","phone"],"mobile cover":["phone cover","cover"],
-        "कवर":["cover","mobile cover","phone cover"],"cover":["mobile cover","phone cover","case"],
+        "पैंट":["pant","pants","trouser"],"pant":["pants","trouser","पैंट"],"pants":["pant","trouser","पैंट"],
+        "phone cover":["mobile cover","cover","phone"],"mobile cover":["phone cover","cover"],"कवर":["cover","mobile cover","phone cover"],"cover":["mobile cover","phone cover","case"],
         "फोन":["phone","mobile","smartphone"],"phone":["mobile","smartphone","फोन"],"mobile":["phone","smartphone","फोन"],
         "जूते":["shoes","shoe","footwear"],"shoes":["shoe","footwear","जूते"],"shoe":["shoes","footwear"],
         "चप्पल":["slippers","sandals"],"slippers":["slipper","sandals","चप्पल"],
         "कुर्ती":["kurti","kurta"],"kurti":["kurta","कुर्ती"],"शर्ट":["shirt","shirts"],"shirt":["shirts","शर्ट"],
-        "जीन्स":["jeans","denim"],"jeans":["denim","जीन्स"]
+        "जीन्स":["jeans","denim"],"jeans":["denim","जीन्स"],
+        "पिज़्ज़ा":["pizza"],"पिज्जा":["pizza"],"समोसा":["samosa"],"मोमोज":["momos"],"चाय":["tea"],"बर्गर":["burger"],"मिठाई":["sweets","sweet"],"नाश्ता":["snacks","snack"]
       };
       (synonyms[q] || []).forEach(function(v){searchCandidates.push(v);});
       if (q.includes(" ")) q.split(/\s+/).reverse().forEach(function(v){if(v.length>1)searchCandidates.push(v);});
     } else searchCandidates.push(null);
     const uniqueCandidates = Array.from(new Set(searchCandidates)).slice(0,5);
-    let data = null, error = null;
+    const foodCategorySlugs = ["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
+    let data = [];
+    let error = null;
     for (const candidate of uniqueCandidates) {
-      const result = await client.rpc("get_public_marketplace_catalog_for_zone", {
-        p_search: candidate || null,
-        p_category_slug: category || null,
-        p_city: city || null,
-        p_state: state || null,
-        p_pincode: pincode || null
+      const categorySlugs = marketMode === "food" ? foodCategorySlugs : [category || null];
+      const candidateProducts = [];
+      for (const categorySlug of categorySlugs) {
+        const result = await client.rpc("get_public_marketplace_catalog_for_zone", {
+          p_search: candidate || null,
+          p_category_slug: categorySlug,
+          p_city: city || null,
+          p_state: state || null,
+          p_pincode: pincode || null
+        });
+        if (request !== catalogRequest) return;
+        if (result.error) { error = result.error; break; }
+        candidateProducts.push(...asList(result.data));
+      }
+      if (error) break;
+      const seen = new Set();
+      data = candidateProducts.filter(function(product) {
+        const id = String(product.id || "");
+        if (!id || seen.has(id)) return false;
+        seen.add(id);
+        if (marketMode === "food") return product.seller_type === "food" && foodCategorySlugs.includes(String(product.category_slug || ""));
+        return product.seller_type !== "food";
       });
-      if (request !== catalogRequest) return;
-      data = result.data;
-      error = result.error;
-      if (error || asList(data).length) break;
+      if (data.length) break;
     }
     if (request !== catalogRequest) return;
     if (error) {
