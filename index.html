@@ -1031,11 +1031,14 @@ async function continueAccountAccess(mode) {
   const email = String($("accountEmail")?.value || "").trim().toLowerCase();
   const password = String($("accountPassword")?.value || "");
   const mobile = String($("accountMobile")?.value || "").trim().replace(/\D/g, "");
+  const signupFullName = String($("accountFullName")?.value || "").trim();
   const client = window.adBrandSupabase;
   if (!client) return toast("Secure login service load नहीं हुई। Page refresh करें।");
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("सही email address डालें।");
   if (password.length < 8) return alert("Password कम से कम 8 characters का होना चाहिए।");
   if (mobile && !validIndianMobile(mobile)) return alert("Mobile खाली छोड़ें या सही 10-digit number डालें।");
+  if (mode === "signup" && signupFullName.length < 2) return alert("Registration के लिए पूरा नाम लिखें।");
+  if (mode === "signup" && !validIndianMobile(mobile)) return alert("Customer registration के लिए सही 10-digit Indian mobile number जरूरी है।");
   if (!["customer","seller","delivery"].includes(requestedRole)) return alert("सही account type चुनें।");
 
   const buttons = $("accountModal")?.querySelectorAll("button");
@@ -1043,7 +1046,7 @@ async function continueAccountAccess(mode) {
   try {
     // Seller/Delivery applicants always authenticate as customers until Admin approval.
     const result = mode === "signup"
-      ? await client.auth.signUp({email,password,options:{data:{full_name:""}}})
+      ? await client.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname,data:{full_name:signupFullName,mobile:mobile}}})
       : await client.auth.signInWithPassword({email,password});
     if (result.error) throw result.error;
     const user = result.data?.user || result.data?.session?.user;
@@ -19975,6 +19978,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "</div>"+
     "</section>";
     if(header)header.insertAdjacentHTML("afterend",markup);
+    const emailField=el("accountEmail");
+    if(emailField&&!el("accountFullName")&&emailField.parentElement){
+      emailField.parentElement.insertAdjacentHTML("beforebegin","<div class='field'><label for='accountFullName'>Full name / पूरा नाम (registration के लिए)</label><input id='accountFullName' maxlength='120' autocomplete='name' placeholder='आपका पूरा नाम'></div>");
+    }
     const extras=node("div","product-actions");
     extras.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px";
     extras.append(
