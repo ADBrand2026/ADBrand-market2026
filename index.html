@@ -1203,6 +1203,11 @@ function openPanel(panelName) {
     renderCart();
     renderCustomerOrders();
     renderCustomerReturns();
+    if (window.__adBrandAuthRole === "customer" && window.__adBrandAuthUser) {
+      if (typeof window.adLiveRenderCart === "function") window.adLiveRenderCart();
+      if (typeof window.adLiveLoadCustomerOrders === "function") window.adLiveLoadCustomerOrders();
+      if (typeof window.adLiveLoadCatalog === "function") window.adLiveLoadCatalog();
+    }
   }
 
   if (panelName === "seller") {
