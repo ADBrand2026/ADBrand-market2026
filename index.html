@@ -18832,7 +18832,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       pincode:String($("adCheckoutPincode")?.value || "").trim()
     };
     if(address.full_name.length<2 || !/^[6-9]\d{9}$/.test(address.mobile) || address.address_line.length<5 ||
-       address.city.length<2 || !/^\d{6}$/.test(address.pincode)) {
+       address.city.length<2 || address.state.length<2 || !/^[1-9]\d{5}$/.test(address.pincode)) {
       return alert("नाम, सही 10-digit मोबाइल, पूरा पता, शहर और 6-digit PIN भरें।");
     }
     const payment=String($("adCheckoutPayment")?.value || "cod");
