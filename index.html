@@ -1697,8 +1697,8 @@ window.adLivePrintParcelSlip=function(o){
  var w=window.open("","_blank","width=760,height=700");if(!w){toast("Print window block हुई। Browser pop-up allow करें।");return;}
  w.document.open();
  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:15px Arial;padding:24px}h2{margin-bottom:4px}.code{font:17px monospace;letter-spacing:1px;border:1px dashed #444;padding:10px;display:inline-block;overflow-wrap:anywhere}li{margin:8px 0}.note{padding:9px;border:1px solid #b36b00;background:#fff8e7}</style></head><body><h2>AD Brand Market</h2><p><b>Internal packing slip — NOT a Valmo/courier airway bill</b></p><svg id='adbmBarcode'></svg><p class='code'>"+liveEsc(barcodeValue)+"</p><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><p class='note'>Non-food parcel: book the courier and attach its official carrier-generated label. This AD barcode is for internal order lookup only. Do not use it as a carrier AWB.</p><button onclick='window.print()'>Print</button>"+
- "<script src='https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'><\\/script>"+
- "<script>try{if(window.JsBarcode){JsBarcode('#adbmBarcode','"+barcodeValue+"',{format:'CODE128',displayValue:true,height:48,margin:12});}else{document.getElementById('adbmBarcode').style.display='none';}}catch(e){document.getElementById('adbmBarcode').style.display='none';}<\\/script>"+
+ "<script src='https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'><\/script>"+
+ "<script>try{if(window.JsBarcode){JsBarcode('#adbmBarcode','"+barcodeValue+"',{format:'CODE128',displayValue:true,height:48,margin:12});}else{document.getElementById('adbmBarcode').style.display='none';}}catch(e){document.getElementById('adbmBarcode').style.display='none';}<\/script>"+
  "</body></html>");
  w.document.close();
 };
