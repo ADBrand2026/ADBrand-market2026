@@ -1495,7 +1495,7 @@ window.adLiveCheckout=async function(){
  if(!client||!window.__adBrandAuthUser||window.__adBrandAuthRole!=="customer"){toast("Order करने के लिए Customer login जरूरी है।");openAccountAccess("customer");return;}
  if(!cart.length){toast("पहले Cart में product जोड़ें।");return;}
  var address={full_name:String($("adCheckoutName")?.value||"").trim(),mobile:String($("adCheckoutMobile")?.value||"").replace(/\D/g,""),address_line:String($("adCheckoutAddress")?.value||"").trim(),city:String($("adCheckoutCity")?.value||"").trim(),state:String($("adCheckoutState")?.value||"").trim(),pincode:String($("adCheckoutPincode")?.value||"").trim(),label:"Home"};
- if(address.full_name.length<2||!/^\d{10}$/.test(address.mobile)||address.address_line.length<5||address.city.length<2||!/^\d{6}$/.test(address.pincode)){toast("नाम, 10-digit मोबाइल, पूरा पता, शहर और 6-digit PIN भरें।");return;}
+ if(address.full_name.length<2||!/^\d{10}$/.test(address.mobile)||address.address_line.length<5||address.city.length<2||address.state.length<2||!/^\d{6}$/.test(address.pincode)){toast("नाम, 10-digit मोबाइल, पूरा पता, शहर, राज्य और valid 6-digit PIN भरें।");return;}
  var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
  var btn=document.querySelector("button[onclick='adLiveCheckout()']");if(btn)btn.disabled=true;
  try{
