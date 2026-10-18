@@ -19608,7 +19608,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         actions.appendChild(liveButton("📍 Wrong address",()=>adLiveRecordContact(o.order_id,"wrong_address",0),"outline"));
         actions.appendChild(liveButton("🛡️ Safety concern / unsafe location",()=>adLiveRecordContact(o.order_id,"unsafe",0),"red"));
       }
-      if(!["out_for_delivery","delivered","cancelled"].includes(o.status)){
+      if(["assigned","ready_for_delivery"].includes(String(o.status||""))){
         const reason=document.createElement("select");reason.setAttribute("aria-label","Rider cancellation reason");
         [["vehicle_issue","Vehicle issue"],["emergency","Emergency"],["wrong_assignment","Wrong assignment"],["seller_delay","Seller delay"],["other","Other reason"]]
           .forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;reason.appendChild(option);});
