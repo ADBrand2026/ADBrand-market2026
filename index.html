@@ -19193,7 +19193,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         ["Medium","non_veg","adFoodMediumNonVegPrice","adFoodMediumNonVegStock"],
         ["Large","non_veg","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"]
       ];
-      const rows=foodType==="veg"?allRows.filter(r=>r[1]==="veg")
+      // Tea and snacks use base price/stock; pizza/main-food items use size/type variants.
+      const rows=["tea","snacks"].includes(category)?[]
+        :foodType==="veg"?allRows.filter(r=>r[1]==="veg")
         :foodType==="non_veg"?allRows.filter(r=>r[1]==="non_veg")
         :foodType==="egg"?[]:allRows;
       const variants=[];
@@ -19210,12 +19212,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           attributes:{size,food_type:type,veg_label:type==="veg"?"Veg":"Non-Veg"}
         });
       });
+      if(foodType==="both"&&!["tea","snacks"].includes(category)&&variants.length){
+        if(!variants.some(v=>v.attributes.food_type==="veg")||!variants.some(v=>v.attributes.food_type==="non_veg")){
+          throw new Error("Food type Both चुना है: कम से कम एक Veg और एक Non-Veg size की price/stock भरें, या केवल एक food type चुनें।");
+        }
+      }
       let price=Number(String($("adFoodBasePrice")?.value||"").trim());
       let stock=Number($("adFoodBaseStock")?.value||0);
       if(variants.length){
         price=Math.min(...variants.map(v=>v.price));
         stock=variants.reduce((sum,v)=>sum+v.stock,0);
-      }else if(foodType==="both"){
+      }else if(foodType==="both"&&!["tea","snacks"].includes(category)){
         throw new Error("Veg + Non-Veg menu item के लिए size-wise prices भरें, या एक food type चुनें।");
       }else if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){
         throw new Error("Size variants नहीं हैं तो positive base price और valid stock भरें।");
