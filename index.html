@@ -18780,13 +18780,39 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const pincode = String($("adLiveDeliveryPincode")?.value || $("adCheckoutPincode")?.value || "").replace(/\D/g,"").slice(0,6);
     const request = ++catalogRequest;
     box.replaceChildren(liveNode("div","empty","Live products load हो रहे हैं…"));
-    const {data,error} = await client.rpc("get_public_marketplace_catalog_for_zone", {
-      p_search: search || null,
-      p_category_slug: category || null,
-      p_city: city || null,
-      p_state: state || null,
-      p_pincode: pincode || null
-    });
+    const searchCandidates = [];
+    if (search) {
+      searchCandidates.push(search);
+      const q = search.toLocaleLowerCase("hi-IN").trim();
+      const synonyms = {
+        "साड़ी":["saree","sari"],"saree":["sari","साड़ी"],"sari":["saree","साड़ी"],
+        "पैंट":["pant","pants","trouser"],"pant":["pants","trouser","पैंट"],"pants":["pant","trouser"],
+        "phone cover":["mobile cover","cover","phone"],"mobile cover":["phone cover","cover"],
+        "कवर":["cover","mobile cover","phone cover"],"cover":["mobile cover","phone cover","case"],
+        "फोन":["phone","mobile","smartphone"],"phone":["mobile","smartphone","फोन"],"mobile":["phone","smartphone","फोन"],
+        "जूते":["shoes","shoe","footwear"],"shoes":["shoe","footwear","जूते"],"shoe":["shoes","footwear"],
+        "चप्पल":["slippers","sandals"],"slippers":["slipper","sandals","चप्पल"],
+        "कुर्ती":["kurti","kurta"],"kurti":["kurta","कुर्ती"],"शर्ट":["shirt","shirts"],"shirt":["shirts","शर्ट"],
+        "जीन्स":["jeans","denim"],"jeans":["denim","जीन्स"]
+      };
+      (synonyms[q] || []).forEach(function(v){searchCandidates.push(v);});
+      if (q.includes(" ")) q.split(/\s+/).reverse().forEach(function(v){if(v.length>1)searchCandidates.push(v);});
+    } else searchCandidates.push(null);
+    const uniqueCandidates = Array.from(new Set(searchCandidates)).slice(0,5);
+    let data = null, error = null;
+    for (const candidate of uniqueCandidates) {
+      const result = await client.rpc("get_public_marketplace_catalog_for_zone", {
+        p_search: candidate || null,
+        p_category_slug: category || null,
+        p_city: city || null,
+        p_state: state || null,
+        p_pincode: pincode || null
+      });
+      if (request !== catalogRequest) return;
+      data = result.data;
+      error = result.error;
+      if (error || asList(data).length) break;
+    }
     if (request !== catalogRequest) return;
     if (error) {
       console.error("Live catalogue error:",error);
@@ -18836,23 +18862,38 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if (product.description) card.appendChild(liveNode("p","",product.description));
       const variants = asList(product.variants);
       const attrSources = [product.attributes || {}, ...variants.map(v => v.attributes || {})];
-      function pickAttr(keys) {
+      function allAttrs(keys) {
+        const found = [];
         for (const source of attrSources) {
           if (!source || typeof source !== "object") continue;
           for (const key of keys) {
             const hit = Object.keys(source).find(k => k.toLowerCase().replace(/[ _-]/g,"") === key.toLowerCase().replace(/[ _-]/g,""));
-            if (hit && source[hit] != null && String(source[hit]).trim()) return String(source[hit]).trim();
+            if (hit && source[hit] != null) {
+              const values = Array.isArray(source[hit]) ? source[hit] : [source[hit]];
+              values.forEach(v => { if(String(v).trim()) found.push(String(v).trim()); });
+            }
           }
         }
-        return "";
+        return Array.from(new Set(found));
       }
+      function pickAttr(keys) { return allAttrs(keys)[0] || ""; }
       const variantText = variants.map(v => String(v.variant_name || "") + " " + JSON.stringify(v.attributes || {})).join(" ");
-      card.dataset.gender = (pickAttr(["gender","audience","target_gender","for"]) + " " + (variantText.match(/\b(men|man|male|women|woman|female|boys|girls|kids|children|unisex)\b/i)?.[0] || "")).trim().toLowerCase();
-      card.dataset.size = (pickAttr(["size","sizes","shoe_size","clothing_size","waist","memory","storage"]) + " " + variants.map(v=>v.variant_name||"").join(" ")).trim().toLowerCase();
-      card.dataset.color = (pickAttr(["color","colour","colors","colours"])).trim().toLowerCase();
-      card.dataset.brand = pickAttr(["brand","manufacturer"]).toLowerCase();
-      card.dataset.model = pickAttr(["phone_model","mobile_model","compatible_model","model","device_model"]).toLowerCase();
-      card.dataset.material = pickAttr(["material","fabric","fabric_type"]).toLowerCase();
+      const sizeValues = allAttrs(["size","sizes","shoe_size","clothing_size","waist","memory","storage","capacity"]);
+      const colorValues = allAttrs(["color","colour","colors","colours"]);
+      const sizeRegex = /\b(XXS|XXL|XXXL|XS|S|M|L|XL|[1-6]XL|\d{2}x\d{2}|\d{2,3}\s?(?:GB|TB)|(?:UK|US|EU)\s?\d+(?:\.\d+)?)\b/gi;
+      const colorRegex = /\b(black|white|blue|red|green|yellow|pink|purple|brown|grey|gray|orange|beige|gold|silver|maroon|navy|multicolor|multicolour)\b/gi;
+      variants.forEach(v => {
+        const vn = String(v.variant_name || "");
+        let m; while ((m = sizeRegex.exec(vn)) !== null) sizeValues.push(m[0].trim());
+        while ((m = colorRegex.exec(vn)) !== null) colorValues.push(m[0].trim());
+        sizeRegex.lastIndex=0;colorRegex.lastIndex=0;
+      });
+      card.dataset.gender = (allAttrs(["gender","audience","target_gender","for"]).concat((variantText+" "+String(product.name||"")+" "+String(product.description||"")).match(/\b(men|man|male|women|woman|female|boys|girls|kids|children|unisex)\b/gi)||[])).join("|").toLowerCase();
+      card.dataset.size = Array.from(new Set(sizeValues)).join("|").toLowerCase();
+      card.dataset.color = Array.from(new Set(colorValues)).join("|").toLowerCase();
+      card.dataset.brand = allAttrs(["brand","manufacturer"]).join("|").toLowerCase();
+      card.dataset.model = allAttrs(["phone_model","mobile_model","compatible_model","model","device_model"]).join("|").toLowerCase();
+      card.dataset.material = allAttrs(["material","fabric","fabric_type"]).join("|").toLowerCase();
       card.dataset.search = [product.name,product.description,product.category_name,product.category_slug,product.brand,product.gender,product.color,product.colour,product.material,product.model,product.attributes,variantText]
         .map(v => typeof v === "string" ? v : JSON.stringify(v || ""))
         .join(" ").toLocaleLowerCase("hi-IN");
@@ -20788,7 +20829,22 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var mapping={gender:["gender","audience","target_gender","for"],size:["size","sizes","shoe_size","clothing_size","waist","memory","storage","capacity"],color:["color","colour","colors","colours"],brand:["brand","manufacturer"],model:["phone_model","mobile_model","compatible_model","device_model","model"],material:["material","fabric","fabric_type"]};
     Object.keys(facetIds).forEach(function(facet){
       var select=document.getElementById(facetIds[facet]);if(!select)return;var keep=select.value,found=[];
-      products.forEach(function(p){found.push.apply(found,valuesFrom(p.attributes,mapping[facet]));if(p[facet]!=null)found.push(String(p[facet]));(Array.isArray(p.variants)?p.variants:[]).forEach(function(v){found.push.apply(found,valuesFrom(v.attributes,mapping[facet]));if(facet==="size"||facet==="color"||facet==="model")found.push(String(v.variant_name||""));});});
+      products.forEach(function(p){
+        found.push.apply(found,valuesFrom(p.attributes,mapping[facet]));
+        if(p[facet]!=null)found.push(String(p[facet]));
+        (Array.isArray(p.variants)?p.variants:[]).forEach(function(v){
+          found.push.apply(found,valuesFrom(v.attributes,mapping[facet]));
+          var vn=String(v.variant_name||"");
+          if(facet==="size"){
+            var re=/\b(XXS|XXL|XXXL|XS|S|M|L|XL|[1-6]XL|\d{2}x\d{2}|\d{2,3}\s?(?:GB|TB)|(?:UK|US|EU)\s?\d+(?:\.\d+)?)\b/gi,hit;
+            while((hit=re.exec(vn))!==null)found.push(hit[0].trim());
+          }
+          if(facet==="color"){
+            var cr=/\b(black|white|blue|red|green|yellow|pink|purple|brown|grey|gray|orange|beige|gold|silver|maroon|navy|multicolor|multicolour)\b/gi,cm;
+            while((cm=cr.exec(vn))!==null)found.push(cm[0].trim());
+          }
+        });
+      });
       if(facet==="gender"){found=found.concat(labels.gender.slice(1).filter(function(v){return products.some(function(p){return norm(JSON.stringify(p)).includes(norm(v));});}));}
       found=Array.from(new Set(found.map(function(v){return String(v).trim();}).filter(Boolean))).filter(function(v){return v.length<100;}).sort(function(a,b){return a.localeCompare(b,"en",{numeric:true,sensitivity:"base"});});
       select.replaceChildren(new Option(labels[facet][0],""));found.forEach(function(v){select.add(new Option(v,v));});if(found.some(function(v){return v===keep;}))select.value=keep;
@@ -20824,7 +20880,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         var terms=aliases[query]||query,hay=norm(card.dataset.search||"");
         show=show&&(hay.includes(query)||terms.split(/\s+/).some(function(t){return t.length>1&&hay.includes(norm(t));}));
       }
-      Object.keys(selected).forEach(function(k){if(selected[k])show=show&&norm(card.dataset[k]||"").includes(selected[k]);});
+      Object.keys(selected).forEach(function(k){if(selected[k]){var values=norm(card.dataset[k]||"").split("|").map(function(v){return v.trim();});show=show&&values.includes(selected[k]);}});
       card.hidden=!show;
     });
     var visible=cards.filter(function(card){return !card.hidden;});visible.sort(function(a,b){var ap=Number(a.dataset.price||0),bp=Number(b.dataset.price||0);if(sort==="price_asc")return ap-bp;if(sort==="price_desc")return bp-ap;if(sort==="rating")return Number(b.dataset.rating||0)-Number(a.dataset.rating||0);if(sort==="newest")return String(b.dataset.created||"").localeCompare(String(a.dataset.created||""));return 0;});visible.forEach(function(card){box.appendChild(card);});
@@ -20832,6 +20888,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
   document.addEventListener("DOMContentLoaded",function(){
     window.__adBrandCustomerMarketMode="products";var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
+    try{if(new URLSearchParams(window.location.search).get("view")==="customer"&&typeof window.openPanel==="function"){window.openPanel("customer");setTimeout(function(){window.adCustomerSetMarketMode("products");},120);}}catch(e){}
     var cat=document.getElementById("adLiveCategory");if(cat&&!cat.dataset.adModeBound){cat.dataset.adModeBound="1";cat.addEventListener("change",function(){var food=["food","veg-food","non-veg-food","tea","snacks"].includes(cat.value);if(food)window.__adBrandCustomerMarketMode="food";else if(cat.value)window.__adBrandCustomerMarketMode="products";var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");if(f)f.classList.toggle("active",food);if(p)p.classList.toggle("active",!food);if(zone)zone.style.display=food?"grid":"none";});}
   });
 })();
