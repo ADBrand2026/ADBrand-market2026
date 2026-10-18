@@ -19148,6 +19148,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         }
         if(o.status==="ready_for_delivery"||o.status==="assigned"||o.status==="out_for_delivery")
           controls.appendChild(liveNode("span","small muted","Rider handover/delivery status updates in Delivery dashboard."));
+        controls.appendChild(liveButton("Print food order slip",()=>adLivePrintSlip(o,o.items,o.address,seller.shop_name),"outline"));
       } else if(o.fulfillment_mode==="self_pickup") {
         controls.appendChild(liveNode("span","small muted","Customer will collect this non-food order from the seller shop. No courier or AD rider is assigned."));
         if(o.status==="pending")controls.appendChild(liveButton("Mark ready for customer pickup",()=>adLiveMarkSelfPickupReady(o.id),"primary"));
