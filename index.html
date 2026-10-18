@@ -18974,6 +18974,21 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           await adLiveLoadCustomerOrders();
         },"outline"));
       }
+      card.appendChild(liveButton("🆘 Help with this order / support ticket",async()=>{
+        const category=String(prompt("Issue category चुनें: order, delivery, payment, product, return_refund, seller, other","delivery")||"").trim().toLowerCase();
+        const validCategories=["order","delivery","payment","product","return_refund","seller","other"];
+        if(!validCategories.includes(category)){alert("Valid category चुनें: "+validCategories.join(", "));return;}
+        const details=prompt("इस order में क्या समस्या है? पूरा विवरण लिखें ताकि support team जाँच सके:","");
+        if(details===null)return;
+        if(details.trim().length<5){alert("Issue की detail कम से कम 5 characters लिखें।");return;}
+        const {data:ticket,error:ticketError}=await client.rpc("customer_create_support_ticket",{
+          p_subject:"Order "+o.order_code+" — customer support request",
+          p_description:"Order "+o.order_code+" • Status: "+o.status+" • Issue type: "+category+" • Details: "+details.trim(),
+          p_category:category,p_order_id:o.id
+        });
+        if(ticketError){alert("Support ticket नहीं बना: "+liveErr(ticketError));return;}
+        toast("Support request Admin queue में दर्ज हुई. Ticket: "+(ticket?.ticket_code||"created"));
+      },"outline"));
       box.appendChild(card);
     }
     if(window.__adBrandCustomerRefreshTimer){clearTimeout(window.__adBrandCustomerRefreshTimer);window.__adBrandCustomerRefreshTimer=null;}
