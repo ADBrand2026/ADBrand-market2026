@@ -362,6 +362,13 @@ img{max-width:100%}
         <option value="">सभी categories</option><option value="food">खाना / Pizza</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option>
       </select></div>
     </div>
+    <div class="form-grid" id="adLiveFoodZoneFilter">
+      <div class="field"><label for="adLiveDeliveryCity">Food delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
+      <div class="field"><label for="adLiveDeliveryState">State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
+      <div class="field"><label for="adLiveDeliveryPincode">6-digit PIN Code</label><input id="adLiveDeliveryPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="जैसे 226001"></div>
+      <div class="field"><label for="adLiveZoneApply">Local Food availability</label><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">Show products for this zone</button></div>
+    </div>
+    <p class="small muted">Food/Pizza/Tea/Snacks sellers तभी दिखेंगे जब उनकी active service zone आपके City, State और PIN Code से match करेगी। बिना zone के Non-food courier items दिख सकते हैं। अपना saved checkout address भरने के बाद location fields उसी address से भरें।</p>
     <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
     <div class="section">
       <h3>🛒 Live Cart और Checkout</h3>
