@@ -260,6 +260,22 @@ img{max-width:100%}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+  .ad-customer-market-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:14px 0 22px}
+  .ad-market-tile{display:grid;grid-template-columns:minmax(110px,36%) 1fr;gap:0;min-height:170px;overflow:hidden;text-align:left;padding:0;border:1px solid var(--border);border-radius:20px;background:var(--surface);box-shadow:var(--shadow);cursor:pointer;transition:transform .2s,box-shadow .2s,border-color .2s}
+  .ad-market-tile:hover,.ad-market-tile:focus-visible{transform:translateY(-3px);border-color:var(--primary);box-shadow:0 16px 36px rgba(23,32,51,.14);outline:2px solid transparent}
+  .ad-market-image{display:block;min-height:170px;background-size:cover;background-position:center}
+  .ad-market-food .ad-market-image{background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=700&q=85')}
+  .ad-market-products .ad-market-image{background-image:url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=700&q=85')}
+  .ad-market-copy{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:10px;padding:16px}
+  .ad-market-copy strong{font-size:1.15rem;line-height:1.35}
+  .ad-market-copy small{color:var(--muted);line-height:1.5}
+  .ad-market-copy b{color:var(--primary)}
+  .ad-market-tile.active{border:2px solid var(--primary);box-shadow:0 0 0 3px rgba(91,53,213,.12)}
+  .ad-customer-attribute-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0;padding:14px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+  .ad-customer-attribute-filters .field{min-width:0}
+  .ad-live-product[hidden]{display:none!important}
+  .ad-live-product .ad-product-placeholder{display:grid;place-items:center;min-height:160px;border-radius:12px;background:linear-gradient(135deg,#eee9ff,#e2f6f1);font-size:3rem}
+  @media(max-width:640px){.ad-customer-market-switch{grid-template-columns:1fr}.ad-market-tile{grid-template-columns:112px 1fr;min-height:140px}.ad-market-image{min-height:140px}.ad-market-copy{padding:12px}.ad-market-copy strong{font-size:1rem}}
 </style>
 <style>
 /* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
@@ -363,9 +379,19 @@ img{max-width:100%}
 <!-- Customer screen -->
 <section id="customer" class="panel container">
   <div class="panel-header">
-    <h2>🛍️ Customer Panel</h2>
+    <h2>🛍️ Customer Marketplace</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
   </div>
+  <section class="ad-customer-market-switch" aria-label="Choose shopping department">
+    <button type="button" id="adMarketFoodButton" class="ad-market-tile ad-market-food" onclick="adCustomerSetMarketMode('food')">
+      <span class="ad-market-image" aria-hidden="true"></span>
+      <span class="ad-market-copy"><strong>🍕 Food &amp; Drinks</strong><small>Pizza, Veg, Non-Veg, मिठाई, चाय और Snacks</small><b>खाना ऑर्डर करें →</b></span>
+    </button>
+    <button type="button" id="adMarketProductsButton" class="ad-market-tile ad-market-products" onclick="adCustomerSetMarketMode('products')">
+      <span class="ad-market-image" aria-hidden="true"></span>
+      <span class="ad-market-copy"><strong>🛍️ Shop Products — सामान खरीदें</strong><small>कपड़े, साड़ी, पैंट, जूते, मोबाइल, कवर, ज्वेलरी और घर का सामान</small><b>सामान देखें →</b></span>
+    </button>
+  </section>
 
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel">
     <h3>📱 Customer Mobile OTP Login</h3>
@@ -386,7 +412,7 @@ img{max-width:100%}
   <div id="adLiveCustomerMarket" class="section">
     <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
     <div class="form-grid">
-      <div class="field"><label for="adLiveSearch">Live products खोजें</label><input id="adLiveSearch" placeholder="कपड़े, shoes, jewellery, grocery..." oninput="adCustomerDebouncedSearch()"></div>
+      <div class="field"><label for="adLiveSearch">🔎 Search / खोजें</label><input id="adLiveSearch" placeholder="फोन, phone cover, साड़ी, saree, pant, shoes..." oninput="adCustomerDebouncedSearch()"></div>
       <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adLiveLoadCatalog()">
         <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="home-kitchen">Home & Kitchen</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-accessories">Mobile Accessories</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option>
       </select></div>
@@ -398,7 +424,16 @@ img{max-width:100%}
       <div class="field"><label for="adCustomerMaxPrice">Maximum price (₹)</label><input id="adCustomerMaxPrice" type="number" min="0" max="10000000" inputmode="numeric" placeholder="No limit" oninput="adCustomerApplyDiscovery()"></div>
       <div class="field"><label>Voice search</label><button class="btn outline" type="button" onclick="adCustomerStartVoiceSearch()">🎙️ बोलकर खोजें</button><small id="adCustomerVoiceStatus" class="muted" role="status">Browser support और microphone permission आवश्यक हैं।</small></div>
     </div>
-    <p class="small muted">कपड़े, footwear, jewellery, home/kitchen, beauty, electronics, grocery, stationery, toys और बाकी categories तभी product दिखाएँगी जब verified live catalogue में उनका data उपलब्ध होगा। Search results और sponsored listings को misleading तरीके से नहीं बदला जाएगा।</p>
+    <div id="adCustomerAttributeFilters" class="ad-customer-attribute-filters" aria-label="Category-specific product filters">
+      <div class="field"><label for="adCustomerGenderFilter">किसके लिए / Audience</label><select id="adCustomerGenderFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी</option></select></div>
+      <div class="field"><label for="adCustomerSizeFilter">साइज़ / Size</label><select id="adCustomerSizeFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी उपलब्ध साइज़</option></select></div>
+      <div class="field"><label for="adCustomerColorFilter">रंग / Color</label><select id="adCustomerColorFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी रंग</option></select></div>
+      <div class="field"><label for="adCustomerBrandFilter">ब्रांड / Brand</label><select id="adCustomerBrandFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी ब्रांड</option></select></div>
+      <div class="field"><label for="adCustomerModelFilter">फोन मॉडल / Model</label><select id="adCustomerModelFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी मॉडल</option></select></div>
+      <div class="field"><label for="adCustomerMaterialFilter">मटेरियल / Material</label><select id="adCustomerMaterialFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी मटेरियल</option></select></div>
+      <div class="field"><label>फ़िल्टर</label><button type="button" class="btn outline" onclick="adCustomerClearFilters()">✕ Clear all filters</button></div>
+    </div>
+    <p class="small muted">साइज़, रंग, gender/audience, brand, phone model और material फ़िल्टर लाइव कैटलॉग में मौजूद variant/product attributes से बनेंगे। जो विकल्प सेलर ने दर्ज नहीं किए हैं, उनके लिए सिस्टम झूठा स्टॉक या उपलब्धता नहीं दिखाएगा।</p>
     <div class="form-grid" id="adLiveFoodZoneFilter">
       <div class="field"><label for="adLiveDeliveryCity">Food delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
       <div class="field"><label for="adLiveDeliveryState">State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
@@ -18771,6 +18806,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     for (const product of products) {
       const card = liveNode("article","card ad-live-product");
       card.style.margin = "0";
+      card.dataset.price = String(Number(product.sale_price ?? product.price ?? 0));
+      card.dataset.stock = String(Number(product.stock ?? 0));
+      card.dataset.sale = String(product.sale_price != null && Number(product.sale_price) < Number(product.price || 0));
+      card.dataset.rating = String(Number(product.rating ?? product.average_rating ?? 0));
+      card.dataset.created = String(product.created_at || "");
+      card.dataset.food = String(product.seller_type === "food" || /food|veg|non.?veg|tea|snack|pizza/i.test(String(product.category_slug || "")));
       const images = asList(product.images);
       const imageUrl = images.map(safeHttpUrl).find(Boolean);
       if (imageUrl) {
@@ -18778,8 +18819,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         img.src = imageUrl;
         img.alt = product.name || "Product photo";
         img.loading = "lazy";
-        img.style.cssText = "width:100%;max-height:180px;object-fit:contain;border-radius:10px;";
+        img.style.cssText = "width:100%;max-height:220px;min-height:150px;object-fit:contain;border-radius:10px;background:#f8fafc;";
+        img.onerror = function(){const ph=liveNode("div","ad-product-placeholder","🛍️");img.replaceWith(ph);};
         card.appendChild(img);
+      } else {
+        const placeholder = liveNode("div","ad-product-placeholder",
+          product.seller_type === "food" ? "🍲" : (/mobile|phone|cover|electronic/i.test(String(product.category_slug||"")+" "+String(product.name||"")) ? "📱" : (/shoe|footwear/i.test(String(product.category_slug||"")) ? "👟" : "🛍️")));
+        card.appendChild(placeholder);
       }
       card.appendChild(liveNode("h3","",product.name));
       card.appendChild(liveNode("p","small muted",
@@ -18789,6 +18835,27 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         : ("📦 Non-food seller • " + (product.seller_city || "Seller city") + " • Courier delivery or self-pickup as selected at checkout")));
       if (product.description) card.appendChild(liveNode("p","",product.description));
       const variants = asList(product.variants);
+      const attrSources = [product.attributes || {}, ...variants.map(v => v.attributes || {})];
+      function pickAttr(keys) {
+        for (const source of attrSources) {
+          if (!source || typeof source !== "object") continue;
+          for (const key of keys) {
+            const hit = Object.keys(source).find(k => k.toLowerCase().replace(/[ _-]/g,"") === key.toLowerCase().replace(/[ _-]/g,""));
+            if (hit && source[hit] != null && String(source[hit]).trim()) return String(source[hit]).trim();
+          }
+        }
+        return "";
+      }
+      const variantText = variants.map(v => String(v.variant_name || "") + " " + JSON.stringify(v.attributes || {})).join(" ");
+      card.dataset.gender = (pickAttr(["gender","audience","target_gender","for"]) + " " + (variantText.match(/\b(men|man|male|women|woman|female|boys|girls|kids|children|unisex)\b/i)?.[0] || "")).trim().toLowerCase();
+      card.dataset.size = (pickAttr(["size","sizes","shoe_size","clothing_size","waist","memory","storage"]) + " " + variants.map(v=>v.variant_name||"").join(" ")).trim().toLowerCase();
+      card.dataset.color = (pickAttr(["color","colour","colors","colours"])).trim().toLowerCase();
+      card.dataset.brand = pickAttr(["brand","manufacturer"]).toLowerCase();
+      card.dataset.model = pickAttr(["phone_model","mobile_model","compatible_model","model","device_model"]).toLowerCase();
+      card.dataset.material = pickAttr(["material","fabric","fabric_type"]).toLowerCase();
+      card.dataset.search = [product.name,product.description,product.category_name,product.category_slug,product.brand,product.gender,product.color,product.colour,product.material,product.model,product.attributes,variantText]
+        .map(v => typeof v === "string" ? v : JSON.stringify(v || ""))
+        .join(" ").toLocaleLowerCase("hi-IN");
       let selectedVariant = null;
       const price = liveNode("strong","ad-live-price",
         variants.length ? "Size / colour चुनें" : liveMoney(product.sale_price ?? product.price));
@@ -18837,6 +18904,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       card.appendChild(add);
       box.appendChild(card);
     }
+    if (typeof window.adCustomerPopulateAttributeFilters === "function") window.adCustomerPopulateAttributeFilters(products);
+    if (typeof window.adCustomerApplyDiscovery === "function") window.adCustomerApplyDiscovery();
   };
 
   window.adLiveRenderCart = function () {
@@ -20706,5 +20775,66 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
 })();
 </script>
 
+<script>
+/* Customer discovery: separate food/non-food, attribute facets, and safe client-side filtering. */
+(function(){
+  "use strict";
+  var facetIds={gender:"adCustomerGenderFilter",size:"adCustomerSizeFilter",color:"adCustomerColorFilter",brand:"adCustomerBrandFilter",model:"adCustomerModelFilter",material:"adCustomerMaterialFilter"};
+  var labels={gender:["All audiences","Men","Women","Boys","Girls","Kids","Unisex","Male","Female"],size:["All sizes"],color:["All colours"],brand:["All brands"],model:["All models"],material:["All materials"]};
+  function norm(v){return String(v||"").toLocaleLowerCase("hi-IN").normalize("NFC").trim();}
+  function valuesFrom(obj,keys){var out=[];if(!obj||typeof obj!=="object")return out;Object.keys(obj).forEach(function(k){if(keys.some(function(key){return k.toLowerCase().replace(/[ _-]/g,"")===key.toLowerCase().replace(/[ _-]/g,"");})){var v=obj[k];if(Array.isArray(v))out.push.apply(out,v.map(String));else if(v!=null&&String(v).trim())out.push(String(v).trim());}});return out;}
+  window.adCustomerPopulateAttributeFilters=function(products){
+    products=Array.isArray(products)?products:[];
+    var mapping={gender:["gender","audience","target_gender","for"],size:["size","sizes","shoe_size","clothing_size","waist","memory","storage","capacity"],color:["color","colour","colors","colours"],brand:["brand","manufacturer"],model:["phone_model","mobile_model","compatible_model","device_model","model"],material:["material","fabric","fabric_type"]};
+    Object.keys(facetIds).forEach(function(facet){
+      var select=document.getElementById(facetIds[facet]);if(!select)return;var keep=select.value,found=[];
+      products.forEach(function(p){found.push.apply(found,valuesFrom(p.attributes,mapping[facet]));if(p[facet]!=null)found.push(String(p[facet]));(Array.isArray(p.variants)?p.variants:[]).forEach(function(v){found.push.apply(found,valuesFrom(v.attributes,mapping[facet]));if(facet==="size"||facet==="color"||facet==="model")found.push(String(v.variant_name||""));});});
+      if(facet==="gender"){found=found.concat(labels.gender.slice(1).filter(function(v){return products.some(function(p){return norm(JSON.stringify(p)).includes(norm(v));});}));}
+      found=Array.from(new Set(found.map(function(v){return String(v).trim();}).filter(Boolean))).filter(function(v){return v.length<100;}).sort(function(a,b){return a.localeCompare(b,"en",{numeric:true,sensitivity:"base"});});
+      select.replaceChildren(new Option(labels[facet][0],""));found.forEach(function(v){select.add(new Option(v,v));});if(found.some(function(v){return v===keep;}))select.value=keep;
+    });
+  };
+  window.adCustomerSetMarketMode=function(mode){
+    mode=mode==="food"?"food":"products";window.__adBrandCustomerMarketMode=mode;
+    var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
+    if(food)food.classList.toggle("active",mode==="food");if(products)products.classList.toggle("active",mode==="products");
+    var category=document.getElementById("adLiveCategory"),search=document.getElementById("adLiveSearch");
+    if(category){if(mode==="food")category.value="food";else if(["food","veg-food","non-veg-food","tea","snacks"].includes(category.value))category.value="";}
+    var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display=mode==="food"?"grid":"none";
+    if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile/i.test(search.value))search.value="";
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+    var market=document.getElementById("adLiveCustomerMarket");if(market)market.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  window.adCustomerClearFilters=function(){
+    ["adCustomerGenderFilter","adCustomerSizeFilter","adCustomerColorFilter","adCustomerBrandFilter","adCustomerModelFilter","adCustomerMaterialFilter","adCustomerMinPrice","adCustomerMaxPrice"].forEach(function(id){var e=document.getElementById(id);if(e)e.value="";});
+    var av=document.getElementById("adCustomerAvailability");if(av)av.value="all";var sort=document.getElementById("adCustomerSort");if(sort)sort.value="relevance";
+    var search=document.getElementById("adLiveSearch");if(search)search.value="";if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+  };
+  window.adCustomerApplyDiscovery=function(){
+    var box=document.getElementById("adLiveCatalog");if(!box)return;var cards=Array.from(box.querySelectorAll(".ad-live-product"));
+    var minRaw=String(document.getElementById("adCustomerMinPrice")?.value||"").trim(),maxRaw=String(document.getElementById("adCustomerMaxPrice")?.value||"").trim();
+    var min=minRaw===""?null:Number(minRaw),max=maxRaw===""?null:Number(maxRaw),availability=String(document.getElementById("adCustomerAvailability")?.value||"all"),sort=String(document.getElementById("adCustomerSort")?.value||"relevance"),mode=window.__adBrandCustomerMarketMode||"products",query=norm(document.getElementById("adLiveSearch")?.value||"");
+    var selected={gender:norm(document.getElementById("adCustomerGenderFilter")?.value),size:norm(document.getElementById("adCustomerSizeFilter")?.value),color:norm(document.getElementById("adCustomerColorFilter")?.value),brand:norm(document.getElementById("adCustomerBrandFilter")?.value),model:norm(document.getElementById("adCustomerModelFilter")?.value),material:norm(document.getElementById("adCustomerMaterialFilter")?.value)};
+    cards.forEach(function(card){
+      var price=Number(card.dataset.price||0),stock=Number(card.dataset.stock||0),sale=card.dataset.sale==="true",food=card.dataset.food==="true",show=mode==="food"?food:!food;
+      show=show&&!(min!==null&&price<min)&&!(max!==null&&price>max);
+      if(availability==="stock")show=show&&stock>0;if(availability==="deals")show=show&&price<=99;if(availability==="sale")show=show&&sale;
+      if(query){
+        var aliases={"saree":"साड़ी saree sari sarees","sari":"साड़ी saree sari sarees","साड़ी":"साड़ी saree sari sarees","pant":"pant pants trouser trousers पैंट","pants":"pant pants trouser trousers पैंट","पैंट":"pant pants trouser trousers","phone cover":"phone cover mobile cover back cover case कवर","cover":"cover case mobile cover phone cover कवर","phone":"phone mobile smartphone handset फोन मोबाइल","mobile":"phone mobile smartphone handset फोन मोबाइल","shoe":"shoe shoes footwear जूते","shoes":"shoe shoes footwear जूते","जूते":"shoe shoes footwear","slipper":"slipper slippers sandal sandals चप्पल","चप्पल":"slipper slippers sandal sandals","kurti":"kurti kurta कुर्ती","shirt":"shirt shirts शर्ट","jeans":"jeans denim जीन्स"};
+        var terms=aliases[query]||query,hay=norm(card.dataset.search||"");
+        show=show&&(hay.includes(query)||terms.split(/\s+/).some(function(t){return t.length>1&&hay.includes(norm(t));}));
+      }
+      Object.keys(selected).forEach(function(k){if(selected[k])show=show&&norm(card.dataset[k]||"").includes(selected[k]);});
+      card.hidden=!show;
+    });
+    var visible=cards.filter(function(card){return !card.hidden;});visible.sort(function(a,b){var ap=Number(a.dataset.price||0),bp=Number(b.dataset.price||0);if(sort==="price_asc")return ap-bp;if(sort==="price_desc")return bp-ap;if(sort==="rating")return Number(b.dataset.rating||0)-Number(a.dataset.rating||0);if(sort==="newest")return String(b.dataset.created||"").localeCompare(String(a.dataset.created||""));return 0;});visible.forEach(function(card){box.appendChild(card);});
+    var empty=box.querySelector(".adCustomerDiscoveryEmpty");if(!visible.length){if(!empty){empty=document.createElement("div");empty.className="empty adCustomerDiscoveryEmpty";empty.textContent="इन खोज/फ़िल्टर में कोई उत्पाद नहीं मिला। वर्तनी जाँचें या Clear all filters दबाएँ।";box.appendChild(empty);}}else if(empty)empty.remove();
+  };
+  document.addEventListener("DOMContentLoaded",function(){
+    window.__adBrandCustomerMarketMode="products";var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
+    var cat=document.getElementById("adLiveCategory");if(cat&&!cat.dataset.adModeBound){cat.dataset.adModeBound="1";cat.addEventListener("change",function(){var food=["food","veg-food","non-veg-food","tea","snacks"].includes(cat.value);if(food)window.__adBrandCustomerMarketMode="food";else if(cat.value)window.__adBrandCustomerMarketMode="products";var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");if(f)f.classList.toggle("active",food);if(p)p.classList.toggle("active",!food);if(zone)zone.style.display=food?"grid":"none";});}
+  });
+})();
+</script>
 </body>
 </html>
