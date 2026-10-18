@@ -322,10 +322,9 @@ img{max-width:100%}
 .m5-dashboard,.m5-stats,.m5-role-cards,.m5-footer-links,
 .role-grid,.category-grid,.footer-links {display:none!important}
 /* Customer panel: do not repeat the two home choices or show manually curated category buttons. */
-#adCustomer .ad-customer-market-switch,
-#customer .ad-customer-market-switch,
 #adCustomer .ad-customer-quick-categories,
 #customer .ad-customer-quick-categories,
+#adCustomer .ad-customer-category-tiles,
 #customer .ad-customer-category-tiles {display:none!important}
 /* Keep the customer search, seller-uploaded catalogue, filters, cart and checkout available. */
 </style>
@@ -398,83 +397,70 @@ img{max-width:100%}
     <div class="header-actions">
       <button class="btn outline" onclick="goHome()">🏠 Home</button>
       <button class="btn outline" onclick="openCartModal()">🛒 Cart <span id="cartCount">0</span></button>
-      <button class="btn outline" onclick="openAccountAccess('customer')">👤 Customer Login</button>
+      
     </div>
   </div>
 </header>
 
 <main class="container" id="home">
-  <section class="hero">
+  <section class="hero ad-role-home">
     <div class="hero-content">
       <div class="chip-row">
-        <span class="chip">Local Shopping</span>
-        <span class="chip">Food Delivery</span>
-        <span class="chip">Express Delivery</span>
+        <span class="chip">AD Brand Market</span>
+        <span class="chip">Shopping • Food • Local Delivery</span>
       </div>
-      <h2>आपके शहर की खरीदारी,<br>आपके दरवाज़े तक।</h2>
-      <p>
-        कपड़े, जूते, चप्पल, खाना, चाय और Snacks।
-        Local sellers से खरीदें और उपलब्ध delivery विकल्प चुनें।
-        सेवा की उपलब्धता seller location और delivery area पर निर्भर करेगी।
-      </p>
-      <div class="hero-actions ad-simple-market-actions">
-        <button class="ad-home-market-button ad-home-food-button" type="button" onclick="window.adCustomerSetMarketMode('food');openPanel('customer')">
-          <span class="ad-home-market-photo ad-home-food-photo" aria-hidden="true"></span>
-          <span><strong>🍕 Food & Drinks</strong><small>खाना, पिज़्ज़ा, समोसा, मोमोज़, चाय और स्नैक्स</small></span>
-          <b>खाना ऑर्डर करें →</b>
+      <h2>आप क्या करना चाहते हैं?</h2>
+      <p>पहले अपना विकल्प चुनें। Customer पर क्लिक करने के बाद ही Food और सामान खरीदने के विकल्प दिखाई देंगे।</p>
+      <div class="ad-role-entry-grid">
+        <button class="ad-role-entry" type="button" onclick="openPanel('customer')">
+          <span class="ad-role-entry-icon">🛍️</span>
+          <span class="ad-role-entry-copy"><strong>Customer</strong><small>खाना या सामान खरीदें</small></span>
+          <span class="ad-role-entry-arrow">→</span>
         </button>
-        <button class="ad-home-market-button ad-home-products-button" type="button" onclick="window.adCustomerSetMarketMode('products');openPanel('customer')">
-          <span class="ad-home-market-photo ad-home-products-photo" aria-hidden="true"></span>
-          <span><strong>🛍️ Shop Products — सामान खरीदें</strong><small>सेलर के अपलोड किए हुए सभी सामान खोजें</small></span>
-          <b>सामान देखें →</b>
+        <button class="ad-role-entry" type="button" onclick="adDeliveryBoyComingSoon()">
+          <span class="ad-role-entry-icon">🛵</span>
+          <span class="ad-role-entry-copy"><strong>Food Delivery Boy</strong><small>Food orders deliver करें</small></span>
+          <span class="ad-role-entry-arrow">→</span>
+        </button>
+        <button class="ad-role-entry" type="button" onclick="adChooseSellerType('food')">
+          <span class="ad-role-entry-icon">🍲</span>
+          <span class="ad-role-entry-copy"><strong>Food Seller</strong><small>Restaurant, ढाबा, चाय और snacks</small></span>
+          <span class="ad-role-entry-arrow">→</span>
+        </button>
+        <button class="ad-role-entry" type="button" onclick="adChooseSellerType('products')">
+          <span class="ad-role-entry-icon">👕</span>
+          <span class="ad-role-entry-copy"><strong>Clothes / Shoes / Products Seller</strong><small>कपड़े, जूते, चप्पल और अन्य सामान बेचें</small></span>
+          <span class="ad-role-entry-arrow">→</span>
         </button>
       </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-heading">
-      <h2>अपना Account चुनें</h2>
-    </div>
-    <div class="role-grid">
-      <button class="role-card" onclick="openPanel('customer')">
-        <div class="role-icon">🛍️</div>
-        <h3>Customer</h3>
-        <p>Products देखें, cart बनाएं, orders और delivery status देखें।</p>
-        <span class="pill">सामान खरीदें</span>
-      </button>
-      <button class="role-card" onclick="openAccountAccess('seller')">
-        <div class="role-icon">🏪</div>
-        <h3>Seller / Shop Owner</h3>
-        <p>Shop profile, products, stock, orders और earnings manage करें।</p>
-        <span class="pill">सामान बेचें</span>
-      </button>
-      <button class="role-card" onclick="openAccountAccess('delivery')">
-        <div class="role-icon">🛵</div>
-        <h3>Delivery Partner</h3>
-        <p>Available assignments, pickup, delivery और earnings देखें।</p>
-        <span class="pill">Order Deliver करें</span>
-      </button>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="section-heading">
-      <h2>Shopping Categories</h2>
-      <span class="muted small">Category चुनकर products देखें</span>
-    </div>
-    <div class="category-grid">
-      <button class="category-card" onclick="selectCategory('कपड़े')"><span class="emoji">👕</span><b>कपड़े</b></button>
-      <button class="category-card" onclick="selectCategory('जूते')"><span class="emoji">👟</span><b>जूते</b></button>
-      <button class="category-card" onclick="selectCategory('चप्पल')"><span class="emoji">🩴</span><b>चप्पल</b></button>
-      <button class="category-card" onclick="selectCategory('खाना')"><span class="emoji">🍱</span><b>खाना</b></button>
-      <button class="category-card" onclick="selectCategory('Veg')"><span class="emoji">🥗</span><b>Veg</b></button>
-      <button class="category-card" onclick="selectCategory('Non-Veg')"><span class="emoji">🍗</span><b>Non-Veg</b></button>
-      <button class="category-card" onclick="selectCategory('चाय')"><span class="emoji">☕</span><b>चाय</b></button>
-      <button class="category-card" onclick="selectCategory('Snacks')"><span class="emoji">🍟</span><b>Snacks</b></button>
     </div>
   </section>
 </main>
+
+<style id="ad-four-role-home-ui">
+  .ad-role-home{padding:clamp(22px,4vw,42px)!important}
+  .ad-role-home .hero-content{width:100%;max-width:1000px;margin:0 auto}
+  .ad-role-home h2{margin-bottom:10px}
+  .ad-role-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:24px}
+  .ad-role-entry{display:flex;align-items:center;gap:14px;min-width:0;min-height:106px;padding:18px;text-align:left;border:1px solid var(--border,#e0e4eb);border-radius:18px;background:var(--surface,#fff);color:var(--ink,#172033);box-shadow:var(--shadow,0 8px 24px rgba(20,30,50,.08));cursor:pointer;transition:transform .18s,box-shadow .18s}
+  .ad-role-entry:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(20,30,50,.13)}
+  .ad-role-entry-icon{display:grid;place-items:center;flex:0 0 54px;width:54px;height:54px;border-radius:15px;background:rgba(91,53,213,.09);font-size:28px}
+  .ad-role-entry-copy{display:grid;gap:6px;flex:1;min-width:0}
+  .ad-role-entry-copy strong{font-size:1rem;line-height:1.35}
+  .ad-role-entry-copy small{font-size:.88rem;line-height:1.4;color:var(--muted,#667085)}
+  .ad-role-entry-arrow{font-size:24px;font-weight:700}
+  @media(max-width:620px){.ad-role-entry-grid{grid-template-columns:1fr;gap:10px}.ad-role-entry{min-height:88px;padding:14px}.ad-role-entry-icon{flex-basis:46px;width:46px;height:46px;font-size:24px}}
+</style>
+
+<script id="ad-role-entry-actions">
+  window.adDeliveryBoyComingSoon = function(){
+    alert("Food Delivery Boy का पेज अभी तैयार नहीं किया जा रहा है। इसे अगले चरण में बनाया जाएगा।");
+  };
+  window.adChooseSellerType = function(type){
+    window.__adBrandSellerEntryType = type === "food" ? "food" : "products";
+    openAccountAccess("seller");
+  };
+</script>
 
 <!-- Customer screen -->
 <section id="customer" class="panel container">
