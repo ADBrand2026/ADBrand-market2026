@@ -368,8 +368,8 @@ img{max-width:100%}
   </div>
 
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel">
-    <h3>📱 Customer Mobile OTP Login / Register</h3>
-    <p class="small muted">Customer account मोबाइल OTP से खोलें। पहली बार registration के लिए नाम और वही मोबाइल नंबर इस्तेमाल करें; password की जरूरत नहीं। SMS provider / Phone Auth चालू होना जरूरी है।</p>
+    <h3>📱 Customer Mobile OTP Login</h3>
+    <p class="small muted">Phone-auth Customer accounts में password के बिना OTP login करें। पुराने email/password accounts के लिए नीचे fallback है। Duplicate account से बचने के लिए नया phone account तब तक नहीं बनाया जाएगा जब तक mobile uniqueness protection confirm न हो। SMS provider / Phone Auth चालू होना जरूरी है।</p>
     <div class="form-grid">
       <div class="field"><label for="adCustomerOtpName">पूरा नाम</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" placeholder="आपका नाम"></div>
       <div class="field"><label for="adCustomerOtpMobile">10-digit मोबाइल नंबर</label><input id="adCustomerOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
@@ -378,6 +378,7 @@ img{max-width:100%}
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
       <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ OTP verify करके login करें</button>
+      <button class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Existing account: email/password login</button>
     </div>
     <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">OTP आपके अपने मोबाइल पर आएगा। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
@@ -1483,7 +1484,7 @@ window.adCustomerSendOtp=async function(){
  var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
  if(send)send.disabled=true;
  try{
-  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name,mobile:mobile}}});
+  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:false}});
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
   var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
@@ -1492,7 +1493,12 @@ window.adCustomerSendOtp=async function(){
   if($("adCustomerOtpCode"))$("adCustomerOtpCode").focus();
  }catch(e){
   console.error("Customer OTP send failed:",e);
-  customerOtpMessage("OTP नहीं भेजा जा सका: "+(e.message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
+  var message=String(e.message||"");
+  if(/not found|no user|user.*exist/i.test(message)){
+   customerOtpMessage("यह नंबर अभी phone-OTP account से जुड़ा नहीं है। Existing account के लिए email/password login चुनें। Duplicate account नहीं बनाया गया।",true);
+  }else{
+   customerOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
+  }
  }finally{if(send)send.disabled=false;}
 };
 window.adCustomerVerifyOtp=async function(){
@@ -1528,6 +1534,10 @@ window.adCustomerVerifyOtp=async function(){
  }finally{if(verify)verify.disabled=false;}
 };
 var originalCustomerAccountAccess=window.openAccountAccess;
+window.adCustomerUseExistingLogin=function(){
+ if(typeof originalCustomerAccountAccess==="function")return originalCustomerAccountAccess("customer");
+ customerOtpMessage("Existing login dialog अभी उपलब्ध नहीं है।",true);
+};
 if(typeof originalCustomerAccountAccess==="function"){
  window.openAccountAccess=function(role){
   if(role==="customer"){
