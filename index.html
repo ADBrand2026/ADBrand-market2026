@@ -381,6 +381,7 @@ img{max-width:100%}
         <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
         <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
         <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"></div>
+        <div class="field"><label>Map pin (optional)</label><button class="btn outline" type="button" onclick="adLiveUseCustomerLocation()">📍 Use current location</button><small id="adCheckoutLocationStatus" class="muted">Optional map pin helps the rider find your gate. Full house, area and landmark address is still required.</small><input id="adCheckoutLatitude" type="hidden"><input id="adCheckoutLongitude" type="hidden"></div>
         <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
         <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
         <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — Valmo / external courier (booking confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
@@ -18506,6 +18507,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(!chosen){
       ["adCheckoutAddress","adCheckoutCity","adCheckoutState","adCheckoutPincode"].forEach(id=>{const n=$(id);if(n)n.value="";});
       if($("adCheckoutAddressLabel"))$("adCheckoutAddressLabel").value="Home";
+      if($("adCheckoutLatitude"))$("adCheckoutLatitude").value="";
+      if($("adCheckoutLongitude"))$("adCheckoutLongitude").value="";
+      if($("adCheckoutLocationStatus"))$("adCheckoutLocationStatus").textContent="Saved address cleared. Use current location if you want to save a map pin.";
       return;
     }
     const a=addresses.find(x=>String(x.id)===chosen);
@@ -18515,6 +18519,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       adCheckoutCity:a.city,adCheckoutState:a.state,adCheckoutPincode:a.pincode
     };
     Object.entries(fields).forEach(([id,value])=>{const n=$(id);if(n)n.value=String(value||"");});
+    if($("adCheckoutLatitude"))$("adCheckoutLatitude").value=a.latitude==null?"":String(a.latitude);
+    if($("adCheckoutLongitude"))$("adCheckoutLongitude").value=a.longitude==null?"":String(a.longitude);
+    if($("adCheckoutLocationStatus"))$("adCheckoutLocationStatus").textContent=(a.latitude!=null&&a.longitude!=null)?"✅ Saved map pin loaded.":"This saved address has no saved map pin; you may add one.";
     if($("adCheckoutAddressLabel")){
       const label=String(a.label||"Home");
       $("adCheckoutAddressLabel").value=["Home","Work","Other"].includes(label)?label:"Other";
@@ -18684,6 +18691,44 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     box.appendChild(liveNode("h3","", "Item subtotal (delivery charge अलग): " + liveMoney(total)));
   };
 
+  window.adLiveUseCustomerLocation = function(){
+    const status=$("adCheckoutLocationStatus");
+    const latitude=$("adCheckoutLatitude"),longitude=$("adCheckoutLongitude");
+    if(!navigator.geolocation){
+      if(status)status.textContent="इस browser में GPS location उपलब्ध नहीं है। पता, area/landmark और PIN भरकर आगे बढ़ें.";
+      return;
+    }
+    if(status)status.textContent="GPS permission और location fix का इंतज़ार हो रहा है…";
+    navigator.geolocation.getCurrentPosition(function(position){
+      const lat=Number(position.coords.latitude),lon=Number(position.coords.longitude);
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){
+        if(status)status.textContent="Valid location नहीं मिली। Address manually भरें.";
+        return;
+      }
+      if(latitude)latitude.value=String(lat);
+      if(longitude)longitude.value=String(lon);
+      if(status)status.textContent="✅ Map pin saved (accuracy about "+Math.round(Number(position.coords.accuracy||0))+" m). House/area/landmark, City, State और PIN फिर भी जाँचें.";
+      toast("Map pin checkout address के साथ save करने के लिए तैयार है.");
+    },function(error){
+      if(latitude)latitude.value="";
+      if(longitude)longitude.value="";
+      if(status)status.textContent=error&&error.code===1
+        ?"Location permission denied. Manually पूरा address और PIN भर सकते हैं."
+        :"Location नहीं मिली; manually पूरा address और PIN भर सकते हैं.";
+    },{enableHighAccuracy:true,timeout:12000,maximumAge:0});
+  };
+  if(!window.__adBrandCheckoutPinInputsBound){
+    window.__adBrandCheckoutPinInputsBound=true;
+    ["adCheckoutAddress","adCheckoutCity","adCheckoutState","adCheckoutPincode"].forEach(function(id){
+      const field=$(id);if(!field)return;
+      field.addEventListener("input",function(){
+        const lat=$("adCheckoutLatitude"),lon=$("adCheckoutLongitude");
+        if(lat)lat.value="";if(lon)lon.value="";
+        const status=$("adCheckoutLocationStatus");
+        if(status)status.textContent="Address details changed. Use current location again if you want to attach a matching map pin.";
+      });
+    });
+  }
   window.adLiveCheckout = async function () {
     const client=supa();
     if (!client) return alert("Secure database connection उपलब्ध नहीं है।");
@@ -18700,7 +18745,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       city:String($("adCheckoutCity")?.value || "").trim(),
       state:String($("adCheckoutState")?.value || "").trim(),
       pincode:String($("adCheckoutPincode")?.value || "").trim(),
-      label:String($("adCheckoutAddressLabel")?.value || "Home")
+      label:String($("adCheckoutAddressLabel")?.value || "Home"),
+      latitude:String($("adCheckoutLatitude")?.value || "").trim()?Number($("adCheckoutLatitude").value):null,
+      longitude:String($("adCheckoutLongitude")?.value || "").trim()?Number($("adCheckoutLongitude").value):null
     };
     if(address.full_name.length<2 || !/^[6-9]\d{9}$/.test(address.mobile) || address.address_line.length<5 ||
        address.city.length<2 || address.state.length<2 || !/^[1-9]\d{5}$/.test(address.pincode)) {
@@ -18823,9 +18870,35 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       lines.forEach(line=>card.appendChild(liveNode("p","small",line.name+(line.variant_name?" — "+line.variant_name:"")+" × "+line.quantity+" = "+liveMoney(line.total_price))));
       if(o.fulfillment_mode==="external_courier"){
         const sh=o.shipment||{};
-        card.appendChild(liveNode("p","small muted",sh.tracking_number?
-          ("Courier: "+(sh.provider||"External courier")+" • Tracking: "+sh.tracking_number+" • "+(sh.status||"status pending")):
-          "Courier booking/tracking अभी confirm नहीं है; AD internal barcode official airway bill नहीं है."));
+        const fee=sh.quoted_shipping_charge==null?null:Number(sh.quoted_shipping_charge);
+        if(sh.status==="quote_awaiting_customer"&&fee!==null&&!sh.quote_accepted_at&&!sh.quote_rejected_at){
+          card.appendChild(liveNode("p","", "🚚 Courier shipping quote: "+liveMoney(fee)));
+          card.appendChild(liveNode("p","", "Product subtotal: "+liveMoney(o.subtotal)+" • Final total after accepting the quoted fee: "+liveMoney(Number(o.subtotal||0)+fee)));
+          card.appendChild(liveNode("p","small muted","यह quote courier की बताई fee है। आपके स्वीकार करने से पहले parcel book नहीं होगा; reject करने पर order cancel होगा और stock वापस होगा।"));
+          card.appendChild(liveButton("✅ Accept courier fee & continue",async()=>{
+            if(!confirm("क्या आप courier fee "+liveMoney(fee)+" स्वीकार करते हैं? Accept करने पर order का total subtotal + courier fee होगा; actual courier booking इसके बाद होगी."))return;
+            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:true,p_note:"Customer accepted courier fee in order page"});
+            if(err){alert("Courier fee acceptance save नहीं हुई: "+liveErr(err));return;}
+            toast(res?.message||"Courier fee accepted; actual booking अभी pending है.");
+            await adLiveLoadCustomerOrders();
+          },"primary"));
+          card.appendChild(liveButton("❌ Reject fee & cancel order",async()=>{
+            if(!confirm("Courier fee reject करने पर यह order cancel होगा और reserved stock वापस होगा। कोई customer penalty नहीं लगेगी. जारी रखें?"))return;
+            const note=prompt("Cancellation note (optional):","Courier shipping fee स्वीकार नहीं की");
+            if(note===null)return;
+            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:false,p_note:note.trim()||null});
+            if(err){alert("Quote rejection/cancellation save नहीं हुई: "+liveErr(err));return;}
+            toast(res?.message||"Courier fee declined; order cancelled.");
+            await adLiveLoadCustomerOrders();
+          },"outline"));
+        }else if(sh.quote_accepted_at){
+          card.appendChild(liveNode("p","", "✅ Accepted courier fee: "+liveMoney(fee==null?o.delivery_charge:fee)+" • Order total: "+liveMoney(o.total_amount)));
+          card.appendChild(liveNode("p","small muted",sh.tracking_number
+            ?("Courier: "+(sh.provider||"External courier")+" • Actual tracking/AWB: "+sh.tracking_number+" • "+(sh.status||"status pending"))
+            :"Courier fee accepted. The parcel is not booked yet; actual provider tracking/AWB is still pending."));
+        }else{
+          card.appendChild(liveNode("p","small muted","Courier shipping fee अभी quoted नहीं है। अभी दिख रहा total product subtotal है; courier fee मिलने पर पहले आपको amount दिखाकर acceptance लिया जाएगा। Actual booking/tracking आने तक parcel shipped नहीं माना जाएगा."));
+        }
       }
       if(o.fulfillment_mode==="self_pickup"){
         const pickup=await client.rpc("customer_get_pickup_location",{p_order_id:o.id});
@@ -18846,6 +18919,18 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
       }
       card.appendChild(liveButton("🧾 Print internal packing slip",()=>adLivePrintSlip(o,lines,o.address,o.seller_name),"outline"));
+      if(["pending","accepted","external_booking_pending"].includes(String(o.status||""))){
+        card.appendChild(liveButton("Cancel order (before preparation/booking)",async()=>{
+          const reason=prompt("Order cancel करने का कारण लिखें (कम से कम 3 characters):","");
+          if(reason===null)return;
+          if(reason.trim().length<3){alert("Cancellation reason कम से कम 3 characters का होना चाहिए।");return;}
+          if(!confirm("Order preparation/courier booking शुरू नहीं हुई हो तभी cancellation हो सकती है। Valid होने पर stock वापस होगा और customer penalty नहीं लगेगी. Continue?"))return;
+          const {data:res,error:err}=await client.rpc("customer_cancel_marketplace_order",{p_order_id:o.id,p_reason:reason.trim()});
+          if(err){alert("Order cancel नहीं हुआ: "+liveErr(err));return;}
+          toast(res?.message||"Order cancelled; stock restored.");
+          await adLiveLoadCustomerOrders();
+        },"outline"));
+      }
       if(o.status==="delivered" && o.fulfillment_mode!=="inhouse_food"){
         card.appendChild(liveButton("↩️ Request return / refund review",async()=>{
           const {data:items,error:itemsError}=await client.rpc("customer_get_returnable_items",{p_order_id:o.id});
