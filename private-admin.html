@@ -44,7 +44,7 @@
 const URL="https://jwvawjztfwfpmlnocwiw.supabase.co";
 const KEY="sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
 const el=id=>document.getElementById(id);
-const client=window.supabase&&window.supabase.createClient?window.supabase.createClient(URL,KEY,{auth:{storageKey:"adbrand_admin_portal_session_v1",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const client=window.supabase&&window.supabase.createClient?window.supabase.createClient(URL,KEY,{auth:{storage:window.sessionStorage,storageKey:"adbrand_admin_portal_session_v1",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 let sessionUser=null;
 const tables=[["profiles","Total accounts"],["customer_profiles","Customers"],["seller_profiles","Sellers"],["delivery_profiles","Delivery partners"],["products","Products"],["orders","Orders"],["return_requests","Return requests"],["role_applications","Role applications"]];
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=String(text);return n;}
@@ -55,6 +55,16 @@ function errText(e){return e&&e.message?e.message:String(e||"Unknown error");}
 function money(v){const n=Number(v||0);return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:2});}
 function showApp(){el("loginCard").classList.add("hidden");el("adminApp").classList.remove("hidden");el("refreshBtn").classList.remove("hidden");el("refreshTop").classList.remove("hidden");el("logoutBtn").classList.remove("hidden");el("sessionBadge").textContent="Active Admin";}
 function hideApp(){el("loginCard").classList.remove("hidden");el("adminApp").classList.add("hidden");el("refreshBtn").classList.add("hidden");el("refreshTop").classList.add("hidden");el("logoutBtn").classList.add("hidden");el("sessionBadge").textContent="Not signed in";}
+let adminIdleTimer=null;
+function resetAdminIdleTimer(){
+ if(adminIdleTimer)clearTimeout(adminIdleTimer);
+ if(!sessionUser)return;
+ adminIdleTimer=setTimeout(async()=>{
+  if(client)await client.auth.signOut();
+  sessionUser=null;hideApp();setStatus("Session ended after 15 minutes of inactivity. Sign in again.","error");
+ },15*60*1000);
+}
+["pointerdown","keydown","touchstart","mousemove"].forEach(eventName=>window.addEventListener(eventName,resetAdminIdleTimer,{passive:true}));
 async function confirmAdmin(user){
  if(!client||!user)throw new Error("Supabase session missing.");
  const {data,error}=await client.from("profiles").select("id,user_id,role,is_active,full_name").eq("user_id",user.id).maybeSingle();
@@ -63,7 +73,7 @@ async function confirmAdmin(user){
   await client.auth.signOut();
   throw new Error("This account is not an active Admin. Public signup cannot grant Admin privileges.");
  }
- sessionUser=user;showApp();
+ sessionUser=user;showApp();resetAdminIdleTimer();
  setStatus("Signed in as verified Admin: "+(data.full_name||user.email),"ok");
  await refreshAll();
 }
@@ -281,7 +291,7 @@ async function refreshAll(){
 }
 el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
 el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
-el("logoutBtn").addEventListener("click",async()=>{if(client)await client.auth.signOut();sessionUser=null;hideApp();setStatus("Signed out.","ok");});
+el("logoutBtn").addEventListener("click",async()=>{if(adminIdleTimer)clearTimeout(adminIdleTimer);if(client)await client.auth.signOut();sessionUser=null;hideApp();setStatus("Signed out.","ok");});
 async function loadStats(){
  const box=el("stats");box.replaceChildren();
  for(const [table,label] of tables){
@@ -291,13 +301,17 @@ async function loadStats(){
 }
 async function loadApplications(){
  const box=el("applications");list(box,"Loading…");
- const {data,error}=await client.from("role_applications").select("id,requested_role,applicant_name,mobile,shop_name,seller_type,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id").eq("status","pending").order("created_at",{ascending:true}).limit(100);
+ const {data,error}=await client.from("role_applications").select("id,requested_role,applicant_name,mobile,shop_name,seller_type,fssai_license_number,gstin,business_registration_number,address,city,state,pincode,vehicle_type,vehicle_number,notes,status,created_at,profile_id").eq("status","pending").order("created_at",{ascending:true}).limit(100);
  if(error)return list(box,"Application queue failed: "+errText(error));
  if(!data?.length)return list(box,"No pending applications.");
  box.replaceChildren();
  data.forEach(a=>{
   const c=node("div","item");c.appendChild(node("h3",(a.requested_role==="seller"?(a.seller_type==="food"?"🍕 Food Seller":"👕 Non-food Seller"):"🛵 Delivery Partner")+" — "+a.applicant_name));
   c.appendChild(node("p","", [a.mobile,a.shop_name,a.seller_type,a.address,a.city,a.state,a.pincode,a.vehicle_type,a.vehicle_number,a.notes].filter(Boolean).join(" • ")));
+  if(a.requested_role==="seller"){
+   c.appendChild(node("p","small", "FSSAI registration/licence: "+(a.fssai_license_number||"NOT PROVIDED")+" • GSTIN: "+(a.gstin||"not supplied")+" • Business registration: "+(a.business_registration_number||"not supplied")));
+   if(a.seller_type==="food")c.appendChild(node("p","small muted","Food Seller verification remains blocked until the FSSAI document is approved in the private document queue."));
+  }
   c.appendChild(node("p","small muted","Application "+a.id+" • "+new Date(a.created_at).toLocaleString()));
   c.appendChild(btn("Approve application",()=>reviewApplication(a.id,true),"good"));
   c.appendChild(btn("Reject application",()=>reviewApplication(a.id,false),"danger"));
@@ -318,7 +332,9 @@ async function loadDocuments(){
  if(!data?.length)return list(box,"No pending private documents.");
  box.replaceChildren();
  data.forEach(d=>{
-  const c=node("div","item");c.appendChild(node("h3",d.doc_type+" — "+d.original_name));
+  const c=node("div","item");
+  const docLabel=d.doc_type==="food_license"?"FSSAI Food Registration/Licence":d.doc_type.replace(/_/g," ");
+  c.appendChild(node("h3",docLabel+" — "+d.original_name));
   c.appendChild(node("p","small muted","Application "+d.application_id+" • "+d.mime_type+" • "+new Date(d.created_at).toLocaleString()));
   c.appendChild(btn("Open private file (120 seconds)",async()=>{
    const {data:link,error}=await client.storage.from("adbrand-private-documents").createSignedUrl(d.storage_path,120);
@@ -339,7 +355,7 @@ async function reviewDocument(id,approve){
 async function loadVerification(){
  const box=el("verification");list(box,"Loading verification queue…");
  const [sr,dr]=await Promise.all([
-  client.from("seller_profiles").select("id,profile_id,seller_code,shop_name,seller_type,city,state,is_verified,is_active").eq("is_verified",false).limit(100),
+  client.from("seller_profiles").select("id,profile_id,seller_code,shop_name,seller_type,fssai_license_number,gstin,business_registration_number,city,state,is_verified,is_active").eq("is_verified",false).limit(100),
   client.from("delivery_profiles").select("id,profile_id,delivery_code,full_name,mobile,vehicle_type,vehicle_number,is_verified,is_active").eq("is_verified",false).limit(100)
  ]);
  box.replaceChildren();
@@ -347,6 +363,7 @@ async function loadVerification(){
  else (sr.data||[]).forEach(s=>{
   const c=node("div","item");c.appendChild(node("h3",(s.seller_type==="food"?"🍕 Food seller: ":"👕 Non-food seller: ")+(s.shop_name||s.seller_code)));
   c.appendChild(node("p","small muted",[s.city,s.state,s.is_active?"Active":"Inactive"].filter(Boolean).join(" • ")));
+  if(s.seller_type==="food")c.appendChild(node("p","small","FSSAI: "+(s.fssai_license_number||"missing")+" • GSTIN: "+(s.gstin||"not supplied")));
   c.appendChild(btn("Verify seller after checking documents",()=>setVerified("seller",s.id),"good"));box.appendChild(c);
  });
  if(dr.error)box.appendChild(node("p","", "Rider query failed: "+errText(dr.error)));
