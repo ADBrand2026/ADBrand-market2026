@@ -261,6 +261,17 @@ img{max-width:100%}
   *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
 </style>
+<style>
+/* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
+.adCustomerDiscoveryTools{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin:14px 0;padding:16px;border:1px solid rgba(99,102,241,.22);border-radius:18px;background:linear-gradient(135deg,rgba(99,102,241,.09),rgba(16,185,129,.07));box-shadow:0 12px 30px rgba(15,23,42,.07)}
+#adLiveCatalog .product-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;animation:adCustomerReveal .32s ease both}
+#adLiveCatalog .product-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(15,23,42,.12);border-color:rgba(99,102,241,.42)}
+#adLiveCatalog .product-card[hidden]{display:none!important}
+.adCustomerDiscoveryTools select,.adCustomerDiscoveryTools input{width:100%;min-width:0}
+@keyframes adCustomerReveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){.adCustomerDiscoveryTools{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px;gap:9px}.adCustomerDiscoveryTools .field:last-child{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){#adLiveCatalog .product-card{animation:none;transition:none}#adLiveCatalog .product-card:hover{transform:none}}
+</style>
 </head>
 
 <body>
@@ -357,11 +368,19 @@ img{max-width:100%}
   <div id="adLiveCustomerMarket" class="section">
     <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
     <div class="form-grid">
-      <div class="field"><label for="adLiveSearch">Live products खोजें</label><input id="adLiveSearch" placeholder="Pizza, shoes, shirt..." oninput="adLiveLoadCatalog()"></div>
+      <div class="field"><label for="adLiveSearch">Live products खोजें</label><input id="adLiveSearch" placeholder="कपड़े, shoes, jewellery, grocery..." oninput="adCustomerDebouncedSearch()"></div>
       <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adLiveLoadCatalog()">
-        <option value="">सभी categories</option><option value="food">खाना / Pizza</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option>
+        <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="home-kitchen">Home & Kitchen</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-accessories">Mobile Accessories</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option>
       </select></div>
     </div>
+    <div class="adCustomerDiscoveryTools" aria-label="Product filters and sorting">
+      <div class="field"><label for="adCustomerSort">Sort products</label><select id="adCustomerSort" onchange="adCustomerApplyDiscovery()"><option value="relevance">Recommended</option><option value="price_asc">Price: Low to High</option><option value="price_desc">Price: High to Low</option><option value="rating">Top rated</option><option value="newest">Newest first</option></select></div>
+      <div class="field"><label for="adCustomerAvailability">Availability</label><select id="adCustomerAvailability" onchange="adCustomerApplyDiscovery()"><option value="all">All products</option><option value="stock">In stock only</option><option value="deals">Deals under ₹99</option><option value="sale">Discounted products</option></select></div>
+      <div class="field"><label for="adCustomerMinPrice">Minimum price (₹)</label><input id="adCustomerMinPrice" type="number" min="0" max="10000000" inputmode="numeric" placeholder="₹0" oninput="adCustomerApplyDiscovery()"></div>
+      <div class="field"><label for="adCustomerMaxPrice">Maximum price (₹)</label><input id="adCustomerMaxPrice" type="number" min="0" max="10000000" inputmode="numeric" placeholder="No limit" oninput="adCustomerApplyDiscovery()"></div>
+      <div class="field"><label>Voice search</label><button class="btn outline" type="button" onclick="adCustomerStartVoiceSearch()">🎙️ बोलकर खोजें</button><small id="adCustomerVoiceStatus" class="muted" role="status">Browser support और microphone permission आवश्यक हैं।</small></div>
+    </div>
+    <p class="small muted">कपड़े, footwear, jewellery, home/kitchen, beauty, electronics, grocery, stationery, toys और बाकी categories तभी product दिखाएँगी जब verified live catalogue में उनका data उपलब्ध होगा। Search results और sponsored listings को misleading तरीके से नहीं बदला जाएगा।</p>
     <div class="form-grid" id="adLiveFoodZoneFilter">
       <div class="field"><label for="adLiveDeliveryCity">Food delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
       <div class="field"><label for="adLiveDeliveryState">State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
@@ -1341,7 +1360,11 @@ function liveRenderCatalog(){
  var products=window.__adBrandLiveCatalog||[];
  if(!products.length){box.appendChild(liveEl("div","empty","इस search/category में अभी कोई active product उपलब्ध नहीं है।"));return;}
  products.forEach(function(p){
-  var card=liveEl("article","card product-card"), img=liveEl("div","product-image","🛍️");
+  var card=liveEl("article","card product-card");
+  card.dataset.search=[p.name,p.description,p.seller_name,p.category_slug,p.brand].filter(Boolean).join(" ").toLowerCase();
+  card.dataset.rating=String(Number(p.rating||0));
+  card.dataset.created=String(p.created_at||p.createdAt||"");
+  var img=liveEl("div","product-image","🛍️");
   var image=liveOptions(p.images)[0];
   if(image){img.textContent="";var im=liveEl("img");im.src=image;im.alt=p.name||"Product";im.loading="lazy";im.style.width="100%";im.style.height="180px";im.style.objectFit="cover";im.onerror=function(){img.textContent="🛍️";};img.appendChild(im);}
   var body=liveEl("div","product-info"),title=liveEl("h3","",p.name||"Product"),shop=liveEl("p","small muted",(p.seller_name||"Local seller")+" · "+(p.seller_city||""));
@@ -1351,7 +1374,17 @@ function liveRenderCatalog(){
    variantSelect=liveEl("select","search-input");variantSelect.setAttribute("aria-label","Size / variant");
    variants.forEach(function(v){var o=liveEl("option","",liveVariantLabel(v)+" — "+liveMoney(v.sale_price||v.price)+" · Stock "+Number(v.stock||0));o.value=v.id;o.disabled=Number(v.stock||0)<=0;variantSelect.appendChild(o);});
   }
-  function updatePrice(){var v=liveSelectedProductVariant(p,variantSelect);price.textContent=liveMoney(v?(v.sale_price||v.price):(p.sale_price||p.price))+(v?" · "+liveVariantLabel(v):"");}
+  function updatePrice(){
+   var v=liveSelectedProductVariant(p,variantSelect);
+   var regular=Number(v?v.price:p.price)||0;
+   var sale=Number(v?v.sale_price:p.sale_price)||0;
+   var effective=sale>0&&sale<regular?sale:regular;
+   var stock=Number(v?v.stock:p.stock)||0;
+   price.textContent=liveMoney(effective)+(v?" · "+liveVariantLabel(v):"");
+   card.dataset.price=String(effective);
+   card.dataset.stock=String(stock);
+   card.dataset.sale=String(sale>0&&sale<regular);
+  }
   if(variantSelect)variantSelect.addEventListener("change",updatePrice);updatePrice();
   var qty=liveEl("input","search-input");qty.type="number";qty.min="1";qty.max="99";qty.value="1";qty.style.marginTop="8px";qty.setAttribute("aria-label","Quantity");
   var actions=liveEl("div","product-actions"),add=liveEl("button","btn primary","Add to Cart");
@@ -1415,6 +1448,57 @@ window.adLiveCheckout=async function(){
   await adLiveLoadCustomerOrders();await adLiveLoadCatalog();
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
  finally{if(btn)btn.disabled=false;}
+};
+var adCustomerSearchTimer=null;
+window.adCustomerDebouncedSearch=function(){
+ if(adCustomerSearchTimer)clearTimeout(adCustomerSearchTimer);
+ adCustomerSearchTimer=setTimeout(function(){if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();},280);
+};
+window.adCustomerApplyDiscovery=function(){
+ var box=$("adLiveCatalog");if(!box)return;
+ var cards=Array.from(box.querySelectorAll(".product-card"));
+ if(!cards.length)return;
+ var minRaw=String($("adCustomerMinPrice")?.value||"").trim(),maxRaw=String($("adCustomerMaxPrice")?.value||"").trim();
+ var min=minRaw===""?null:Number(minRaw),max=maxRaw===""?null:Number(maxRaw);
+ var availability=String($("adCustomerAvailability")?.value||"all"),sort=String($("adCustomerSort")?.value||"relevance");
+ cards.forEach(function(card){
+  var price=Number(card.dataset.price||0),stock=Number(card.dataset.stock||0),sale=card.dataset.sale==="true";
+  var show=!(min!==null&&price<min)&&!(max!==null&&price>max);
+  if(availability==="stock")show=show&&stock>0;
+  if(availability==="deals")show=show&&price<=99;
+  if(availability==="sale")show=show&&sale;
+  card.hidden=!show;
+ });
+ var visible=cards.filter(function(card){return !card.hidden;});
+ visible.sort(function(a,b){
+  var ap=Number(a.dataset.price||0),bp=Number(b.dataset.price||0);
+  if(sort==="price_asc")return ap-bp;
+  if(sort==="price_desc")return bp-ap;
+  if(sort==="rating")return Number(b.dataset.rating||0)-Number(a.dataset.rating||0);
+  if(sort==="newest")return String(b.dataset.created||"").localeCompare(String(a.dataset.created||""));
+  return 0;
+ });
+ visible.forEach(function(card){box.appendChild(card);});
+ var empty=box.querySelector(".adCustomerDiscoveryEmpty");
+ if(!visible.length){
+  if(!empty){empty=liveEl("div","empty adCustomerDiscoveryEmpty","इन filters में कोई product नहीं मिला। Price/availability बदलकर देखें।");box.appendChild(empty);}
+ }else if(empty)empty.remove();
+};
+window.adCustomerStartVoiceSearch=function(){
+ var SR=window.SpeechRecognition||window.webkitSpeechRecognition,status=$("adCustomerVoiceStatus");
+ if(!SR){if(status)status.textContent="इस browser में voice search उपलब्ध नहीं है। ऊपर search box में लिखें।";return;}
+ var recognition=new SR();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;
+ if(status)status.textContent="सुन रहा है… product का नाम बोलें।";
+ recognition.onresult=function(event){
+  var spoken=String(event.results?.[0]?.[0]?.transcript||"").trim();
+  if(!spoken){if(status)status.textContent="आवाज़ समझ नहीं आई। दोबारा प्रयास करें।";return;}
+  var search=$("adLiveSearch");if(search)search.value=spoken;
+  if(status)status.textContent="खोज रहे हैं: "+spoken;
+  if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+ };
+ recognition.onerror=function(event){if(status)status.textContent="Voice search नहीं चल पाई ("+(event.error||"error")+"). लिखकर खोजें।";};
+ recognition.onend=function(){if(status&&status.textContent==="सुन रहा है… product का नाम बोलें।")status.textContent="Voice search बंद हुई। फिर प्रयास करें या लिखकर खोजें।";};
+ try{recognition.start();}catch(e){if(status)status.textContent="Microphone busy है। कुछ देर बाद प्रयास करें।";}
 };
 function adLiveRenderCustomerSupportTickets(tickets){
  var box=$("adLiveSupportTickets");if(!box)return;box.replaceChildren();
@@ -20465,6 +20549,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       window.adLiveLoadCatalog=async function(){const result=await base.apply(this,arguments);decorateCatalog();return result;};
       window.__adCustomerCatalogLoadWrapped=true;
     }
+    if(typeof window.adLiveLoadCatalog==="function"&&!window.__adCustomerDiscoveryWrapped){
+      const baseDiscovery=window.adLiveLoadCatalog;
+      window.adLiveLoadCatalog=async function(){const result=await baseDiscovery.apply(this,arguments);window.adCustomerApplyDiscovery();return result;};
+      window.__adCustomerDiscoveryWrapped=true;
+    }
+    ["adCustomerSort","adCustomerAvailability","adCustomerMinPrice","adCustomerMaxPrice"].forEach(function(id){
+      const field=el(id);if(field&&!field.dataset.discoveryBound){field.addEventListener("change",window.adCustomerApplyDiscovery);field.dataset.discoveryBound="1";}
+    });
     if(!isCustomer()){
       try{
         const guest=JSON.parse(localStorage.getItem(cartKey)||"[]");
