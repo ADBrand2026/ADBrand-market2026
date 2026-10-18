@@ -1560,8 +1560,10 @@ function adLiveRenderSellerOrders(orders,box){
  });
 }
 window.adLivePrintParcelSlip=function(o){
+ var sellerProfile=window.__adBrandSellerWorkspace?.seller||{};
+ var sellerAddress=[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode].filter(Boolean).join(", ");
  var barcodeValue=String(o.internal_barcode||o.order_code||o.id||"ADBM").replace(/[^a-zA-Z0-9._-]/g,"").slice(0,80);
- var lines=["AD BRAND MARKET — INTERNAL PACKING SLIP","NOT a courier airway bill","Order: "+(o.order_code||o.id),"AD internal barcode: "+barcodeValue,"Customer: "+(o.address?.full_name||""),"Mobile: "+(o.address?.mobile||""),"Address: "+[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", "),"Items: "+liveOptions(o.items).map(function(x){return (x.name||"Item")+" x"+x.quantity+(x.variant_name?" "+x.variant_name:"");}).join("; "),"Amount: "+liveMoney(o.total_amount),"Courier tracking: "+(o.shipment?.tracking_number||"NOT BOOKED")];
+ var lines=["AD BRAND MARKET — INTERNAL PACKING SLIP","NOT a courier airway bill","Order: "+(o.order_code||o.id),"AD internal barcode: "+barcodeValue,"Seller: "+(sellerProfile.shop_name||o.seller_name||"Local Seller"),"Seller address: "+sellerAddress,"Customer: "+(o.address?.full_name||""),"Mobile: "+(o.address?.mobile||""),"Address: "+[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", "),"Items: "+liveOptions(o.items).map(function(x){return (x.name||"Item")+" x"+x.quantity+(x.variant_name?" "+x.variant_name:"");}).join("; "),"Amount: "+liveMoney(o.total_amount),"Courier tracking: "+(o.shipment?.tracking_number||"NOT BOOKED")];
  var w=window.open("","_blank","width=760,height=700");if(!w){toast("Print window block हुई। Browser pop-up allow करें।");return;}
  w.document.open();
  w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:15px Arial;padding:24px}h2{margin-bottom:4px}.code{font:17px monospace;letter-spacing:1px;border:1px dashed #444;padding:10px;display:inline-block;overflow-wrap:anywhere}li{margin:8px 0}.note{padding:9px;border:1px solid #b36b00;background:#fff8e7}</style></head><body><h2>AD Brand Market</h2><p><b>Internal packing slip — NOT a Valmo/courier airway bill</b></p><svg id='adbmBarcode'></svg><p class='code'>"+liveEsc(barcodeValue)+"</p><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><p class='note'>Non-food parcel: book the courier and attach its official carrier-generated label. This AD barcode is for internal order lookup only. Do not use it as a carrier AWB.</p><button onclick='window.print()'>Print</button>"+
@@ -18812,13 +18814,15 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       (line.variant_name?"<br><small>"+escapeHtml(line.variant_name)+"</small>":"")+"</td><td>"+escapeHtml(line.quantity||1)+
       "</td><td>"+escapeHtml(liveMoney(line.unit_price ?? line.total_price ?? 0))+"</td><td>"+escapeHtml(liveMoney(line.total_price ?? 0))+"</td></tr>").join("");
     const addr=address||{};
+    const sellerProfile=window.__adBrandSellerWorkspace?.seller||{};
+    const sellerAddress=[sellerProfile.address,sellerProfile.city,sellerProfile.state,sellerProfile.pincode].filter(Boolean).join(", ");
     const barcode=String(order.internal_barcode||"ADBM-"+String(order.order_code||"ORDER").replace(/[^a-z0-9]/gi,"").slice(-12));
     popup.document.open();
     popup.document.write("<!doctype html><html><head><meta charset='utf-8'><title>AD Brand Market Packing Slip</title>"+
       "<style>@page{size:A6;margin:6mm}body{font:13px Arial,sans-serif;color:#111}h1{font-size:20px;margin:0 0 5px}h2{font-size:15px}p{margin:4px 0}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{border:1px solid #aaa;padding:5px;text-align:left}small{font-size:10px}.warn{border:1px dashed #555;padding:6px;margin-top:10px}</style></head><body>"+
       "<h1>AD Brand Market</h1><strong>INTERNAL ORDER PACKING SLIP — NOT COURIER AIRWAY BILL</strong>"+
       "<p>Order: "+escapeHtml(order.order_code||order.id||"")+"</p><p>Barcode: "+escapeHtml(barcode)+"</p><svg id='adbmBarcode'></svg>"+
-      "<h2>Seller: "+escapeHtml(sellerName||order.seller_name||"Local Seller")+"</h2><h2>Deliver To</h2>"+
+      "<h2>Seller: "+escapeHtml(sellerName||sellerProfile.shop_name||order.seller_name||"Local Seller")+"</h2><p>"+escapeHtml(sellerAddress)+"</p><h2>Deliver To</h2>"+
       "<p><b>"+escapeHtml(addr.full_name||"Customer")+"</b></p><p>"+escapeHtml(addr.mobile||"")+"</p>"+
       "<p>"+escapeHtml(addr.address_line||"")+"</p><p>"+escapeHtml([addr.city,addr.state,addr.pincode].filter(Boolean).join(", "))+"</p>"+
       "<table><thead><tr><th>Item / variant</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead><tbody>"+lines+"</tbody></table>"+
