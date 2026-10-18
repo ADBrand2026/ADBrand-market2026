@@ -18908,15 +18908,36 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           card.appendChild(liveNode("p","", "Pickup location: "+[loc.address,loc.city,loc.state,loc.pincode].filter(Boolean).join(", ")));
         } else card.appendChild(liveNode("p","small muted","Pickup address अभी load नहीं हुआ: "+liveErr(pickup.error)));
       }
-      if(o.status==="out_for_delivery" || (o.fulfillment_mode==="self_pickup" && o.status==="ready_for_pickup")){
-        card.appendChild(liveNode("p","small muted",o.fulfillment_mode==="self_pickup"?"Shop से सामान वास्तव में लेने के बाद ही confirmation दबाएँ.":"Rider के पहुँचने पर package मिलने के बाद ही नीचे confirmation दबाएँ."));
-        card.appendChild(liveButton(o.fulfillment_mode==="self_pickup"?"✅ मैंने shop से सामान ले लिया":"✅ मैंने order प्राप्त कर लिया",async()=>{
+      const externalDeliveryPendingConfirmation=o.fulfillment_mode==="external_courier"&&o.status==="awaiting_customer_confirmation";
+      if(o.status==="out_for_delivery" || (o.fulfillment_mode==="self_pickup" && o.status==="ready_for_pickup") || externalDeliveryPendingConfirmation){
+        const deliveryPrompt=o.fulfillment_mode==="self_pickup"
+          ?"Shop से सामान वास्तव में लेने के बाद ही confirmation दबाएँ."
+          :externalDeliveryPendingConfirmation
+            ?"Courier ने delivered बताया है। Parcel हाथ में मिलने पर ही confirmation करें; न मिला हो तो नीचे issue report करें—इसे received mark न करें."
+            :"AD Food rider के पहुँचने और package हाथ में मिलने के बाद ही confirmation दबाएँ.";
+        card.appendChild(liveNode("p","small muted",deliveryPrompt));
+        card.appendChild(liveButton(o.fulfillment_mode==="self_pickup"?"✅ मैंने shop से सामान ले लिया":externalDeliveryPendingConfirmation?"✅ Courier parcel सच में मिल गया":"✅ मैंने Food order प्राप्त कर लिया",async()=>{
           if(!confirm("क्या order सच में आपके हाथ में पहुँच गया है / shop से collect किया है?"))return;
           const {data:res,error:err}=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});
           if(err){alert("Confirmation save नहीं हुई: "+liveErr(err));return;}
           toast(res?.message||"Receipt confirmation दर्ज हुई।");
           await adLiveLoadCustomerOrders();
         },"primary"));
+        if(externalDeliveryPendingConfirmation){
+          card.appendChild(liveButton("📣 Courier says delivered, but I did not receive it",async()=>{
+            const details=prompt("Package नहीं मिला तो क्या हुआ? Gate/guard/neighbor/call आदि के बारे में जानकारी लिखें ताकि Admin जाँच सके:","");
+            if(details===null)return;
+            if(details.trim().length<5){alert("Issue की detail कम से कम 5 characters लिखें।");return;}
+            const {data:ticket,error:ticketError}=await client.rpc("customer_create_support_ticket",{
+              p_subject:"Courier marked delivered — customer has not received parcel",
+              p_description:"Order "+o.order_code+". Courier status shows delivered but customer confirms package not received. Customer report: "+details.trim(),
+              p_category:"delivery",
+              p_order_id:o.id
+            });
+            if(ticketError){alert("Delivery issue support ticket नहीं बना: "+liveErr(ticketError));return;}
+            toast("Delivery issue Admin review में भेजा गया. Ticket: "+(ticket?.ticket_code||"created")+". जब तक सामान नहीं मिला, order received confirm न करें.");
+          },"outline"));
+        }
       }
       card.appendChild(liveButton("🧾 Print internal packing slip",()=>adLivePrintSlip(o,lines,o.address,o.seller_name),"outline"));
       if(["pending","accepted","external_booking_pending","packed_for_courier"].includes(String(o.status||""))){
