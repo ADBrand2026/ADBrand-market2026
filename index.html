@@ -374,12 +374,14 @@ img{max-width:100%}
       <h3>🛒 Live Cart और Checkout</h3>
       <div id="adLiveCart"><div class="empty">Cart खाली है।</div></div>
       <div class="form-grid">
+        <div class="field"><label for="adCheckoutSavedAddress">Saved address / Address Book</label><select id="adCheckoutSavedAddress" onchange="adLiveApplySavedAddress()"><option value="">New address / नया पता</option></select><small class="muted">Home, Work या दूसरा saved address चुनें; चाहें तो नीचे नया/अलग पता लिखें।</small></div>
         <div class="field"><label for="adCheckoutName">नाम</label><input id="adCheckoutName" autocomplete="name" maxlength="120"></div>
         <div class="field"><label for="adCheckoutMobile">मोबाइल</label><input id="adCheckoutMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
-        <div class="field"><label for="adCheckoutAddress">पूरा delivery address</label><textarea id="adCheckoutAddress" autocomplete="street-address" maxlength="500"></textarea></div>
+        <div class="field"><label for="adCheckoutAddress">पूरा delivery address — मकान/Flat, Floor, गली, Area/Locality, Landmark</label><textarea id="adCheckoutAddress" autocomplete="street-address" maxlength="500" rows="3" placeholder="मकान/Flat no., मंज़िल, सड़क/गली, मोहल्ला/Area, पास की पहचान/दुकान/मंदिर आदि"></textarea></div>
         <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
         <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
-        <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6"></div>
+        <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"></div>
+        <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
         <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
         <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — Valmo / external courier (booking confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
         <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
@@ -640,8 +642,15 @@ img{max-width:100%}
         <div class="field"><label for="roleSellerType">किस तरह की दुकान?</label>
           <select id="roleSellerType"><option value="food">Food Seller — खाना, पिज़्ज़ा, Veg/Non-Veg, चाय, Snacks</option><option value="non_food">Non-food Seller — कपड़े, जूते, चप्पल</option></select>
         </div>
-        <div class="field"><label for="roleSellerRegistrationDoc">Business registration proof (JPG/PNG/PDF; private)</label><input id="roleSellerRegistrationDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
-        <div class="field"><label for="roleSellerShopPhotoDoc">Shop photo (JPG/PNG; private)</label><input id="roleSellerShopPhotoDoc" type="file" accept="image/jpeg,image/png"></div>
+        <div class="field"><label for="roleSellerRegistrationNumber">Business registration / Udyam number (optional)</label><input id="roleSellerRegistrationNumber" maxlength="100" autocomplete="off"></div>
+        <div class="field"><label for="roleSellerGSTIN">GSTIN (optional; enter only if registered)</label><input id="roleSellerGSTIN" maxlength="15" autocapitalize="characters" autocomplete="off" placeholder="15-character GSTIN"></div>
+        <div class="field"><label for="roleSellerRegistrationDoc">Business registration proof (optional, private JPG/PNG/PDF)</label><input id="roleSellerRegistrationDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div id="roleFoodComplianceFields" style="display:none">
+          <div class="field"><label for="roleFssaiLicenseNumber">FSSAI Registration / Licence Number (Food Seller के लिए जरूरी)</label><input id="roleFssaiLicenseNumber" maxlength="40" autocomplete="off" placeholder="FSSAI certificate पर दिया नंबर"></div>
+          <div class="field"><label for="roleSellerFoodLicenseDoc">FSSAI Registration / Licence Certificate (private JPG/PNG/PDF)</label><input id="roleSellerFoodLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+          <p class="small muted">Food Seller approval में FSSAI document को Admin manually verify करेगा। Upload होने से licence वैध होने की automatic पुष्टि नहीं होती।</p>
+        </div>
+        <div class="field"><label for="roleSellerShopPhotoDoc">Shop photo (private JPG/PNG)</label><input id="roleSellerShopPhotoDoc" type="file" accept="image/jpeg,image/png"></div>
         <div class="field"><label for="roleSellerAddressDoc">Shop address proof (JPG/PNG/PDF; private)</label><input id="roleSellerAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <div class="field"><label for="roleApplicantAddress">पूरा पता</label><textarea id="roleApplicantAddress" maxlength="500"></textarea></div>
@@ -1150,10 +1159,23 @@ async function submitRoleApplication() {
     toast("दुकान का नाम भरें।");
     return;
   }
+  const requestedSellerType = String($("roleSellerType")?.value || "non_food");
+  const fssaiLicenseNumber = String($("roleFssaiLicenseNumber")?.value || "").trim();
+  const gstin = String($("roleSellerGSTIN")?.value || "").trim().toUpperCase();
+  const businessRegistrationNumber = String($("roleSellerRegistrationNumber")?.value || "").trim();
+  if (requestedRole === "seller" && requestedSellerType === "food" && fssaiLicenseNumber.length < 5) {
+    toast("Food Seller के लिए FSSAI registration/licence number जरूरी है।");
+    return;
+  }
+  if (requestedRole === "seller" && gstin && !/^[0-9]{2}[A-Z0-9]{13}$/.test(gstin)) {
+    toast("GSTIN भरने पर उसका सही 15-character format डालें, या field खाली छोड़ें।");
+    return;
+  }
   const docs = requestedRole === "seller" ? [
     ["business_registration","roleSellerRegistrationDoc"],
     ["shop_photo","roleSellerShopPhotoDoc"],
-    ["address_proof","roleSellerAddressDoc"]
+    ["address_proof","roleSellerAddressDoc"],
+    ...(requestedSellerType === "food" ? [["food_license","roleSellerFoodLicenseDoc"]] : [])
   ] : [
     ["vehicle_photo","roleDeliveryVehiclePhotoDoc"],
     ["driving_license","roleDeliveryLicenseDoc"],
@@ -1162,13 +1184,16 @@ async function submitRoleApplication() {
   ];
   const selectedDocs = docs.map(([type,id])=>({type,input:$(id),file:$(id)?.files?.[0]})).filter(x=>x.file);
   const selectedTypes = new Set(selectedDocs.map(x=>x.type));
-  const sellerDocsComplete = selectedTypes.has("shop_photo") && selectedTypes.has("address_proof");
+  const sellerDocsComplete = selectedTypes.has("shop_photo") && selectedTypes.has("address_proof")
+    && (requestedSellerType !== "food" || selectedTypes.has("food_license"));
   const selectedVehicleType = String($("roleVehicleType")?.value || "").toLowerCase();
   const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling"].includes(selectedVehicleType);
   const deliveryDocsComplete = selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
     && (!motorVehicleDocumentsRequired || (selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
   if (requestedRole === "seller" && !sellerDocsComplete) {
-    toast("Seller application के लिए Shop Photo और Shop Address Proof दोनों जरूरी हैं; Business Registration optional है।");
+    toast(requestedSellerType === "food"
+      ? "Food Seller application के लिए Shop Photo, Shop Address Proof और FSSAI certificate तीनों जरूरी हैं।"
+      : "Seller application के लिए Shop Photo और Shop Address Proof जरूरी हैं; Business Registration proof optional है।");
     return;
   }
   if (requestedRole === "delivery" && !deliveryDocsComplete) {
@@ -1196,7 +1221,10 @@ async function submitRoleApplication() {
     applicant_name: name,
     mobile,
     shop_name: requestedRole === "seller" ? shop : null,
-    seller_type: requestedRole === "seller" ? String($("roleSellerType")?.value || "non_food") : null,
+    seller_type: requestedRole === "seller" ? requestedSellerType : null,
+    fssai_license_number: requestedRole === "seller" && requestedSellerType === "food" ? fssaiLicenseNumber : null,
+    gstin: requestedRole === "seller" && gstin ? gstin : null,
+    business_registration_number: requestedRole === "seller" && businessRegistrationNumber ? businessRegistrationNumber : null,
     address, city: city || null, state: state || null, pincode: pincode || null,
     vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
     vehicle_number: requestedRole === "delivery" ? (String($("roleVehicleNumber").value || "").trim() || null) : null,
@@ -1251,8 +1279,16 @@ function updateRoleApplicationFields() {
   if (fields) fields.style.display = (role === "seller" || role === "delivery") ? "block" : "none";
   const shop = $("roleShopFields");
   const vehicle = $("roleVehicleFields");
+  const foodCompliance = $("roleFoodComplianceFields");
+  const sellerType = String($("roleSellerType")?.value || "non_food");
+  const isFoodSeller = role === "seller" && sellerType === "food";
   if (shop) shop.style.display = role === "seller" ? "block" : "none";
   if (vehicle) vehicle.style.display = role === "delivery" ? "block" : "none";
+  if (foodCompliance) foodCompliance.style.display = isFoodSeller ? "block" : "none";
+  const fssai = $("roleFssaiLicenseNumber");
+  const fssaiDoc = $("roleSellerFoodLicenseDoc");
+  if (fssai) fssai.required = isFoodSeller;
+  if (fssaiDoc) fssaiDoc.required = isFoodSeller;
   const title = $("roleApplicationTitle");
   if (title) title.textContent = role === "seller" ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
 }
@@ -18463,6 +18499,31 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   }
 
   /* -------- Customer: public live catalogue and secure checkout -------- */
+  window.adLiveApplySavedAddress = function(){
+    const select=$("adCheckoutSavedAddress");
+    const chosen=String(select?.value||"");
+    const addresses=asList(window.__adBrandSavedAddresses);
+    if(!chosen){
+      ["adCheckoutAddress","adCheckoutCity","adCheckoutState","adCheckoutPincode"].forEach(id=>{const n=$(id);if(n)n.value="";});
+      if($("adCheckoutAddressLabel"))$("adCheckoutAddressLabel").value="Home";
+      return;
+    }
+    const a=addresses.find(x=>String(x.id)===chosen);
+    if(!a)return;
+    const fields={
+      adCheckoutName:a.full_name,adCheckoutMobile:a.mobile,adCheckoutAddress:a.address_line,
+      adCheckoutCity:a.city,adCheckoutState:a.state,adCheckoutPincode:a.pincode
+    };
+    Object.entries(fields).forEach(([id,value])=>{const n=$(id);if(n)n.value=String(value||"");});
+    if($("adCheckoutAddressLabel")){
+      const label=String(a.label||"Home");
+      $("adCheckoutAddressLabel").value=["Home","Work","Other"].includes(label)?label:"Other";
+    }
+    if($("adLiveDeliveryCity"))$("adLiveDeliveryCity").value=String(a.city||"");
+    if($("adLiveDeliveryState"))$("adLiveDeliveryState").value=String(a.state||"");
+    if($("adLiveDeliveryPincode"))$("adLiveDeliveryPincode").value=String(a.pincode||"");
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+  };
   window.adLiveUseCheckoutZone = function(){
     const values=[
       ["adLiveDeliveryCity","adCheckoutCity"],
@@ -18638,7 +18699,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       address_line:String($("adCheckoutAddress")?.value || "").trim(),
       city:String($("adCheckoutCity")?.value || "").trim(),
       state:String($("adCheckoutState")?.value || "").trim(),
-      pincode:String($("adCheckoutPincode")?.value || "").trim()
+      pincode:String($("adCheckoutPincode")?.value || "").trim(),
+      label:String($("adCheckoutAddressLabel")?.value || "Home")
     };
     if(address.full_name.length<2 || !/^[6-9]\d{9}$/.test(address.mobile) || address.address_line.length<5 ||
        address.city.length<2 || address.state.length<2 || !/^[1-9]\d{5}$/.test(address.pincode)) {
@@ -18711,7 +18773,24 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if($("adCheckoutName")&&!$("adCheckoutName").value) $("adCheckoutName").value=profile.full_name||"";
     if($("adCheckoutMobile")&&!$("adCheckoutMobile").value) $("adCheckoutMobile").value=profile.mobile||"";
     const addresses=asList(data?.addresses);
-    const address=addresses.find(a=>a.is_default)||addresses[0];
+    window.__adBrandSavedAddresses = addresses;
+    const addressSelect=$("adCheckoutSavedAddress");
+    if(addressSelect){
+      const previousSelection=String(addressSelect.value||"");
+      addressSelect.replaceChildren(liveNode("option","","New address / नया पता"));
+      addressSelect.options[0].value="";
+      for(const saved of addresses){
+        const option=document.createElement("option");
+        option.value=String(saved.id||"");
+        option.textContent=[saved.label||"Address",saved.address_line,saved.city,saved.pincode].filter(Boolean).join(" — ");
+        addressSelect.appendChild(option);
+      }
+      const keep=addresses.find(a=>String(a.id)===previousSelection);
+      const preferred=keep||addresses.find(a=>a.is_default)||addresses[0];
+      addressSelect.value=preferred?String(preferred.id):"";
+    }
+    const selectedSaved=addresses.find(a=>String(a.id)===String($("adCheckoutSavedAddress")?.value||""));
+    const address=selectedSaved||addresses.find(a=>a.is_default)||addresses[0];
     if(address){
       if($("adCheckoutAddress")&&!$("adCheckoutAddress").value)$("adCheckoutAddress").value=address.address_line||"";
       if($("adCheckoutCity")&&!$("adCheckoutCity").value)$("adCheckoutCity").value=address.city||"";
@@ -19670,6 +19749,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     };
   }
   if ($("accountRole")) $("accountRole").addEventListener("change",updateRoleApplicationFields);
+  if ($("roleSellerType")) $("roleSellerType").addEventListener("change",updateRoleApplicationFields);
   if ($("adLiveCatalog")) adLiveLoadCatalog();
   // Admin UI is served from private-admin.html, not embedded in the storefront.
 })();
