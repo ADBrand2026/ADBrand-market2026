@@ -18869,7 +18869,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const search = String($("adLiveSearch")?.value || "").trim().slice(0,100);
     const marketMode = window.__adBrandCustomerMarketMode === "food" ? "food" : "products";
     const selectedCategory = String($("adLiveCategory")?.value || "").trim();
-    const category = marketMode === "food" ? "" : selectedCategory;
+    const category = selectedCategory;
     const city = String($("adLiveDeliveryCity")?.value || $("adCheckoutCity")?.value || "").trim().slice(0,80);
     const state = String($("adLiveDeliveryState")?.value || $("adCheckoutState")?.value || "").trim().slice(0,80);
     const pincode = String($("adLiveDeliveryPincode")?.value || $("adCheckoutPincode")?.value || "").replace(/\D/g,"").slice(0,6);
