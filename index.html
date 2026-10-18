@@ -19346,6 +19346,34 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       }else if(o.status==="out_for_delivery"&&arrived){
         card.appendChild(liveNode("p","small muted","✅ Arrival recorded"+(o.arrival_recorded_at?" • "+new Date(o.arrival_recorded_at).toLocaleString():"")+". Customer-requested extra time does not auto-cancel this order."));
       }
+      if(o.status==="out_for_delivery"){
+        const gpsActive=liveGpsOrderId===o.order_id&&liveGpsWatchId!==null;
+        actions.appendChild(liveButton(gpsActive?"⏹ Stop live GPS share":"📡 Start live GPS share",()=>{
+          if(liveGpsOrderId===o.order_id&&liveGpsWatchId!==null){
+            liveStopGpsWatch();toast("Live GPS sharing stopped.");return;
+          }
+          if(!navigator.geolocation){toast("इस device/browser में GPS उपलब्ध नहीं है।");return;}
+          if(liveGpsWatchId!==null)liveStopGpsWatch();
+          liveGpsOrderId=o.order_id;liveGpsLastSentAt=0;liveGpsFirstNotice=false;
+          liveGpsWatchId=navigator.geolocation.watchPosition(async pos=>{
+            if(liveGpsOrderId!==o.order_id||Date.now()-liveGpsLastSentAt<15000||liveGpsSending)return;
+            liveGpsSending=true;
+            try{
+              const {error}=await supa().rpc("rider_update_live_location",{
+                p_order_id:o.order_id,p_latitude:pos.coords.latitude,
+                p_longitude:pos.coords.longitude,p_accuracy:pos.coords.accuracy
+              });
+              if(error)throw error;
+              liveGpsLastSentAt=Date.now();
+              if(!liveGpsFirstNotice){liveGpsFirstNotice=true;toast("इस assigned food order के customer को live GPS share हो रही है।");}
+            }catch(e){liveStopGpsWatch();liveError("Live GPS update नहीं हुई",e);}
+            finally{liveGpsSending=false;}
+          },err=>{
+            liveStopGpsWatch();toast("GPS permission/position unavailable. Location share नहीं हुई.");console.warn("Live GPS error",err);
+          },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+          toast("Live GPS share शुरू हुई—delivery पूरी होने पर Stop दबाएँ।");
+        },"outline"));
+      }
       if(["assigned","ready_for_delivery"].includes(o.status))
         actions.appendChild(liveButton("✅ Picked up from seller",async()=>{
           const {data,error}=await supa().rpc("rider_mark_food_picked_up",{p_order_id:o.order_id});
