@@ -18900,7 +18900,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     let data = [];
     let error = null;
     for (const candidate of uniqueCandidates) {
-      const categorySlugs = marketMode === "food" ? (foodCategorySlugs.includes(category) ? [category] : foodCategorySlugs) : [category || null];
+      const categorySlugs = marketMode === "food" ? [foodCategorySlugs.includes(category) ? category : "__food__"] : [category || null];
       const candidateProducts = [];
       for (const categorySlug of categorySlugs) {
         const result = await client.rpc("get_public_marketplace_catalog_for_zone", {
