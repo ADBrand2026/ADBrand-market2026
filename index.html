@@ -19905,5 +19905,603 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
 })();
 </script>
 
+
+<script>
+/* ============================================================
+   AD CUSTOMER FLOW COMPLETION LAYER
+   Account recovery/profile, saved addresses, persistent cart,
+   wishlist, verified ratings, wait-time promise and timeline.
+   ============================================================ */
+(function(){
+  "use strict";
+  if(window.__adCustomerFlowCompletionLoaded) return;
+  window.__adCustomerFlowCompletionLoaded=true;
+  const el=id=>document.getElementById(id);
+  const client=()=>window.adBrandSupabase||null;
+  const isCustomer=()=>!!window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer";
+  const escapeText=v=>String(v==null?"":v);
+  const toList=v=>Array.isArray(v)?v:[];
+  const money=v=>"₹"+Number(v||0).toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:2});
+  const cartKey="ADBM_CUSTOMER_GUEST_CART_V1";
+  const status=(id,msg)=>{const n=el(id);if(n)n.textContent=String(msg||"");};
+  const node=(tag,cls,text)=>{
+    const n=document.createElement(tag);
+    if(cls)n.className=cls;
+    if(text!==undefined&&text!==null)n.textContent=String(text);
+    return n;
+  };
+  const btn=(text,handler,cls)=>{
+    const b=node("button","btn "+(cls||"outline"),text);b.type="button";b.addEventListener("click",handler);return b;
+  };
+  function initAccountCenter(){
+    const panel=el("customer");
+    if(!panel||el("adCustomerAccountCenter"))return;
+    const header=panel.querySelector(".panel-header");
+    const markup="<section id='adCustomerAccountCenter' class='section card' style='padding:18px'>"+
+      "<div class='section-heading'><h3>👤 My Customer Account</h3><span id='adCustomerAccountStatus' class='pill'>Login / Register करें</span></div>"+
+      "<div id='adCustomerGuestPrompt' class='notice'>Products बिना login देख सकते हैं। Cart save करने, address book, order tracking, reviews और support के लिए Customer account बनाकर login करें।</div>"+
+      "<div id='adCustomerAccountPrivate' hidden>"+
+        "<div class='form-grid'>"+
+          "<div class='field'><label for='adCustomerAccountName'>पूरा नाम</label><input id='adCustomerAccountName' maxlength='120' autocomplete='name'></div>"+
+          "<div class='field'><label for='adCustomerAccountMobile'>मोबाइल नंबर</label><input id='adCustomerAccountMobile' inputmode='numeric' maxlength='10' autocomplete='tel'></div>"+
+          "<div class='field'><label for='adCustomerAccountEmail'>Current login email</label><input id='adCustomerAccountEmail' readonly></div>"+
+          "<div class='field'><label for='adCustomerNewEmail'>Change email (confirmation required)</label><input id='adCustomerNewEmail' type='email' autocomplete='email' placeholder='नया email'></div>"+
+        "</div>"+
+        "<div class='product-actions' style='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0'>"+
+          "<button id='adCustomerSaveProfile' class='btn primary' type='button'>💾 Profile save करें</button>"+
+          "<button id='adCustomerChangeEmail' class='btn outline' type='button'>📧 Email बदलें</button>"+
+          "<button id='adCustomerSignOut' class='btn red' type='button'>Sign out</button>"+
+        "</div>"+
+        "<div class='form-grid'>"+
+          "<div class='field'><label for='adCustomerNewPassword'>नया password (कम से कम 8 characters)</label><input id='adCustomerNewPassword' type='password' minlength='8' autocomplete='new-password'></div>"+
+          "<div class='field'><label for='adCustomerConfirmPassword'>नया password दोबारा</label><input id='adCustomerConfirmPassword' type='password' minlength='8' autocomplete='new-password'></div>"+
+        "</div>"+
+        "<button id='adCustomerChangePassword' class='btn outline' type='button'>🔑 Password बदलें</button>"+
+        "<div id='adCustomerProfileMessage' class='small muted' role='status' style='margin-top:8px'></div>"+
+        "<hr style='border:0;border-top:1px solid var(--border);margin:18px 0'>"+
+        "<h3>📍 Saved Address Book</h3>"+
+        "<p class='small muted'>Home, Work या Other label इस्तेमाल करें। घर/flat, मंज़िल, गली, area, landmark, city, state और PIN सही रखें। अधिकतम 10 saved addresses।</p>"+
+        "<div id='adCustomerAddressList' class='form-grid'><div class='empty'>Address book load हो रहा है…</div></div>"+
+        "<div class='field'><label for='adCustomerMakeAddressDefault'><input id='adCustomerMakeAddressDefault' type='checkbox'> Save करते समय इसे default address बनाएं</label></div>"+
+        "<div class='product-actions' style='display:flex;gap:8px;flex-wrap:wrap;margin:8px 0'>"+
+          "<button id='adCustomerSaveNewAddress' class='btn primary' type='button'>➕ Checkout वाले पते को नया address बनाएं</button>"+
+          "<button id='adCustomerUpdateAddress' class='btn outline' type='button'>✏️ Selected address update करें</button>"+
+          "<button id='adCustomerSetDefaultAddress' class='btn outline' type='button'>⭐ Selected default बनाएं</button>"+
+          "<button id='adCustomerDeleteAddress' class='btn red' type='button'>🗑️ Selected address delete करें</button>"+
+        "</div>"+
+        "<p class='small muted'>नया पता जोड़ने के लिए Checkout में New address चुनकर विवरण भरें, फिर “नया address बनाएं” दबाएं। Active order में इस्तेमाल हुआ address delete नहीं होगा।</p>"+
+        "<hr style='border:0;border-top:1px solid var(--border);margin:18px 0'>"+
+        "<h3>❤️ My Wishlist</h3><div id='adCustomerWishlist'><div class='empty'>Wishlist load हो रही है…</div></div>"+
+      "</div>"+
+    "</section>";
+    if(header)header.insertAdjacentHTML("afterend",markup);
+    const extras=node("div","product-actions");
+    extras.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px";
+    extras.append(
+      btn("Forgot password?",window.adCustomerForgotPassword,"outline"),
+      btn("Resend confirmation email",window.adCustomerResendConfirmation,"outline")
+    );
+    const modal=el("accountModal");
+    const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
+    if(login&&login.parentElement&&!el("adCustomerAuthExtras")){extras.id="adCustomerAuthExtras";login.parentElement.insertAdjacentElement("afterend",extras);}
+    if(modal&&!el("adCustomerRecoveryBox")){
+      const box=node("section","card");
+      box.id="adCustomerRecoveryBox";box.hidden=true;box.style.marginTop="12px";box.style.padding="14px";
+      box.appendChild(node("h3","","Set a new password"));
+      box.appendChild(node("p","small muted","Email recovery link से वापस आने के बाद नया password सेट करें।"));
+      const a=node("div","field");a.appendChild(node("label","","New password"));const p1=node("input");p1.id="adCustomerRecoveryPassword";p1.type="password";p1.autocomplete="new-password";p1.minLength=8;a.appendChild(p1);
+      const b=node("div","field");b.appendChild(node("label","","Confirm new password"));const p2=node("input");p2.id="adCustomerRecoveryPasswordConfirm";p2.type="password";p2.autocomplete="new-password";p2.minLength=8;b.appendChild(p2);
+      box.append(a,b,btn("Update password",window.adCustomerCompletePasswordRecovery,"primary"));
+      const card=modal.querySelector(".modal-card");
+      if(card)card.appendChild(box);
+    }
+  }
+  function setAccountVisibility(data){
+    const privateBox=el("adCustomerAccountPrivate"),guest=el("adCustomerGuestPrompt"),badge=el("adCustomerAccountStatus");
+    if(!isCustomer()){
+      if(privateBox)privateBox.hidden=true;
+      if(guest)guest.hidden=false;
+      if(badge)badge.textContent=window.__adBrandAuthUser?"यह Customer account नहीं है":"Login / Register करें";
+      return;
+    }
+    if(privateBox)privateBox.hidden=false;
+    if(guest)guest.hidden=true;
+    if(badge)badge.textContent="✅ Customer login active";
+    const profile=(data&&data.profile)||{};
+    if(el("adCustomerAccountEmail")&&!el("adCustomerAccountEmail").value)el("adCustomerAccountEmail").value=window.__adBrandAuthUser.email||"";
+    if(el("adCustomerAccountName")&&!el("adCustomerAccountName").value)el("adCustomerAccountName").value=profile.full_name||"";
+    if(el("adCustomerAccountMobile")&&!el("adCustomerAccountMobile").value)el("adCustomerAccountMobile").value=profile.mobile||"";
+  }
+  function setProfileMessage(msg){status("adCustomerProfileMessage",msg);}
+  window.adCustomerForgotPassword=async function(){
+    const c=client(),email=String(el("accountEmail")?.value||"").trim().toLowerCase();
+    if(!c)return alert("Secure login service load नहीं हुई।");
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("पहले login box में अपना registered email लिखें।");
+    try{
+      const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+      if(error)throw error;
+      toast("Password reset link भेजने का अनुरोध सफल हुआ। Email inbox/spam देखें।");
+    }catch(e){console.error(e);alert("Reset email नहीं भेजा जा सका: "+(e.message||"कृपया फिर कोशिश करें।")+" यदि redirect URL allow-list में नहीं है तो Supabase Auth URL Configuration में इस website का URL जोड़ना होगा।");}
+  };
+  window.adCustomerResendConfirmation=async function(){
+    const c=client(),email=String(el("accountEmail")?.value||"").trim().toLowerCase();
+    if(!c)return alert("Secure login service load नहीं हुई।");
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("पहले registered email लिखें।");
+    try{const {error}=await c.auth.resend({type:"signup",email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});if(error)throw error;toast("Confirmation email का अनुरोध भेजा गया। Inbox/spam देखें।");}
+    catch(e){console.error(e);alert("Confirmation email नहीं भेजा जा सका: "+(e.message||"कृपया दोबारा प्रयास करें।"));}
+  };
+  window.adCustomerCompletePasswordRecovery=async function(){
+    const c=client(),p1=String(el("adCustomerRecoveryPassword")?.value||""),p2=String(el("adCustomerRecoveryPasswordConfirm")?.value||"");
+    if(!c)return alert("Secure login service load नहीं हुई।");
+    if(p1.length<8)return alert("Password कम से कम 8 characters का रखें।");
+    if(p1!==p2)return alert("दोनों password एक जैसे नहीं हैं।");
+    try{
+      const {error}=await c.auth.updateUser({password:p1});if(error)throw error;
+      el("adCustomerRecoveryBox").hidden=true;
+      toast("Password बदल गया। अब Customer के रूप में login कर सकते हैं।");
+      if(window.location.hash)history.replaceState(null,"",window.location.pathname+window.location.search);
+    }catch(e){console.error(e);alert("Password update नहीं हुआ: "+(e.message||"Reset link expired हो सकता है।"));}
+  };
+  async function saveCustomerProfile(){
+    if(!isCustomer())return alert("पहले Customer login करें।");
+    const c=client(),name=String(el("adCustomerAccountName")?.value||"").trim(),mobile=String(el("adCustomerAccountMobile")?.value||"").replace(/\D/g,"");
+    try{const {data,error}=await c.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});if(error)throw error;setProfileMessage("✅ Profile Supabase में save हो गया।");toast("Customer profile save हो गया।");if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();}
+    catch(e){console.error(e);setProfileMessage("Profile save नहीं हुआ: "+(e.message||"कृपया विवरण जाँचें।"));}
+  }
+  async function changeCustomerEmail(){
+    if(!isCustomer())return alert("पहले Customer login करें।");
+    const c=client(),email=String(el("adCustomerNewEmail")?.value||"").trim().toLowerCase();
+    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("नया valid email लिखें।");
+    try{const {error}=await c.auth.updateUser({email:email});if(error)throw error;setProfileMessage("Email change request भेजी गई। नया email confirm करें; confirmation से पहले login email न बदल भी सकता है।");toast("Email confirmation भेजने का अनुरोध हुआ।");}
+    catch(e){console.error(e);setProfileMessage("Email update नहीं हुआ: "+(e.message||"कृपया फिर कोशिश करें।"));}
+  }
+  async function changeCustomerPassword(){
+    if(!isCustomer())return alert("पहले Customer login करें।");
+    const c=client(),p1=String(el("adCustomerNewPassword")?.value||""),p2=String(el("adCustomerConfirmPassword")?.value||"");
+    if(p1.length<8)return alert("Password कम से कम 8 characters का रखें।");
+    if(p1!==p2)return alert("दोनों password एक जैसे नहीं हैं।");
+    try{const {error}=await c.auth.updateUser({password:p1});if(error)throw error;el("adCustomerNewPassword").value="";el("adCustomerConfirmPassword").value="";setProfileMessage("✅ Password बदल गया।");toast("Password सफलतापूर्वक बदल गया।");}
+    catch(e){console.error(e);setProfileMessage("Password change नहीं हुआ: "+(e.message||"फिर कोशिश करें।"));}
+  }
+  async function customerSignOut(){
+    const c=client();if(c)await c.auth.signOut();
+    window.__adBrandAuthUser=null;window.__adBrandAuthRole=null;window.__adBrandAdminAuthorized=false;window.__adBrandCustomerCartLoadedFor=null;
+    if(window.__adBrandCustomerRefreshTimer){clearTimeout(window.__adBrandCustomerRefreshTimer);window.__adBrandCustomerRefreshTimer=null;}
+    if(window.__adBrandLiveCart)window.__adBrandLiveCart.splice(0,window.__adBrandLiveCart.length);
+    window.__adBrandCustomerWishlistItems=[];window.__adBrandCustomerWishlistIds=new Set();
+    try{localStorage.removeItem(cartKey);}catch(e){}
+    ["adCustomerAccountName","adCustomerAccountMobile","adCustomerAccountEmail","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>{if(el(id))el(id).value="";});
+    setProfileMessage("Sign out हो गया।");
+    if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+    if(typeof window.openPanel==="function")window.openPanel("customer");
+    toast("Customer account से sign out हो गया।");
+  }
+  function addressPayload(addressId,makeDefault){
+    return {
+      p_id:addressId||null,
+      p_label:String(el("adCheckoutAddressLabel")?.value||"Home"),
+      p_full_name:String(el("adCheckoutName")?.value||"").trim(),
+      p_mobile:String(el("adCheckoutMobile")?.value||"").replace(/\D/g,""),
+      p_address_line:String(el("adCheckoutAddress")?.value||"").trim(),
+      p_city:String(el("adCheckoutCity")?.value||"").trim(),
+      p_state:String(el("adCheckoutState")?.value||"").trim(),
+      p_pincode:String(el("adCheckoutPincode")?.value||"").trim(),
+      p_latitude:String(el("adCheckoutLatitude")?.value||"").trim()?Number(el("adCheckoutLatitude").value):null,
+      p_longitude:String(el("adCheckoutLongitude")?.value||"").trim()?Number(el("adCheckoutLongitude").value):null,
+      p_make_default:!!makeDefault
+    };
+  }
+  async function saveAddress(id,makeDefault,labelMessage){
+    if(!isCustomer())return alert("Address book save करने के लिए Customer login करें।");
+    const c=client();if(!c)return alert("Database connection उपलब्ध नहीं है।");
+    try{
+      const payload=addressPayload(id,makeDefault);
+      if(!id&&!payload.p_make_default&&toList(window.__adBrandSavedAddresses).length===0)payload.p_make_default=true;
+      const {data,error}=await c.rpc("customer_save_address",payload);
+      if(error)throw error;
+      status("adCustomerProfileMessage",labelMessage||"Address saved.");
+      toast(id?"Saved address update हो गया।":"नया address book में save हो गया।");
+      if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+    }catch(e){console.error(e);alert("Address save नहीं हुआ: "+(e.message||"सभी required fields जाँचें।"));}
+  }
+  async function saveNewAddress(){await saveAddress(null,!!el("adCustomerMakeAddressDefault")?.checked,"New address saved.");}
+  async function updateSelectedAddress(){
+    const id=String(el("adCheckoutSavedAddress")?.value||"");if(!id)return alert("पहले Saved address चुनें।");
+    await saveAddress(id,!!el("adCustomerMakeAddressDefault")?.checked,"Selected address updated.");
+  }
+  async function setSelectedAddressDefault(){
+    const id=String(el("adCheckoutSavedAddress")?.value||"");if(!id)return alert("पहले Saved address चुनें।");
+    await saveAddress(id,true,"Default address updated.");
+  }
+  async function deleteSelectedAddress(){
+    if(!isCustomer())return alert("पहले Customer login करें।");
+    const id=String(el("adCheckoutSavedAddress")?.value||"");if(!id)return alert("पहले Saved address चुनें।");
+    if(!confirm("क्या इस saved address को हटाना है? Active order वाला address delete नहीं हो सकेगा।"))return;
+    try{const {error}=await client().rpc("customer_delete_address",{p_id:id});if(error)throw error;toast("Saved address delete हो गया।");if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();}
+    catch(e){console.error(e);alert("Address delete नहीं हुआ: "+(e.message||"कृपया बाद में कोशिश करें।"));}
+  }
+  function renderAddressBook(addresses){
+    const box=el("adCustomerAddressList");if(!box)return;box.replaceChildren();
+    if(!addresses.length){box.appendChild(node("div","empty","अभी कोई saved address नहीं है। Checkout में पूरा पता भरकर नया address save करें।"));return;}
+    addresses.forEach(a=>{
+      const card=node("div","card");card.style.margin="0";
+      card.appendChild(node("strong","",(a.label||"Address")+(a.is_default?" • ⭐ Default":"")));
+      card.appendChild(node("p","small",a.full_name+" • "+a.mobile));
+      card.appendChild(node("p","small",[a.address_line,a.city,a.state,a.pincode].filter(Boolean).join(", ")));
+      const actions=node("div","product-actions");actions.style.cssText="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px";
+      actions.appendChild(btn("Use / Edit",()=>{
+        if(el("adCheckoutSavedAddress"))el("adCheckoutSavedAddress").value=String(a.id);
+        if(typeof window.adLiveApplySavedAddress==="function")window.adLiveApplySavedAddress();
+        if(el("adCheckoutAddressLabel"))el("adCheckoutAddressLabel").value=["Home","Work","Other"].includes(a.label)?a.label:"Other";
+        status("adCustomerProfileMessage","Address checkout fields में load हुआ। Update करने के लिए Update selected address दबाएं।");
+        el("adCheckoutName")?.scrollIntoView({behavior:"smooth",block:"center"});
+      },"outline"));
+      actions.appendChild(btn("Make default",async()=>{
+        if(el("adCheckoutSavedAddress"))el("adCheckoutSavedAddress").value=String(a.id);
+        if(typeof window.adLiveApplySavedAddress==="function")window.adLiveApplySavedAddress();
+        if(el("adCheckoutAddressLabel"))el("adCheckoutAddressLabel").value=["Home","Work","Other"].includes(a.label)?a.label:"Other";
+        await saveAddress(a.id,true,"Default address updated.");
+      },"outline"));
+      actions.appendChild(btn("Delete",async()=>{
+        if(!confirm("Saved address delete करें? Active order से जुड़ा address सुरक्षित रहेगा।"))return;
+        try{const {error}=await client().rpc("customer_delete_address",{p_id:a.id});if(error)throw error;toast("Address delete हो गया।");await window.adLiveLoadCustomerOrders();}
+        catch(e){alert("Address delete नहीं हुआ: "+(e.message||"फिर कोशिश करें।"));}
+      },"red"));
+      card.appendChild(actions);box.appendChild(card);
+    });
+  }
+  async function loadCustomerWishlist(){
+    if(!isCustomer())return;
+    const {data,error}=await client().rpc("customer_get_wishlist");
+    if(error){console.error("Customer wishlist load failed:",error);return;}
+    const items=toList(data);
+    window.__adBrandCustomerWishlistItems=items;
+    window.__adBrandCustomerWishlistIds=new Set(items.map(x=>String(x.product_id)));
+    renderWishlist(items);
+  }
+  function renderWishlist(items){
+    const box=el("adCustomerWishlist");if(!box)return;box.replaceChildren();
+    if(!items.length){box.appendChild(node("div","empty","Wishlist खाली है। Product catalogue से ♡ Wishlist दबाकर पसंदीदा item जोड़ें।"));return;}
+    items.forEach(entry=>{
+      const p=entry.product||{},card=node("div","card");card.style.margin="0";
+      card.appendChild(node("strong","",p.name||"Product"));
+      card.appendChild(node("p","small muted",(p.seller_name||"Local seller")+" • "+(p.category_name||p.category_slug||"Category")));
+      card.appendChild(node("p","",money(p.sale_price??p.price)));
+      const variants=toList(p.variants);let select=null;
+      if(variants.length){
+        select=node("select","search-input");select.setAttribute("aria-label","Wishlist item variant");
+        variants.forEach(v=>{const opt=node("option","",(v.variant_name||"Variant")+" — "+money(v.sale_price??v.price)+" • Stock "+Number(v.stock||0));opt.value=v.id;opt.disabled=Number(v.stock||0)<=0;select.appendChild(opt);});
+        const first=variants.find(v=>Number(v.stock||0)>0);if(first)select.value=first.id;card.appendChild(select);
+      }
+      const actions=node("div","product-actions");actions.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px";
+      actions.appendChild(btn("Add to cart",()=>{
+        const variant=select?variants.find(v=>String(v.id)===String(select.value)):null;
+        if(variants.length&&!variant)return alert("Available variant चुनें।");
+        const stock=Number(variant?variant.stock:p.stock||0);if(stock<1)return alert("यह item अभी stock में नहीं है।");
+        const cart=window.__adBrandLiveCart=window.__adBrandLiveCart||[];
+        const existing=cart.find(x=>x.product_id===p.id&&(x.variant_id||null)===(variant?variant.id:null));
+        if(existing){if(existing.quantity+1>stock)return alert("Stock से अधिक quantity नहीं जोड़ सकते।");existing.quantity++;}
+        else cart.push({key:p.id+":"+(variant?variant.id:""),product_id:p.id,variant_id:variant?variant.id:null,quantity:1,product:p,variant:variant});
+        if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+        toast("Wishlist item Cart में जोड़ दिया।");
+      },"primary"));
+      actions.appendChild(btn("Remove from wishlist",async()=>{
+        const {data,error}=await client().rpc("customer_toggle_wishlist",{p_product_id:p.id,p_add:false});
+        if(error){alert("Wishlist update नहीं हुई: "+(error.message||"फिर कोशिश करें।"));return;}
+        window.__adBrandCustomerWishlistItems=toList(data?.items).map(x=>({product_id:x.product_id,created_at:x.created_at}));
+        await loadCustomerWishlist();if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();toast("Wishlist से हट गया।");
+      },"outline"));
+      card.appendChild(actions);box.appendChild(card);
+    });
+  }
+  async function toggleWishlist(product,button){
+    if(!isCustomer()){openAccountAccess("customer");toast("Wishlist save करने के लिए Customer login करें।");return;}
+    const has=window.__adBrandCustomerWishlistIds instanceof Set&&window.__adBrandCustomerWishlistIds.has(String(product.id));
+    try{
+      const {data,error}=await client().rpc("customer_toggle_wishlist",{p_product_id:product.id,p_add:!has});
+      if(error)throw error;
+      await loadCustomerWishlist();
+      if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
+      toast(has?"Wishlist से हटा दिया।":"Wishlist में save हो गया।");
+    }catch(e){console.error(e);alert("Wishlist update नहीं हुई: "+(e.message||"कृपया दोबारा प्रयास करें।"));}
+  }
+  function decorateCatalog(){
+    const box=el("adLiveCatalog");if(!box)return;
+    const products=toList(window.__adBrandLiveProducts);
+    const cards=Array.from(box.querySelectorAll(".ad-live-product"));
+    cards.forEach((card,index)=>{
+      const p=products[index];if(!p)return;
+      if(el("adCustomerRating_"+p.id)||el("adCustomerWish_"+p.id))return;
+      if(Number(p.rating_count||0)>0){
+        const rating=node("p","small muted","⭐ "+Number(p.rating||0).toFixed(1)+" ("+Number(p.rating_count)+" verified rating"+(Number(p.rating_count)===1?"":"s")+")");
+        rating.id="adCustomerRating_"+p.id;
+        const meta=card.querySelector("p.small.muted");if(meta)meta.insertAdjacentElement("afterend",rating);else card.appendChild(rating);
+      }
+      const wish=btn((window.__adBrandCustomerWishlistIds instanceof Set&&window.__adBrandCustomerWishlistIds.has(String(p.id)))?"♥ Saved to Wishlist":"♡ Add to Wishlist",()=>toggleWishlist(p,wish),"outline");
+      wish.id="adCustomerWish_"+p.id;card.appendChild(wish);
+    });
+  }
+  async function loadAndRenderCustomerExtra(){
+    if(!isCustomer()){
+      setAccountVisibility(null);
+      if(el("adCustomerAddressList"))el("adCustomerAddressList").replaceChildren(node("div","empty","Customer login के बाद address book उपलब्ध होगी।"));
+      if(el("adCustomerWishlist"))el("adCustomerWishlist").replaceChildren(node("div","empty","Wishlist के लिए Customer login करें।"));
+      return;
+    }
+    const c=client(),user=window.__adBrandAuthUser;
+    const {data,error}=await c.rpc("customer_get_workspace");
+    if(error){console.error("Customer extra workspace error:",error);setProfileMessage("Customer details load नहीं हुईं: "+(error.message||""));return;}
+    setAccountVisibility(data);
+    const addresses=toList(data?.addresses);
+    window.__adBrandSavedAddresses=addresses;
+    renderAddressBook(addresses);
+    renderSupportTickets(toList(data?.support_tickets));
+    await loadCustomerWishlist();
+    await loadPersistedCartOnce(user.id);
+    decorateOrderCards(toList(data?.orders));
+  }
+  function renderSupportTickets(tickets){
+    const box=el("adLiveSupportTickets");if(!box)return;
+    box.replaceChildren();
+    if(!tickets.length){box.appendChild(node("div","empty","अभी कोई support ticket नहीं है।"));return;}
+    tickets.forEach(t=>{
+      const card=node("div","card");
+      card.appendChild(node("strong","",(t.ticket_code||"Ticket")+" • "+(t.subject||"Support")));
+      card.appendChild(node("p","small muted",(t.status||"open")+" • "+(t.category||"other")+" • "+(t.created_at?new Date(t.created_at).toLocaleString():"")));
+      card.appendChild(node("p","",t.description||""));
+      toList(t.messages).forEach(m=>{
+        const reply=node("div","card");reply.appendChild(node("strong","small",m.sender_role==="admin"?"Admin response":"Message"));reply.appendChild(node("p","small",m.message||""));reply.appendChild(node("p","small muted",m.created_at?new Date(m.created_at).toLocaleString():""));card.appendChild(reply);
+      });
+      box.appendChild(card);
+    });
+  }
+  function currentGuestCart(){
+    try{
+      const stored=JSON.parse(localStorage.getItem(cartKey)||"[]");
+      if(Array.isArray(stored)&&stored.length)return stored;
+    }catch(e){}
+    return toList(window.__adBrandLiveCart).map(x=>({product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1),product:x.product||null,variant:x.variant||null}));
+  }
+  async function loadPersistedCartOnce(userId){
+    if(window.__adBrandCustomerCartLoadedFor===userId)return;
+    const c=client();
+    let serverItems=[];
+    const {data,error}=await c.rpc("customer_get_cart");
+    if(error){console.error("Saved cart load failed:",error);return;}
+    serverItems=toList(data).map(x=>({key:x.key||String(x.product_id)+":"+(x.variant_id||""),product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1),product:x.product,variant:x.variant||null,stock:Number((x.variant&&x.variant.stock)||((x.product||{}).stock)||0)}));
+    const guests=currentGuestCart();
+    const combined=new Map();
+    serverItems.forEach(x=>combined.set(String(x.product_id)+":"+(x.variant_id||""),x));
+    guests.forEach(x=>{
+      const key=String(x.product_id)+":"+(x.variant_id||"");
+      const cached=toList(window.__adBrandLiveProducts).find(p=>String(p.id)===String(x.product_id));
+      const p=cached||x.product||null;
+      const v=toList(p&&p.variants).find(v=>String(v.id)===String(x.variant_id))||x.variant||null;
+      const stock=Number(v?v.stock:(p&&p.stock)||x.stock||0);
+      if(!p||stock<=0)return;
+      if(combined.has(key)){const cur=combined.get(key);cur.quantity=Math.min(stock,Number(cur.quantity||0)+Number(x.quantity||1));}
+      else combined.set(key,{key,product_id:x.product_id,variant_id:x.variant_id||null,quantity:Math.min(stock,Number(x.quantity||1)),product:p,variant:v,stock:stock});
+    });
+    const target=window.__adBrandLiveCart=window.__adBrandLiveCart||[];
+    target.splice(0,target.length,...Array.from(combined.values()).filter(x=>Number(x.quantity)>0));
+    window.__adBrandCustomerCartLoadedFor=userId;
+    try{localStorage.removeItem(cartKey);}catch(e){}
+    if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+    scheduleCartSync();
+  }
+  let cartSaveTimer=null,cartSaving=false;
+  function scheduleCartSync(){
+    if(cartSaveTimer)clearTimeout(cartSaveTimer);
+    if(!isCustomer()){
+      try{localStorage.setItem(cartKey,JSON.stringify(toList(window.__adBrandLiveCart).map(x=>({product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1),product:x.product||null,variant:x.variant||null,stock:x.stock}))));}catch(e){console.warn("Guest cart could not be saved",e);}
+      return;
+    }
+    if(window.__adBrandCustomerCartLoadedFor!==window.__adBrandAuthUser.id)return;
+    cartSaveTimer=setTimeout(async()=>{
+      if(cartSaving||!isCustomer())return;
+      cartSaving=true;
+      try{
+        const items=toList(window.__adBrandLiveCart).map(x=>({product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1)}));
+        const {error}=await client().rpc("customer_save_cart",{p_items:items});
+        if(error)throw error;
+        status("adCustomerProfileMessage","✅ Cart आपके account में save है।");
+      }catch(e){console.error("Customer cart sync failed:",e);status("adCustomerProfileMessage","Cart sync नहीं हुई: "+(e.message||"फिर प्रयास करें।"));}
+      finally{cartSaving=false;}
+    },500);
+  }
+  const originalCartRender=window.adLiveRenderCart;
+  if(typeof originalCartRender==="function"){
+    window.adLiveRenderCart=function(){
+      const result=originalCartRender.apply(this,arguments);
+      scheduleCartSync();
+      return result;
+    };
+  }
+  const originalCatalogLoad=window.adLiveLoadCatalog;
+  if(typeof originalCatalogLoad==="function"){
+    window.adLiveLoadCatalog=async function(){
+      const result=await originalCatalogLoad.apply(this,arguments);
+      decorateCatalog();
+      return result;
+    };
+  }
+  function decorateOrderCards(orders){
+    const box=el("adLiveOrders");if(!box)return;
+    const cards=Array.from(box.children).filter(x=>x.querySelector&&x.querySelector("h4"));
+    orders.forEach(o=>{
+      const card=cards.find(c=>(c.querySelector("h4")?.textContent||"").startsWith(String(o.order_code||"")+" •"));
+      if(!card)return;
+      const details=node("section","card");details.style.marginTop="10px";
+      details.appendChild(node("strong","","🧭 Order progress / status history"));
+      const history=toList(o.status_history);
+      if(history.length){
+        const list=node("ol","small");
+        history.slice(-12).forEach(h=>list.appendChild(node("li","",(h.new_status||"status")+(h.created_at?" • "+new Date(h.created_at).toLocaleString():"")+(h.note?" • "+h.note:""))));
+        details.appendChild(list);
+      }else details.appendChild(node("p","small muted","Current status: "+(o.status||"pending")+" • नया status मिलने पर order page refresh होगा।"));
+      card.appendChild(details);
+      if(o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery"){
+        const wait=node("section","card");wait.style.marginTop="10px";
+        wait.appendChild(node("strong","","⏱️ Need a few more minutes?"));
+        const promised=o.customer_promised_until?new Date(o.customer_promised_until):null;
+        if(promised&&Number.isFinite(promised.getTime())&&promised.getTime()>Date.now()){
+          wait.appendChild(node("p","small","आपने rider को "+promised.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})+" तक आने का समय बताया है। इस समय तक सिर्फ timer खत्म होने के कारण order auto-cancel या customer penalty नहीं लगेगी।"));
+        }else if(o.arrival_recorded_at){
+          wait.appendChild(node("p","small muted","Rider arrival record हो चुका है। आप 5, 10 या 15 मिनट का समय बता सकते हैं। इसे दर्ज करने से order active रहेगा; स्वतः cancellation या customer penalty नहीं लगेगी।"));
+          const actions=node("div","product-actions");actions.style.cssText="display:flex;gap:8px;flex-wrap:wrap";
+          [5,10,15].forEach(minutes=>actions.appendChild(btn(minutes+" मिनट और चाहिए",async()=>{
+            if(!confirm("Rider को "+minutes+" मिनट और मिलने की सूचना भेजें? Order केवल समय पूरा होने से cancel नहीं होगा।"))return;
+            try{const {data,error}=await client().rpc("customer_respond_to_rider_wait",{p_order_id:o.id,p_minutes:minutes});if(error)throw error;toast(data?.message||"Extra time request दर्ज हुई।");await window.adLiveLoadCustomerOrders();}
+            catch(e){alert("Extra time request save नहीं हुई: "+(e.message||"कृपया support को बताएं।"));}
+          },"outline")));
+          wait.appendChild(actions);
+        }else{
+          wait.appendChild(node("p","small muted","Rider का arrival अभी database में record नहीं हुआ है। अगर rider से संपर्क नहीं हो पा रहा, नीचे Help with this order दबाकर Support को बताएं।"));
+        }
+        card.appendChild(wait);
+      }
+      if(o.status==="delivered"){
+        const review=node("section","card");review.style.marginTop="10px";
+        review.appendChild(node("strong","","⭐ Rate your order"));
+        review.appendChild(node("p","small muted","सिर्फ delivered order के products/seller/rider को rate करें। Reviews आपके खरीदे हुए order से verify होंगे।"));
+        const productInputs=[];
+        toList(o.items).forEach(it=>{
+          if(!it.order_item_id)return;
+          const row=node("div","field");row.appendChild(node("label","",(it.name||"Product")+(it.variant_name?" — "+it.variant_name:"")));
+          const select=node("select","search-input");select.setAttribute("aria-label","Rating for "+(it.name||"product"));
+          select.appendChild(new Option("Skip this product",""));
+          [5,4,3,2,1].forEach(r=>select.appendChild(new Option(r+" ⭐",String(r))));
+          row.appendChild(select);review.appendChild(row);productInputs.push({id:it.order_item_id,select:select});
+        });
+        const sellerLabel=node("label","","Seller rating");const sellerSelect=node("select","search-input");sellerSelect.appendChild(new Option("Skip seller rating",""));[5,4,3,2,1].forEach(r=>sellerSelect.appendChild(new Option(r+" ⭐",String(r))));sellerLabel.appendChild(sellerSelect);review.appendChild(sellerLabel);
+        let deliverySelect=null;
+        if(o.delivery_profile_id){
+          const deliveryLabel=node("label","","Delivery partner rating");deliverySelect=node("select","search-input");deliverySelect.appendChild(new Option("Skip delivery rating",""));[5,4,3,2,1].forEach(r=>deliverySelect.appendChild(new Option(r+" ⭐",String(r))));deliveryLabel.appendChild(deliverySelect);review.appendChild(deliveryLabel);
+        }
+        const comment=node("textarea","");comment.maxLength=2000;comment.placeholder="Review text (optional)";review.appendChild(comment);
+        review.appendChild(btn("Submit / Update ratings",async()=>{
+          const ratings=productInputs.filter(x=>x.select.value).map(x=>({order_item_id:x.id,rating:Number(x.select.value)}));
+          const sellerRating=sellerSelect.value?Number(sellerSelect.value):null;
+          const deliveryRating=deliverySelect&&deliverySelect.value?Number(deliverySelect.value):null;
+          if(!ratings.length&&sellerRating===null&&deliveryRating===null)return alert("कम से कम एक rating चुनें।");
+          try{
+            const {data,error}=await client().rpc("customer_submit_order_reviews",{p_order_id:o.id,p_product_ratings:ratings,p_seller_rating:sellerRating,p_delivery_rating:deliveryRating,p_review_text:String(comment.value||"").trim()||null});
+            if(error)throw error;
+            toast("Verified review save हो गया। धन्यवाद!");
+            await window.adLiveLoadCustomerOrders();await window.adLiveLoadCatalog();
+          }catch(e){alert("Review save नहीं हुआ: "+(e.message||"कृपया फिर प्रयास करें।"));}
+        },"primary"));
+        card.appendChild(review);
+      }
+    });
+  }
+  async function wrapCustomerOrders(){
+    const original=window.adLiveLoadCustomerOrders;
+    if(typeof original!=="function"||original.__adCustomerWrapped)return;
+    const wrapped=async function(){
+      const result=await original.apply(this,arguments);
+      await loadAndRenderCustomerExtra();
+      return result;
+    };
+    wrapped.__adCustomerWrapped=true;
+    window.adLiveLoadCustomerOrders=wrapped;
+  }
+  function wireButtons(){
+    el("adCustomerSaveProfile")?.addEventListener("click",saveCustomerProfile);
+    el("adCustomerChangeEmail")?.addEventListener("click",changeCustomerEmail);
+    el("adCustomerChangePassword")?.addEventListener("click",changeCustomerPassword);
+    el("adCustomerSignOut")?.addEventListener("click",customerSignOut);
+    el("adCustomerSaveNewAddress")?.addEventListener("click",()=>saveAddress(null,!!el("adCustomerMakeAddressDefault")?.checked,"New address saved."));
+    el("adCustomerUpdateAddress")?.addEventListener("click",updateSelectedAddress);
+    el("adCustomerSetDefaultAddress")?.addEventListener("click",setSelectedAddressDefault);
+    el("adCustomerDeleteAddress")?.addEventListener("click",deleteSelectedAddress);
+    ["adCustomerAccountName","adCustomerAccountMobile","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>el(id)?.addEventListener("input",()=>{window.__adCustomerAccountDirty=true;}));
+  }
+  function wireAuthModal(){
+    if(String(window.location.hash||"").includes("type=recovery")){
+      const modal=el("accountModal");if(modal)modal.classList.add("show");
+      if(el("adCustomerRecoveryBox"))el("adCustomerRecoveryBox").hidden=false;
+      ["accountRole","accountEmail","accountPassword","accountMobile"].forEach(id=>{const n=el(id);if(n&&n.parentElement)n.parentElement.style.display="none";});
+      const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
+      const signup=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('signup')\"]");
+      if(login&&login.parentElement)login.parentElement.style.display="none";
+      if(el("adCustomerAuthExtras"))el("adCustomerAuthExtras").style.display="none";
+    }
+  }
+  const originalOpenCart=window.openCartModal;
+  window.openCartModal=function(){
+    if(typeof window.openPanel==="function")window.openPanel("customer");
+    setTimeout(()=>{if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();el("adLiveCart")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
+    return originalOpenCart?undefined:undefined;
+  };
+  const categorySlug={"कपड़े":"clothes","जूते":"shoes","चप्पल":"slippers","खाना":"food","Veg":"veg-food","Non-Veg":"non-veg-food","चाय":"tea","Snacks":"snacks"};
+  window.selectCategory=function(category){
+    if(typeof window.openPanel==="function")window.openPanel("customer");
+    const slug=categorySlug[String(category)]||String(category||"");
+    if(el("adLiveCategory"))el("adLiveCategory").value=slug;
+    if(el("adLiveSearch"))el("adLiveSearch").value="";
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+    setTimeout(()=>el("adLiveCatalog")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
+  };
+  initAccountCenter();
+  wireButtons();
+  wireAuthModal();
+  const existingPasswordBtn=el("adCustomerAuthExtras")?.querySelector("button");
+  if(existingPasswordBtn)existingPasswordBtn.addEventListener("click",window.adCustomerForgotPassword);
+  const resendBtn=el("adCustomerAuthExtras")?.querySelectorAll("button")[1];
+  if(resendBtn)resendBtn.addEventListener("click",window.adCustomerResendConfirmation);
+  // Button listeners are wired against the live functions only after the existing marketplace IIFE created them.
+  const pendingInit=async()=>{
+    const originalLoad=window.adLiveLoadCustomerOrders;
+    if(typeof originalLoad==="function"&&!originalLoad.__adCustomerWrapped){
+      const wrapped=async function(){
+        const result=await originalLoad.apply(this,arguments);
+        await loadAndRenderCustomerExtra();
+        return result;
+      };
+      wrapped.__adCustomerWrapped=true;
+      window.adLiveLoadCustomerOrders=wrapped;
+    }
+    if(typeof window.adLiveRenderCart==="function"&&!window.__adCustomerCartRenderWrapped){
+      const base=window.adLiveRenderCart;
+      window.adLiveRenderCart=function(){const result=base.apply(this,arguments);scheduleCartSync();return result;};
+      window.__adCustomerCartRenderWrapped=true;
+    }
+    if(typeof window.adLiveLoadCatalog==="function"&&!window.__adCustomerCatalogLoadWrapped){
+      const base=window.adLiveLoadCatalog;
+      window.adLiveLoadCatalog=async function(){const result=await base.apply(this,arguments);decorateCatalog();return result;};
+      window.__adCustomerCatalogLoadWrapped=true;
+    }
+    if(!isCustomer()){
+      try{
+        const guest=JSON.parse(localStorage.getItem(cartKey)||"[]");
+        if(Array.isArray(guest)&&guest.length&&window.__adBrandLiveCart&&window.__adBrandLiveCart.length===0){
+          window.__adBrandLiveCart.push(...guest);
+        }
+      }catch(e){}
+    }
+    if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
+    if(isCustomer()&&typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+    else {
+      setAccountVisibility(null);
+      if(el("adCustomerAddressList"))el("adCustomerAddressList").replaceChildren(node("div","empty","Customer login के बाद address book उपलब्ध होगी।"));
+      if(el("adCustomerWishlist"))el("adCustomerWishlist").replaceChildren(node("div","empty","Wishlist के लिए Customer login करें।"));
+    }
+    decorateCatalog();
+  };
+  // Existing script defines the final Customer methods before this layer; run once now and again after Auth changes.
+  pendingInit().catch(e=>console.error("Customer flow init failed:",e));
+  if(client())client().auth.onAuthStateChange((event,session)=>{
+    if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED"){
+      const user=session?.user;
+      if(user&&window.__adBrandAuthRole==="customer"&&typeof window.adLiveLoadCustomerOrders==="function")window.adLiveLoadCustomerOrders();
+    }else if(event==="SIGNED_OUT"){
+      window.__adBrandCustomerCartLoadedFor=null;
+      setAccountVisibility(null);
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
