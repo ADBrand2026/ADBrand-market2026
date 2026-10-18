@@ -333,6 +333,13 @@ img{max-width:100%}
 /* Keep the customer search, seller-uploaded catalogue, filters, cart and checkout available. */
 </style>
 
+<style id="ad-food-category-ui">
+  .ad-food-category-bar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 18px}
+  .ad-food-category{border:1px solid var(--border,#ddd);border-radius:999px;background:var(--surface,#fff);padding:9px 13px;font-weight:600;cursor:pointer}
+  .ad-food-category.active{background:var(--primary,#5b35d5);border-color:var(--primary,#5b35d5);color:#fff}
+  .ad-food-category-bar[hidden]{display:none!important}
+  @media(max-width:560px){.ad-food-category-bar{gap:6px}.ad-food-category{font-size:.85rem;padding:8px 10px}}
+</style>
 </head>
 
 <body>
@@ -517,6 +524,16 @@ img{max-width:100%}
       <div class="field"><label for="adLiveZoneApply">Local Food availability</label><button id="adLiveUseCheckoutZone" type="button" class="btn outline" onclick="adLiveUseCheckoutZone()">Use checkout address</button><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">Show products for this zone</button></div>
     </div>
     <p class="small muted">Food/Pizza/Tea/Snacks sellers तभी दिखेंगे जब उनकी active service zone आपके City, State और PIN Code से match करेगी। बिना zone के Non-food courier items दिख सकते हैं। अपना saved checkout address भरने के बाद location fields उसी address से भरें।</p>
+    <div id="adFoodCategoryBar" class="ad-food-category-bar" hidden aria-label="Food categories">
+      <button type="button" class="ad-food-category active" data-food-category="" onclick="adCustomerSetFoodCategory('')">🍽️ सभी Food</button>
+      <button type="button" class="ad-food-category" data-food-category="veg-food" onclick="adCustomerSetFoodCategory('veg-food')">🟢 Veg</button>
+      <button type="button" class="ad-food-category" data-food-category="non-veg-food" onclick="adCustomerSetFoodCategory('non-veg-food')">🔴 Non-Veg</button>
+      <button type="button" class="ad-food-category" data-food-category="pizza-burgers" onclick="adCustomerSetFoodCategory('pizza-burgers')">🍕 Pizza & Burgers</button>
+      <button type="button" class="ad-food-category" data-food-category="sweets-bakery" onclick="adCustomerSetFoodCategory('sweets-bakery')">🍰 Sweets & Bakery</button>
+      <button type="button" class="ad-food-category" data-food-category="tea" onclick="adCustomerSetFoodCategory('tea')">☕ चाय</button>
+      <button type="button" class="ad-food-category" data-food-category="snacks" onclick="adCustomerSetFoodCategory('snacks')">🍟 Snacks</button>
+      <button type="button" class="ad-food-category" data-food-category="beverages" onclick="adCustomerSetFoodCategory('beverages')">🥤 Beverages</button>
+    </div>
     <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
     <div class="section">
       <h3>🛒 Live Cart और Checkout</h3>
@@ -18886,7 +18903,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     let data = [];
     let error = null;
     for (const candidate of uniqueCandidates) {
-      const categorySlugs = marketMode === "food" ? foodCategorySlugs : [category || null];
+      const categorySlugs = marketMode === "food" ? (foodCategorySlugs.includes(category) ? [category] : foodCategorySlugs) : [category || null];
       const candidateProducts = [];
       for (const categorySlug of categorySlugs) {
         const result = await client.rpc("get_public_marketplace_catalog_for_zone", {
@@ -20968,15 +20985,44 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
   };
   window.adCustomerSetMarketMode=function(mode){
-    mode=mode==="food"?"food":"products";window.__adBrandCustomerMarketMode=mode;
+    mode=mode==="food"?"food":"products";
+    window.__adBrandCustomerMarketMode=mode;
     var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
-    if(food)food.classList.toggle("active",mode==="food");if(products)products.classList.toggle("active",mode==="products");
+    if(food)food.classList.toggle("active",mode==="food");
+    if(products)products.classList.toggle("active",mode==="products");
     var category=document.getElementById("adLiveCategory"),search=document.getElementById("adLiveSearch");
-    if(category){if(mode==="food")category.value="food";else if(["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category.value))category.value="";}
-    var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display=mode==="food"?"grid":"none";
+    var foodSlugs=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
+    if(category){
+      if(mode==="food")category.value="";
+      else if(foodSlugs.includes(category.value))category.value="";
+    }
+    var zone=document.getElementById("adLiveFoodZoneFilter");
+    if(zone)zone.style.display=mode==="food"?"grid":"none";
+    var foodBar=document.getElementById("adFoodCategoryBar");
+    if(foodBar)foodBar.hidden=mode!=="food";
     if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile/i.test(search.value))search.value="";
+    window.adCustomerSetFoodCategoryActive(category?category.value:"");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
-    var market=document.getElementById("adLiveCustomerMarket");if(market)market.scrollIntoView({behavior:"smooth",block:"start"});
+    var market=document.getElementById("adLiveCustomerMarket");
+    if(market)market.scrollIntoView({behavior:"smooth",block:"start"});
+  };
+  window.adCustomerSetFoodCategory=function(slug){
+    var category=document.getElementById("adLiveCategory");
+    var allowed=["","food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
+    slug=allowed.includes(String(slug||""))?String(slug||""):"";
+    window.__adBrandCustomerMarketMode="food";
+    if(category)category.value=slug;
+    var zone=document.getElementById("adLiveFoodZoneFilter");
+    if(zone)zone.style.display="grid";
+    var bar=document.getElementById("adFoodCategoryBar");
+    if(bar)bar.hidden=false;
+    window.adCustomerSetFoodCategoryActive(slug);
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+  };
+  window.adCustomerSetFoodCategoryActive=function(slug){
+    document.querySelectorAll("[data-food-category]").forEach(function(button){
+      button.classList.toggle("active",button.getAttribute("data-food-category")===String(slug||""));
+    });
   };
   window.adCustomerClearFilters=function(){
     ["adCustomerGenderFilter","adCustomerSizeFilter","adCustomerColorFilter","adCustomerBrandFilter","adCustomerModelFilter","adCustomerMaterialFilter","adCustomerMinPrice","adCustomerMaxPrice"].forEach(function(id){var e=document.getElementById(id);if(e)e.value="";});
