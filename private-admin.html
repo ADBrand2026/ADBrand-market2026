@@ -26,6 +26,7 @@
 <div class="card"><div class="sectionhead"><h2>Seller / Delivery applications</h2><span class="pill">Admin decision required</span></div><div id="applications"></div></div>
 <div class="card"><div class="sectionhead"><h2>Private application documents</h2><span class="pill">2-minute signed viewing links</span></div><p class="small muted">Seller verification requires an approved shop photo and address proof. Rider verification requires address proof, vehicle photo and a relevant licence/insurance/identity document.</p><div id="documents"></div></div>
 <div class="card"><div class="sectionhead"><h2>Seller / rider verification queue</h2></div><div id="verification"></div></div>
+<div class="card"><div class="sectionhead"><h2>Food service zones & rider dispatch coverage</h2></div><p class="small muted">Food checkout और rider claim पर ये PIN zones server-side लागू होते हैं। Whole-city coverage का मतलब blank PIN; non-food shipment area courier provider से तय होगा।</p><div id="opsZones"></div></div>
 <div class="card"><div class="sectionhead"><h2>Non-food courier booking and tracking</h2></div><p class="small muted">After you have actually booked the parcel in the courier's authorized account, enter the provider and confirmed tracking/AWB here. Saving this form does not call Valmo's system.</p><div id="shipments"></div></div>
 <div class="card"><div class="sectionhead"><h2>COD cash reconciliation</h2></div><p class="small muted">Shows COD cash already collected by a food rider or self-pickup seller but not yet handed over/reconciled with the platform. Confirm only after actual cash handover; this does not send bank transfers.</p><div id="opsCod"></div></div>
 <div class="card"><div class="sectionhead"><h2>Delivery incidents / customer waiting</h2></div><p class="small muted">A customer's missed call or request for ten minutes does not automatically cancel the order and does not create a customer penalty.</p><div id="issues"></div></div>
@@ -276,7 +277,7 @@ async function loadReturnsSupport(){
 }
 async function refreshAll(){
  if(!sessionUser)return;
- await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalCustomers(),loadOperationalProducts(),loadReturnsSupport(),loadCodRemittance()]);
+ await Promise.all([loadStats(),loadApplications(),loadDocuments(),loadVerification(),loadOperationalZones(),loadShipments(),loadIssues(),loadPenalties(),loadOperationalOrders(),loadOperationalCustomers(),loadOperationalProducts(),loadReturnsSupport(),loadCodRemittance()]);
 }
 el("refreshBtn").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
 el("refreshTop").addEventListener("click",()=>refreshAll().catch(e=>setStatus(errText(e),"error")));
@@ -364,6 +365,32 @@ async function setVerified(type,id){
  if(error){setStatus("Profile verification failed: "+errText(error),"error");return;}
  setStatus("Profile verified. Open shop/online settings remain subject to backend checks.","ok");await refreshAll();
 }
+async function loadOperationalZones(){
+ const box=el("opsZones");list(box,"Loading service zones…");
+ const [sz,dz,sp,dp]=await Promise.all([
+  client.from("seller_service_areas").select("id,seller_profile_id,pincode,city,state,is_active,created_at").order("city").limit(1000),
+  client.from("delivery_service_areas").select("id,delivery_profile_id,pincode,city,state,is_active,created_at").order("city").limit(1000),
+  client.from("seller_profiles").select("id,shop_name,seller_code,seller_type,is_verified,is_active").limit(1000),
+  client.from("delivery_profiles").select("id,delivery_code,full_name,is_verified,is_active,is_online").limit(1000)
+ ]);
+ box.replaceChildren();
+ const errors=[sz.error,dz.error,sp.error,dp.error].filter(Boolean);
+ if(errors.length){box.appendChild(node("p","status error","Zone directory query failed: "+errors.map(errText).join(" | ")));return;}
+ const sellers=new Map((sp.data||[]).map(x=>[x.id,x])),riders=new Map((dp.data||[]).map(x=>[x.id,x]));
+ const rows=[];
+ (sz.data||[]).forEach(z=>{const s=sellers.get(z.seller_profile_id)||{};rows.push({kind:"🍕 Food seller",name:s.shop_name||s.seller_code||z.seller_profile_id,city:z.city,state:z.state,pin:z.pincode,active:z.is_active,verified:s.is_verified,entityActive:s.is_active});});
+ (dz.data||[]).forEach(z=>{const d=riders.get(z.delivery_profile_id)||{};rows.push({kind:"🛵 Food rider",name:d.full_name||d.delivery_code||z.delivery_profile_id,city:z.city,state:z.state,pin:z.pincode,active:z.is_active,verified:d.is_verified,online:d.is_online,entityActive:d.is_active});});
+ if(!rows.length){list(box,"अभी कोई approved Food seller/rider zone registered नहीं है। First approval के समय application के City/State/PIN से default zone बनेगा.");return;}
+ rows.sort((a,b)=>String(a.kind+a.name+a.pin).localeCompare(String(b.kind+b.name+b.pin)));
+ rows.forEach(z=>{
+  const c=node("div","item");
+  c.appendChild(node("h3","",z.kind+" — "+z.name));
+  c.appendChild(node("p","",z.pin?"PIN "+z.pin:"पूरे registered शहर के PIN codes"));
+  c.appendChild(node("p","small muted",[z.city,z.state,z.active?"Zone active":"Zone inactive",z.verified?"Verified":"Not verified",z.entityActive?"Profile active":"Profile inactive",z.online===undefined?null:(z.online?"Rider online":"Rider offline")].filter(Boolean).join(" • ")));
+  box.appendChild(c);
+ });
+}
+
 async function loadShipments(){
  const box=el("shipments");list(box,"Loading shipments…");
  const {data,error}=await client.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,label_reference,tracking_number,courier_order_reference").in("shipment_status",["pending_quote","pending_booking","booked","picked_up","in_transit"]).order("created_at",{ascending:false}).limit(100);
