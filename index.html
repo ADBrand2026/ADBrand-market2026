@@ -437,6 +437,10 @@ img{max-width:100%}
   </section>
 </main>
 
+<style id="ad-customer-top-search-ui">
+#adCustomer .ad-customer-top-search,#customer .ad-customer-top-search{position:relative;margin:14px 0 18px;padding:14px 16px;border:1px solid rgba(99,102,241,.22);border-radius:16px;background:var(--surface,#fff);box-shadow:0 8px 22px rgba(15,23,42,.07)}
+.ad-customer-top-search input{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--border,#d7dce5);border-radius:12px;font-size:1rem}
+</style>
 <style id="ad-four-role-home-ui">
   .ad-role-home{padding:clamp(22px,4vw,42px)!important}
   .ad-role-home .hero-content{width:100%;max-width:1000px;margin:0 auto}
@@ -468,6 +472,10 @@ img{max-width:100%}
     <h2>🛍️ Customer Marketplace</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
   </div>
+  <div class="ad-customer-top-search field">
+    <label for="adLiveSearch">🔎 Search / खोजें</label>
+    <input id="adLiveSearch" type="search" autocomplete="off" placeholder="खाना, चाय, साड़ी, जूते, मोबाइल या कोई भी सामान खोजें…" oninput="adCustomerDebouncedSearch()">
+  </div>
   <section class="ad-customer-market-switch" aria-label="Choose shopping department">
     <button type="button" id="adMarketFoodButton" class="ad-market-tile ad-market-food" onclick="adCustomerSetMarketMode('food')">
       <span class="ad-market-image" aria-hidden="true"></span>
@@ -498,7 +506,6 @@ img{max-width:100%}
   <div id="adLiveCustomerMarket" class="section">
     <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
     <div class="form-grid">
-      <div class="field"><label for="adLiveSearch">🔎 Search / खोजें</label><input id="adLiveSearch" placeholder="फोन, phone cover, साड़ी, saree, pant, shoes..." oninput="adCustomerDebouncedSearch()"></div>
       <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adCustomerCategoryChanged()">
         <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="men-fashion">Men Fashion</option><option value="women-fashion">Women Fashion</option><option value="kids-fashion">Kids Fashion</option><option value="sarees">साड़ी / Sarees</option><option value="pants-jeans">Pants / Jeans</option><option value="shirts-tshirts">Shirts / T-shirts</option><option value="dresses-kurtis">Dresses / Kurtis</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="watches">Watches</option><option value="home-kitchen">Home & Kitchen</option><option value="furniture-decor">Furniture & Decor</option><option value="home-appliances">Home Appliances</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-phones">Mobile Phones</option><option value="mobile-accessories">Mobile Covers & Accessories</option><option value="computers-laptops">Computers & Laptops</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="automotive">Automotive</option><option value="pet-supplies">Pet Supplies</option><option value="travel-luggage">Travel & Luggage</option><option value="health-wellness">Health & Wellness</option><option value="musical-instruments">Musical Instruments</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="pizza-burgers">Pizza & Burgers</option><option value="sweets-bakery">Sweets & Bakery</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="beverages">Beverages</option>
       </select></div>
@@ -1127,12 +1134,13 @@ function goHome() {
 }
 
 function openPanel(panelName) {
-  if (["customer","seller","delivery"].includes(panelName)) {
+  // Customers may browse the catalogue without registering; login is required only for checkout.
+  if (["seller","delivery"].includes(panelName)) {
     if (!window.__adBrandAuthUser) { openAccountAccess(panelName); toast("पहले secure login करें।"); return; }
     if (window.__adBrandAuthRole !== panelName) {
-      if (window.__adBrandAuthRole === "customer" && (panelName === "seller" || panelName === "delivery")) {
+      if (window.__adBrandAuthRole === "customer") {
         openAccountAccess(panelName);
-        toast("आपका Customer account सुरक्षित है। Seller/Delivery बनने के लिए नीचे आवेदन भेजें; Admin approval आवश्यक है।");
+        toast("आपका Customer account सुरक्षित है। Seller/Delivery बनने के लिए आवेदन और Admin approval आवश्यक है।");
       } else {
         openAccountAccess(panelName);
         toast("इस panel के लिए approved account से login करें।");
@@ -1642,7 +1650,7 @@ window.adCustomerSendOtp=async function(){
  var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
  if(send)send.disabled=true;
  try{
-  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:false}});
+  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name,mobile:mobile}}});
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
   var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
@@ -20946,7 +20954,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
             if(error||!profile||profile.is_active!==true)return;
             window.__adBrandAuthUser=user;
             window.__adBrandAuthRole=profile.role;
-            if(profile.role==="customer"&&typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+            updateCustomerOtpVisibility();
+            if(profile.role==="customer"){
+              var otpName=el("adCustomerOtpName"),otpMobile=el("adCustomerOtpMobile");
+              if(otpName)otpName.value="";
+              if(otpMobile)otpMobile.value="";
+              if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+              if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
+            }
           }catch(e){console.warn("Customer session refresh did not complete.",e);}
         })();
       },0);
