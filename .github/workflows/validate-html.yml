@@ -80,5 +80,4 @@ jobs:
       - name: Check private Admin remains absent from the storefront navigation
         shell: bash
         run: |
-          ! grep -Eiq 'href=["'\'''][^"'\''']*private-admin\.html' index.html
-          echo "No storefront navigation link to private-admin.html found."
+          python3 -c 'import re,pathlib; h=pathlib.Path("index.html").read_text(encoding="utf-8"); m=re.search(r"href\s*=\s*[\x22\x27][^\x22\x27]*private-admin\.html",h,re.I); print("No storefront Admin link found." if not m else "Storefront Admin link found."); raise SystemExit(1 if m else 0)'
