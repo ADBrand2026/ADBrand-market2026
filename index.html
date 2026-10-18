@@ -8164,67 +8164,7 @@ body {
         </div>
       </section>
 
-      <section class="p5-card p5-span-12 p5-security" id="p5-admin-security">
-        <h3>🔐 Private Admin — सार्वजनिक मेन्यू में नहीं</h3>
-        <span class="p5-tag p5-tag-gold">ADMIN PUBLIC BUTTON: DISABLED</span>
-
-        <p class="p5-muted">
-          Admin का अलग सार्वजनिक बटन नहीं बनाया गया है। सुरक्षित Admin access
-          के लिए केवल छिपा हुआ बटन हटाना काफी नहीं है; backend पर भी पहचान और
-          permissions जाँचना जरूरी है।
-        </p>
-
-        <div class="p5-list">
-          <div class="p5-row">
-            <div>
-              <strong>1. Supabase Authentication</strong>
-              <div class="p5-muted">Admin अपने निजी email/password से sign in करेगा।</div>
-            </div>
-            <span class="p5-tag p5-tag-gold">LOGIN</span>
-          </div>
-
-          <div class="p5-row">
-            <div>
-              <strong>2. Server-side role check</strong>
-              <div class="p5-muted">Database में authenticated user का role admin और is_active true होना चाहिए।</div>
-            </div>
-            <span class="p5-tag">ROLE</span>
-          </div>
-
-          <div class="p5-row">
-            <div>
-              <strong>3. Row Level Security (RLS)</strong>
-              <div class="p5-muted">Customers, sellers और delivery users को Admin data सीधे पढ़ने या बदलने की अनुमति नहीं होनी चाहिए।</div>
-            </div>
-            <span class="p5-tag">RLS</span>
-          </div>
-
-          <div class="p5-row">
-            <div>
-              <strong>4. Admin audit trail</strong>
-              <div class="p5-muted">महत्त्वपूर्ण कार्रवाई, समय, user ID और नतीजे का सुरक्षित रिकॉर्ड रखा जाए।</div>
-            </div>
-            <span class="p5-tag">AUDIT</span>
-          </div>
-        </div>
-
-        <div class="p5-notice">
-          <strong>Admin कहाँ से चेक करें?</strong><br>
-          अपने Supabase project में Authentication → Users से admin user की पहचान
-          देखें। Table Editor में profiles की role और is_active values जाँचें।
-          SQL Editor में केवल read-only verification queries चलाएँ। Dashboard में
-          किसी अनजान व्यक्ति को admin role न दें।
-        </div>
-
-        <div class="p5-notice" style="border-color:rgba(255,73,109,.35)">
-          <strong>जरूरी सुरक्षा सीमा:</strong>
-          GitHub Pages पर रखा HTML/JavaScript खुद में private नहीं हो सकता।
-          इस मॉड्यूल में Admin login या वास्तविक server-side security लागू नहीं की गई।
-          असली सुरक्षा Supabase Auth, सही RLS policies और server-side checks से लागू होगी।
-          Publishable key सार्वजनिक frontend में इस्तेमाल की जा सकती है, लेकिन
-          service-role/secret key कभी HTML में न डालें।
-        </div>
-      </section>
+      <!-- Private Admin operations are hosted separately, outside this public storefront. -->
 
       <section class="p5-card p5-span-6">
         <h3>🎨 पाँच-स्टार UI</h3>
