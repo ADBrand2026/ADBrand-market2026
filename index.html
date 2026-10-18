@@ -18923,6 +18923,19 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       card.appendChild(liveNode("p","", "स्थिति: "+o.status+" • "+(o.fulfillment_mode==="inhouse_food"?"AD Brand Market food delivery":o.fulfillment_mode==="self_pickup"?"Self pickup at seller shop":"External courier")));
       card.appendChild(liveNode("p","", "कुल "+liveMoney(o.total_amount)+" • भुगतान: "+o.payment_status+" ("+o.payment_method+")"));
       if(o.internal_barcode)card.appendChild(liveNode("p","small muted","Internal barcode: "+o.internal_barcode));
+      if(o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery"){
+        const tracking=o.tracking||{};
+        const lat=Number(tracking.latitude),lon=Number(tracking.longitude);
+        if(Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180){
+          const map=liveNode("a","btn outline","📍 View rider's latest location");
+          map.href="https://www.google.com/maps?q="+encodeURIComponent(lat+","+lon);
+          map.target="_blank";map.rel="noopener noreferrer";
+          card.appendChild(map);
+          card.appendChild(liveNode("p","small muted","GPS last updated: "+(tracking.recorded_at?new Date(tracking.recorded_at).toLocaleString():"time unavailable")+(tracking.accuracy?" · accuracy ~"+Math.round(Number(tracking.accuracy))+" m":"")));
+        }else{
+          card.appendChild(liveNode("p","small muted","Food rider is on the way. Live location appears when rider enables GPS sharing; the order stays visible while the app refreshes."));
+        }
+      }
       const lines=asList(o.items);
       lines.forEach(line=>card.appendChild(liveNode("p","small",line.name+(line.variant_name?" — "+line.variant_name:"")+" × "+line.quantity+" = "+liveMoney(line.total_price))));
       if(o.fulfillment_mode==="external_courier"){
@@ -18974,7 +18987,20 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       }
       box.appendChild(card);
     }
+    if(window.__adBrandCustomerRefreshTimer){clearTimeout(window.__adBrandCustomerRefreshTimer);window.__adBrandCustomerRefreshTimer=null;}
+    if(orders.some(o=>o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery")&&$("customer")?.classList.contains("active")){
+      window.__adBrandCustomerRefreshTimer=setTimeout(function(){
+        if(window.__adBrandAuthRole==="customer"&&document.visibilityState!=="hidden"&&$("customer")?.classList.contains("active"))window.adLiveLoadCustomerOrders();
+      },15000);
+    }
   };
+
+  if(!window.__adBrandCustomerVisibilityBound){
+    window.__adBrandCustomerVisibilityBound=true;
+    document.addEventListener("visibilitychange",function(){
+      if(document.visibilityState==="visible"&&window.__adBrandAuthRole==="customer"&&$("customer")?.classList.contains("active"))window.adLiveLoadCustomerOrders();
+    });
+  }
 
   /* -------- Print a unique, scannable AD internal barcode slip -------- */
   window.adLivePrintSlip = function(order,items,address,sellerName){
