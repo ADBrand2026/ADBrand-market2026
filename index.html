@@ -19389,7 +19389,25 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           await adLiveLoadDeliveryWorkspace();
         },"red"));
       }else if(o.status==="out_for_delivery"){
-        card.appendChild(liveNode("p","small muted","Order customer के रास्ते में है। Arrival record करें, फिर contact outcome दर्ज करें। Customer के account से receipt confirm होने से पहले Delivered नहीं होगा; rider द्वारा auto-reassign pickup के बाद allowed नहीं है."));
+        card.appendChild(liveNode("p","small muted","Order customer के रास्ते में है। Arrival record करें, फिर contact outcome दर्ज करें। Customer के account से receipt confirm होने से पहले Delivered नहीं होगा."));
+        card.appendChild(liveNode("p","small muted","Pickup के बाद emergency में order स्वतः दूसरे rider को नहीं दिया जाएगा। सुरक्षित parcel handover के लिए Admin review माँगें; Admin handover record करने के बाद ही order queue में लौटेगा."));
+        const handoverReason=document.createElement("select");
+        handoverReason.setAttribute("aria-label","Reason for post-pickup Admin help");
+        [["vehicle_issue","Vehicle problem"],["emergency","Emergency"],["wrong_assignment","Wrong assignment"],["seller_delay","Seller delay"],["other","Other reason"]]
+          .forEach(([value,label])=>{const option=document.createElement("option");option.value=value;option.textContent=label;handoverReason.appendChild(option);});
+        actions.appendChild(handoverReason);
+        actions.appendChild(liveButton("🆘 Request Admin help / handover",async()=>{
+          const note=prompt("Order pickup हो चुका है। क्या समस्या आई और parcel अभी किसके पास है? स्पष्ट विवरण लिखें (कम से कम 5 characters):","");
+          if(note===null)return;
+          if(note.trim().length<5){alert("कम से कम 5 characters का विवरण जरूरी है।");return;}
+          if(!confirm("यह request Admin review में जाएगी। जब तक Admin parcel handover confirm नहीं करता, order इसी rider के जिम्मे रहेगा और अपने-आप reassigned नहीं होगा. आगे बढ़ें?"))return;
+          const {data,error}=await supa().rpc("rider_request_post_pickup_reassignment",{
+            p_order_id:o.order_id,p_reason:handoverReason.value,p_note:note.trim()
+          });
+          if(error){alert("Admin handover request दर्ज नहीं हुई: "+liveErr(error));return;}
+          alert((data?.message||"Admin handover request दर्ज हुई.")+" Proposed penalty: "+liveMoney(data?.proposed_penalty||10)+"; final decision Admin evidence review/dispute के बाद होगा.");
+          await adLiveLoadDeliveryWorkspace();
+        },"red"));
       }
       card.appendChild(actions);box.appendChild(card);
     });
