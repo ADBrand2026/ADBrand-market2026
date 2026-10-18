@@ -20309,14 +20309,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       finally{cartSaving=false;}
     },500);
   }
-  const originalCartRender=window.adLiveRenderCart;
-  if(typeof originalCartRender==="function"){
-    window.adLiveRenderCart=function(){
-      const result=originalCartRender.apply(this,arguments);
-      scheduleCartSync();
-      return result;
-    };
-  }
   const originalCatalogLoad=window.adLiveLoadCatalog;
   if(typeof originalCatalogLoad==="function"){
     window.adLiveLoadCatalog=async function(){
@@ -20446,10 +20438,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   initAccountCenter();
   wireButtons();
   wireAuthModal();
-  const existingPasswordBtn=el("adCustomerAuthExtras")?.querySelector("button");
-  if(existingPasswordBtn)existingPasswordBtn.addEventListener("click",window.adCustomerForgotPassword);
-  const resendBtn=el("adCustomerAuthExtras")?.querySelectorAll("button")[1];
-  if(resendBtn)resendBtn.addEventListener("click",window.adCustomerResendConfirmation);
   // Button listeners are wired against the live functions only after the existing marketplace IIFE created them.
   const pendingInit=async()=>{
     const originalLoad=window.adLiveLoadCustomerOrders;
@@ -20492,9 +20480,19 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   // Existing script defines the final Customer methods before this layer; run once now and again after Auth changes.
   pendingInit().catch(e=>console.error("Customer flow init failed:",e));
   if(client())client().auth.onAuthStateChange((event,session)=>{
-    if(event==="SIGNED_IN"||event==="TOKEN_REFRESHED"){
-      const user=session?.user;
-      if(user&&window.__adBrandAuthRole==="customer"&&typeof window.adLiveLoadCustomerOrders==="function")window.adLiveLoadCustomerOrders();
+    if(session?.user&&["SIGNED_IN","INITIAL_SESSION","TOKEN_REFRESHED","USER_UPDATED"].includes(event)){
+      const user=session.user;
+      setTimeout(function(){
+        (async function(){
+          try{
+            const {data:profile,error}=await client().from("profiles").select("role,is_active").eq("user_id",user.id).maybeSingle();
+            if(error||!profile||profile.is_active!==true)return;
+            window.__adBrandAuthUser=user;
+            window.__adBrandAuthRole=profile.role;
+            if(profile.role==="customer"&&typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+          }catch(e){console.warn("Customer session refresh did not complete.",e);}
+        })();
+      },0);
     }else if(event==="SIGNED_OUT"){
       window.__adBrandCustomerCartLoadedFor=null;
       setAccountVisibility(null);
