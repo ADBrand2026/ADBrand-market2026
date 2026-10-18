@@ -18654,17 +18654,40 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   }
 
   /* -------- Customer: public live catalogue and secure checkout -------- */
+  window.adLiveUseCheckoutZone = function(){
+    const values=[
+      ["adLiveDeliveryCity","adCheckoutCity"],
+      ["adLiveDeliveryState","adCheckoutState"],
+      ["adLiveDeliveryPincode","adCheckoutPincode"]
+    ];
+    for(const [target,source] of values){
+      const to=$(target),from=$(source);
+      if(to)to.value=String(from?.value||"").trim();
+    }
+    const pincode=String($("adLiveDeliveryPincode")?.value||"").replace(/\D/g,"");
+    if(!String($("adLiveDeliveryCity")?.value||"").trim()||!String($("adLiveDeliveryState")?.value||"").trim()||!/^[1-9][0-9]{5}$/.test(pincode)){
+      alert("पहले checkout address में City, State और सही 6-digit PIN भरें; फिर दोबारा कोशिश करें।");
+      return;
+    }
+    window.adLiveLoadCatalog();
+  };
   window.adLiveLoadCatalog = async function () {
     const client = supa();
     const box = $("adLiveCatalog");
     if (!client || !box) return;
-    const search = String($("adLiveSearch")?.value || "").trim();
+    const search = String($("adLiveSearch")?.value || "").trim().slice(0,100);
     const category = String($("adLiveCategory")?.value || "").trim();
+    const city = String($("adLiveDeliveryCity")?.value || $("adCheckoutCity")?.value || "").trim().slice(0,80);
+    const state = String($("adLiveDeliveryState")?.value || $("adCheckoutState")?.value || "").trim().slice(0,80);
+    const pincode = String($("adLiveDeliveryPincode")?.value || $("adCheckoutPincode")?.value || "").replace(/\D/g,"").slice(0,6);
     const request = ++catalogRequest;
     box.replaceChildren(liveNode("div","empty","Live products load हो रहे हैं…"));
-    const {data,error} = await client.rpc("get_public_marketplace_catalog", {
+    const {data,error} = await client.rpc("get_public_marketplace_catalog_for_zone", {
       p_search: search || null,
-      p_category_slug: category || null
+      p_category_slug: category || null,
+      p_city: city || null,
+      p_state: state || null,
+      p_pincode: pincode || null
     });
     if (request !== catalogRequest) return;
     if (error) {
@@ -18675,7 +18698,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const products = asList(data);
     window.__adBrandLiveProducts = products;
     if (!products.length) {
-      liveEmpty(box,"अभी कोई active, verified और खुली दुकान का live product नहीं है। पहले Seller आवेदन approve/verify हो और seller अपनी दुकान खोलकर product publish करे।");
+      const zoneReady=city.length>=2&&state.length>=2&&/^[1-9][0-9]{5}$/.test(pincode);
+      liveEmpty(box,zoneReady
+        ?"इस City/State/PIN में अभी कोई matching active product नहीं मिला। Seller की दुकान verified/open हो और service zone आपके PIN से match होना चाहिए।"
+        :"Food/Pizza/Tea/Snacks देखने के लिए अपना City, State और 6-digit PIN भरें या checkout address से zone लाएँ। Non-food courier items location के बिना दिख सकते हैं।");
       return;
     }
     box.replaceChildren();
