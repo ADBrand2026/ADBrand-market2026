@@ -406,7 +406,21 @@ async function loadIssues(){
   const c=node("div","item");c.appendChild(node("h3",v.reason+" • "+v.status));c.appendChild(node("p","small","Order "+v.order_id+" • actor "+v.actor_role));
   if(v.details)c.appendChild(node("p","",v.details));
   if(v.customer_promised_until)c.appendChild(node("p","small muted","Customer promise: "+new Date(v.customer_promised_until).toLocaleString()));
-  c.appendChild(btn("Resolve case",()=>reviewIssue(v.id,"resolve"),"good"));c.appendChild(btn("Dismiss case",()=>reviewIssue(v.id,"dismiss"),"secondary"));c.appendChild(btn("Keep under review",()=>reviewIssue(v.id,"review"),"plain"));box.appendChild(c);
+  c.appendChild(btn("Resolve case",()=>reviewIssue(v.id,"resolve"),"good"));c.appendChild(btn("Dismiss case",()=>reviewIssue(v.id,"dismiss"),"secondary"));c.appendChild(btn("Keep under review",()=>reviewIssue(v.id,"review"),"plain"));
+  if(v.actor_role==="delivery"&&v.reason==="rider_cancelled"&&String(v.details||"").startsWith("After pickup handover request")&&["open","under_review"].includes(v.status)){
+   c.appendChild(btn("Reassign food order after verified physical handover",async()=>{
+    const note=prompt("Handover verification: किस अधिकृत व्यक्ति/स्थान को parcel physically दिया गया, और कब? कम से कम 10 characters लिखें:","");
+    if(note===null)return;
+    if(note.trim().length<10)return setStatus("Physical handover note कम से कम 10 characters का होना चाहिए।","error");
+    if(!confirm("आप यह प्रमाणित कर रहे हैं कि parcel वास्तव में अधिकृत handover point/person को सौंप दिया गया है। इससे order पुराने rider से हटकर Food queue में लौटेगा; penalty decision अलग रहेगा. Continue?"))return;
+    const {data:result,error:reassignError}=await client.rpc("admin_reassign_food_order_after_pickup",{
+     p_order_id:v.order_id,p_issue_case_id:v.id,p_handover_note:note.trim()
+    });
+    if(reassignError){setStatus("Food order reassign नहीं हुआ: "+errText(reassignError),"error");return;}
+    setStatus(result?.message||"Order safely returned to Food delivery queue.","ok");await refreshAll();
+   },"good"));
+  }
+  box.appendChild(c);
  });
 }
 async function reviewIssue(id,decision){
