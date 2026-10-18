@@ -1258,7 +1258,7 @@ function updateRoleApplicationFields() {
 }
 $("accountRole")?.addEventListener("change", updateRoleApplicationFields);
 
-/* Admin login and dashboard code are intentionally isolated in private-admin.html. No Admin route exists in the storefront. */
+/* Private Admin operations are hosted separately in a Supabase Edge Function. No Admin route or login button exists in this public storefront. */
 
 /* ADBM LIVE WORKFLOWS v1
    Real Supabase workflows for catalogue, cart/checkout, seller, rider and admin operations.
