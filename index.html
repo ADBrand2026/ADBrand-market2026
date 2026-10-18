@@ -1285,6 +1285,7 @@ async function continueAccountAccess(mode) {
 
     window.__adBrandAuthUser = user;
     window.__adBrandAuthRole = actualRole;
+    if (actualRole === "customer" && typeof updateCustomerOtpVisibility === "function") updateCustomerOtpVisibility();
     currentAccountRole = actualRole;
 
     if (actualRole === "customer" && (requestedRole === "seller" || requestedRole === "delivery")) {
