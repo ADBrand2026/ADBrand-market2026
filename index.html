@@ -1738,6 +1738,12 @@ window.adLiveLoadDeliveryWorkspace=async function(){
   }
   orders.forEach(function(o){var card=liveEl("div","card"),items=liveOptions(o.items).map(function(x){return (x.name||"Item")+" ×"+x.quantity+(x.variant_name?" · "+x.variant_name:"");}).join(", ");
    card.append(liveEl("h4","",(o.order_code||o.order_id)+" · "+o.status),liveEl("p","small",items),liveEl("p","", "Customer: "+[o.address?.full_name,o.address?.mobile,o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(" · ")),liveEl("p","small","Contact attempts: "+(o.contact_attempt_count||0)+" · Barcode "+(o.internal_barcode||"—")));
+   if(o.customer_promised_until){
+    card.appendChild(liveEl("p","small muted","⏳ Customer asked for time until "+new Date(o.customer_promised_until).toLocaleString()+" — order is NOT auto-cancelled at 5 minutes; contact/support steps remain available."));
+   }
+   if(o.delivery_issue_status==="support_review"){
+    card.appendChild(liveEl("p","small muted","🆘 Delivery issue is under support review. Do not mark delivered unless the customer actually receives the order."));
+   }
    if(o.payment_method==="cod"){
     if(o.cod_collected){
      card.appendChild(liveEl("p","small","✅ COD cash recorded: ₹"+Number(o.cod_collected_amount||0).toFixed(2)+" · Remittance: "+(o.cod_remittance_status||"pending_remittance")));
