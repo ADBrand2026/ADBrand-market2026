@@ -337,6 +337,52 @@ img{max-width:100%}
   .ad-food-category-bar[hidden]{display:none!important}
   @media(max-width:560px){.ad-food-category-bar{gap:6px}.ad-food-category{font-size:.85rem;padding:8px 10px}}
 </style>
+<style id="ad-clean-single-marketplace-ui">
+/* Keep the original live marketplace panels; hide appended demo/duplicate pages. */
+#adbm3-root,
+#adbm4-root,
+#adbm5-root,
+#adbm6-root,
+#adbm7-root,
+#adbm5-vip,
+#adbm6,
+#adbm7,
+#adbm8,
+#adbm9,
+#adbm10,
+#adbm11,
+#adbm12,
+#adbm13,
+#adbm14,
+#adbm15,
+#adbm16,
+#adbm17,
+#adbm-luxury-top,
+#adbm-luxury-toasts {
+  display: none !important;
+}
+/* Prevent demo modules from leaving empty spacing or floating controls. */
+#adbm3-root + *,
+#adbm4-root + *,
+#adbm5-root + *,
+#adbm6-root + *,
+#adbm7-root + *,
+#adbm5-vip + *,
+#adbm6 + *,
+#adbm7 + *,
+#adbm8 + *,
+#adbm9 + *,
+#adbm10 + *,
+#adbm11 + *,
+#adbm12 + *,
+#adbm13 + *,
+#adbm14 + *,
+#adbm15 + *,
+#adbm16 + *,
+#adbm17 + * {
+  scroll-margin-top: 0 !important;
+}
+</style>
 </head>
 
 <body>
