@@ -276,6 +276,13 @@ img{max-width:100%}
   .ad-live-product[hidden]{display:none!important}
   .ad-live-product .ad-product-placeholder{display:grid;place-items:center;min-height:160px;border-radius:12px;background:linear-gradient(135deg,#eee9ff,#e2f6f1);font-size:3rem}
   @media(max-width:640px){.ad-customer-market-switch{grid-template-columns:1fr}.ad-market-tile{grid-template-columns:112px 1fr;min-height:140px}.ad-market-image{min-height:140px}.ad-market-copy{padding:12px}.ad-market-copy strong{font-size:1rem}}
+  .ad-customer-quick-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:10px;margin:14px 0 18px}
+  .ad-quick-category{position:relative;display:flex;min-height:104px;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:8px;overflow:hidden;padding:12px;text-align:left;border:1px solid var(--border);border-radius:15px;background:linear-gradient(145deg,#f5f3ff,#effcf8);color:var(--ink);cursor:pointer;transition:transform .18s,box-shadow .18s}
+  .ad-quick-category span{font-size:1.8rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,.12))}
+  .ad-quick-category b{font-size:.88rem;line-height:1.25}
+  .ad-quick-category:hover,.ad-quick-category:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--primary)}
+  .ad-quick-category.active{outline:2px solid var(--primary);background:#eee9ff}
+  @media(max-width:520px){.ad-customer-quick-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ad-quick-category{min-height:88px;padding:8px}.ad-quick-category b{font-size:.78rem}}
 </style>
 <style>
 /* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
@@ -414,8 +421,34 @@ img{max-width:100%}
     <div class="form-grid">
       <div class="field"><label for="adLiveSearch">🔎 Search / खोजें</label><input id="adLiveSearch" placeholder="फोन, phone cover, साड़ी, saree, pant, shoes..." oninput="adCustomerDebouncedSearch()"></div>
       <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adCustomerCategoryChanged()">
-        <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="home-kitchen">Home & Kitchen</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-accessories">Mobile Accessories</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option>
+        <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="men-fashion">Men Fashion</option><option value="women-fashion">Women Fashion</option><option value="kids-fashion">Kids Fashion</option><option value="sarees">साड़ी / Sarees</option><option value="pants-jeans">Pants / Jeans</option><option value="shirts-tshirts">Shirts / T-shirts</option><option value="dresses-kurtis">Dresses / Kurtis</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="watches">Watches</option><option value="home-kitchen">Home & Kitchen</option><option value="furniture-decor">Furniture & Decor</option><option value="home-appliances">Home Appliances</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-phones">Mobile Phones</option><option value="mobile-accessories">Mobile Covers & Accessories</option><option value="computers-laptops">Computers & Laptops</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="automotive">Automotive</option><option value="pet-supplies">Pet Supplies</option><option value="travel-luggage">Travel & Luggage</option><option value="health-wellness">Health & Wellness</option><option value="musical-instruments">Musical Instruments</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="pizza-burgers">Pizza & Burgers</option><option value="sweets-bakery">Sweets & Bakery</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="beverages">Beverages</option>
       </select></div>
+    </div>
+    <div class="ad-customer-quick-categories" aria-label="Browse categories">
+      <button type="button" class="ad-quick-category" data-category="clothes" onclick="adCustomerSelectCategory('clothes')"><span>👕</span><b>Fashion</b></button>
+      <button type="button" class="ad-quick-category" data-category="sarees" onclick="adCustomerSelectCategory('sarees')"><span>🥻</span><b>साड़ी</b></button>
+      <button type="button" class="ad-quick-category" data-category="pants-jeans" onclick="adCustomerSelectCategory('pants-jeans')"><span>👖</span><b>Pants / Jeans</b></button>
+      <button type="button" class="ad-quick-category" data-category="shoes" onclick="adCustomerSelectCategory('shoes')"><span>👟</span><b>जूते</b></button>
+      <button type="button" class="ad-quick-category" data-category="slippers" onclick="adCustomerSelectCategory('slippers')"><span>🩴</span><b>चप्पल</b></button>
+      <button type="button" class="ad-quick-category" data-category="jewelry" onclick="adCustomerSelectCategory('jewelry')"><span>💍</span><b>Jewellery</b></button>
+      <button type="button" class="ad-quick-category" data-category="bags-accessories" onclick="adCustomerSelectCategory('bags-accessories')"><span>👜</span><b>Bags</b></button>
+      <button type="button" class="ad-quick-category" data-category="mobile-phones" onclick="adCustomerSelectCategory('mobile-phones')"><span>📱</span><b>Phones</b></button>
+      <button type="button" class="ad-quick-category" data-category="mobile-accessories" onclick="adCustomerSelectCategory('mobile-accessories')"><span>📱</span><b>Phone Covers</b></button>
+      <button type="button" class="ad-quick-category" data-category="electronics" onclick="adCustomerSelectCategory('electronics')"><span>🎧</span><b>Electronics</b></button>
+      <button type="button" class="ad-quick-category" data-category="home-kitchen" onclick="adCustomerSelectCategory('home-kitchen')"><span>🏠</span><b>Home & Kitchen</b></button>
+      <button type="button" class="ad-quick-category" data-category="beauty-personal-care" onclick="adCustomerSelectCategory('beauty-personal-care')"><span>🧴</span><b>Beauty</b></button>
+      <button type="button" class="ad-quick-category" data-category="groceries" onclick="adCustomerSelectCategory('groceries')"><span>🛒</span><b>Grocery</b></button>
+      <button type="button" class="ad-quick-category" data-category="stationery" onclick="adCustomerSelectCategory('stationery')"><span>📚</span><b>Books / Stationery</b></button>
+      <button type="button" class="ad-quick-category" data-category="toys-games" onclick="adCustomerSelectCategory('toys-games')"><span>🧸</span><b>Toys</b></button>
+      <button type="button" class="ad-quick-category" data-category="baby-kids" onclick="adCustomerSelectCategory('baby-kids')"><span>🍼</span><b>Baby & Kids</b></button>
+      <button type="button" class="ad-quick-category" data-category="sports-fitness" onclick="adCustomerSelectCategory('sports-fitness')"><span>⚽</span><b>Sports</b></button>
+      <button type="button" class="ad-quick-category" data-category="food" onclick="adCustomerSelectCategory('food')"><span>🍕</span><b>Food</b></button>
+      <button type="button" class="ad-quick-category" data-category="veg-food" onclick="adCustomerSelectCategory('veg-food')"><span>🥗</span><b>Veg</b></button>
+      <button type="button" class="ad-quick-category" data-category="non-veg-food" onclick="adCustomerSelectCategory('non-veg-food')"><span>🍗</span><b>Non-Veg</b></button>
+      <button type="button" class="ad-quick-category" data-category="pizza-burgers" onclick="adCustomerSelectCategory('pizza-burgers')"><span>🍔</span><b>Pizza / Burger</b></button>
+      <button type="button" class="ad-quick-category" data-category="sweets-bakery" onclick="adCustomerSelectCategory('sweets-bakery')"><span>🍰</span><b>Sweets / Bakery</b></button>
+      <button type="button" class="ad-quick-category" data-category="tea" onclick="adCustomerSelectCategory('tea')"><span>☕</span><b>चाय</b></button>
+      <button type="button" class="ad-quick-category" data-category="snacks" onclick="adCustomerSelectCategory('snacks')"><span>🍟</span><b>Snacks</b></button>
     </div>
     <div class="adCustomerDiscoveryTools" aria-label="Product filters and sorting">
       <div class="field"><label for="adCustomerSort">Sort products</label><select id="adCustomerSort" onchange="adCustomerApplyDiscovery()"><option value="relevance">Recommended</option><option value="price_asc">Price: Low to High</option><option value="price_desc">Price: High to Low</option><option value="rating">Top rated</option><option value="newest">Newest first</option></select></div>
@@ -20850,12 +20883,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       select.replaceChildren(new Option(labels[facet][0],""));found.forEach(function(v){select.add(new Option(v,v));});if(found.some(function(v){return v===keep;}))select.value=keep;
     });
   };
+  window.adCustomerSelectCategory=function(slug){
+    var category=document.getElementById("adLiveCategory");if(category)category.value=slug;
+    window.adCustomerCategoryChanged();
+  };
   window.adCustomerCategoryChanged=function(){
     var category=document.getElementById("adLiveCategory"),zone=document.getElementById("adLiveFoodZoneFilter");
-    var isFood=!!category&&["food","veg-food","non-veg-food","tea","snacks"].includes(category.value);
+    var isFood=!!category&&["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category.value);
     window.__adBrandCustomerMarketMode=isFood?"food":"products";
     var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");
     if(f)f.classList.toggle("active",isFood);if(p)p.classList.toggle("active",!isFood);
+    document.querySelectorAll(".ad-quick-category").forEach(function(button){button.classList.toggle("active",button.getAttribute("data-category")===String(category&&category.value||""));});
     if(zone)zone.style.display=isFood?"grid":"none";
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
   };
@@ -20864,7 +20902,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
     if(food)food.classList.toggle("active",mode==="food");if(products)products.classList.toggle("active",mode==="products");
     var category=document.getElementById("adLiveCategory"),search=document.getElementById("adLiveSearch");
-    if(category){if(mode==="food")category.value="food";else if(["food","veg-food","non-veg-food","tea","snacks"].includes(category.value))category.value="";}
+    if(category){if(mode==="food")category.value="food";else if(["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category.value))category.value="";}
     var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display=mode==="food"?"grid":"none";
     if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile/i.test(search.value))search.value="";
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
