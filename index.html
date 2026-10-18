@@ -1333,7 +1333,8 @@ window.adLiveLoadCatalog=async function(){
  box.replaceChildren(liveEl("div","empty","Products load हो रहे हैं…"));
  var search=String($("adLiveSearch")?.value||"").trim().slice(0,100),category=String($("adLiveCategory")?.value||"").trim()||null;
  try{
-  var result=await client.rpc("get_public_marketplace_catalog",{p_search:search||null,p_category_slug:category});
+  var city=String($("adLiveDeliveryCity")?.value||"").trim().slice(0,80),state=String($("adLiveDeliveryState")?.value||"").trim().slice(0,80),pincode=String($("adLiveDeliveryPincode")?.value||"").replace(/\D/g,"").slice(0,6);
+  var result=await client.rpc("get_public_marketplace_catalog_for_zone",{p_search:search||null,p_category_slug:category,p_city:city||null,p_state:state||null,p_pincode:pincode||null});
   if(result.error)throw result.error;
   window.__adBrandLiveCatalog=liveNormalizeCatalogResult(result.data);
   liveRenderCatalog();
