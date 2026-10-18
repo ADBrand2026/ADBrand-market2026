@@ -413,7 +413,7 @@ img{max-width:100%}
     <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
     <div class="form-grid">
       <div class="field"><label for="adLiveSearch">🔎 Search / खोजें</label><input id="adLiveSearch" placeholder="फोन, phone cover, साड़ी, saree, pant, shoes..." oninput="adCustomerDebouncedSearch()"></div>
-      <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adLiveLoadCatalog()">
+      <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adCustomerCategoryChanged()">
         <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="home-kitchen">Home & Kitchen</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-accessories">Mobile Accessories</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="tea">चाय</option><option value="snacks">Snacks</option>
       </select></div>
     </div>
@@ -20850,6 +20850,15 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       select.replaceChildren(new Option(labels[facet][0],""));found.forEach(function(v){select.add(new Option(v,v));});if(found.some(function(v){return v===keep;}))select.value=keep;
     });
   };
+  window.adCustomerCategoryChanged=function(){
+    var category=document.getElementById("adLiveCategory"),zone=document.getElementById("adLiveFoodZoneFilter");
+    var isFood=!!category&&["food","veg-food","non-veg-food","tea","snacks"].includes(category.value);
+    window.__adBrandCustomerMarketMode=isFood?"food":"products";
+    var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");
+    if(f)f.classList.toggle("active",isFood);if(p)p.classList.toggle("active",!isFood);
+    if(zone)zone.style.display=isFood?"grid":"none";
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+  };
   window.adCustomerSetMarketMode=function(mode){
     mode=mode==="food"?"food":"products";window.__adBrandCustomerMarketMode=mode;
     var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
@@ -20889,7 +20898,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   document.addEventListener("DOMContentLoaded",function(){
     window.__adBrandCustomerMarketMode="products";var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
     try{if(new URLSearchParams(window.location.search).get("view")==="customer"&&typeof window.openPanel==="function"){window.openPanel("customer");setTimeout(function(){window.adCustomerSetMarketMode("products");},120);}}catch(e){}
-    var cat=document.getElementById("adLiveCategory");if(cat&&!cat.dataset.adModeBound){cat.dataset.adModeBound="1";cat.addEventListener("change",function(){var food=["food","veg-food","non-veg-food","tea","snacks"].includes(cat.value);if(food)window.__adBrandCustomerMarketMode="food";else if(cat.value)window.__adBrandCustomerMarketMode="products";var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");if(f)f.classList.toggle("active",food);if(p)p.classList.toggle("active",!food);if(zone)zone.style.display=food?"grid":"none";});}
+    var cat=document.getElementById("adLiveCategory");if(cat&&!cat.dataset.adModeBound){cat.dataset.adModeBound="1";if(["food","veg-food","non-veg-food","tea","snacks"].includes(cat.value)){window.__adBrandCustomerMarketMode="food";if(zone)zone.style.display="grid";}}
   });
 })();
 </script>
