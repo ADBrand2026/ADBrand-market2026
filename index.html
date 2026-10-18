@@ -263,6 +263,8 @@ img{max-width:100%}
 </style>
 <style>
 /* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
+.adCustomerOtpPanel{border:1px solid rgba(16,185,129,.3);border-radius:18px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(99,102,241,.07));box-shadow:0 12px 30px rgba(15,23,42,.07)}
+.adCustomerOtpPanel[hidden]{display:none!important}
 .adCustomerDiscoveryTools{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin:14px 0;padding:16px;border:1px solid rgba(99,102,241,.22);border-radius:18px;background:linear-gradient(135deg,rgba(99,102,241,.09),rgba(16,185,129,.07));box-shadow:0 12px 30px rgba(15,23,42,.07)}
 #adLiveCatalog .product-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;animation:adCustomerReveal .32s ease both}
 #adLiveCatalog .product-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(15,23,42,.12);border-color:rgba(99,102,241,.42)}
@@ -363,6 +365,21 @@ img{max-width:100%}
   <div class="panel-header">
     <h2>🛍️ Customer Panel</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
+  </div>
+
+  <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel">
+    <h3>📱 Customer Mobile OTP Login / Register</h3>
+    <p class="small muted">Customer account मोबाइल OTP से खोलें। पहली बार registration के लिए नाम और वही मोबाइल नंबर इस्तेमाल करें; password की जरूरत नहीं। SMS provider / Phone Auth चालू होना जरूरी है।</p>
+    <div class="form-grid">
+      <div class="field"><label for="adCustomerOtpName">पूरा नाम</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" placeholder="आपका नाम"></div>
+      <div class="field"><label for="adCustomerOtpMobile">10-digit मोबाइल नंबर</label><input id="adCustomerOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
+      <div class="field" id="adCustomerOtpCodeField" hidden><label for="adCustomerOtpCode">SMS OTP</label><input id="adCustomerOtpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="OTP दर्ज करें"></div>
+    </div>
+    <div class="product-actions">
+      <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
+      <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ OTP verify करके login करें</button>
+    </div>
+    <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">OTP आपके अपने मोबाइल पर आएगा। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
@@ -1449,6 +1466,78 @@ window.adLiveCheckout=async function(){
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
  finally{if(btn)btn.disabled=false;}
 };
+function updateCustomerOtpVisibility(){
+ var panel=$("adCustomerOtpPanel");
+ if(panel)panel.hidden=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
+}
+function customerOtpMessage(message,isError){
+ var box=$("adCustomerOtpStatus");if(!box)return;
+ box.textContent=String(message||"");
+ box.style.borderColor=isError?"#dc2626":"";
+}
+window.adCustomerSendOtp=async function(){
+ var c=client(),name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
+ if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
+ if(name.length<2)return customerOtpMessage("पहली बार profile सुरक्षित रखने के लिए पूरा नाम भरें।",true);
+ if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
+ var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
+ if(send)send.disabled=true;
+ try{
+  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name,mobile:mobile}}});
+  if(result.error)throw result.error;
+  window.__adBrandPendingCustomerOtpMobile=mobile;
+  var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
+  if(verify)verify.hidden=false;
+  customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। SMS में आया code दर्ज करें। अगर SMS नहीं आया, कुछ देर बाद फिर प्रयास करें।",false);
+  if($("adCustomerOtpCode"))$("adCustomerOtpCode").focus();
+ }catch(e){
+  console.error("Customer OTP send failed:",e);
+  customerOtpMessage("OTP नहीं भेजा जा सका: "+(e.message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
+ }finally{if(send)send.disabled=false;}
+};
+window.adCustomerVerifyOtp=async function(){
+ var c=client(),mobile=String(window.__adBrandPendingCustomerOtpMobile||"").replace(/\D/g,""),token=String($("adCustomerOtpCode")?.value||"").replace(/\s/g,""),name=String($("adCustomerOtpName")?.value||"").trim();
+ if(!c)return customerOtpMessage("Secure login service load नहीं हुई।",true);
+ if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
+ if(!/^\d{4,8}$/.test(token))return customerOtpMessage("SMS में आया valid OTP दर्ज करें।",true);
+ var verify=$("adCustomerOtpVerify");if(verify)verify.disabled=true;
+ try{
+  var auth=await c.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
+  if(auth.error)throw auth.error;
+  var user=auth.data?.user||auth.data?.session?.user;
+  if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली। फिर प्रयास करें।");
+  var pr=await c.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
+  if(pr.error)throw pr.error;
+  if(!pr.data){await c.auth.signOut();throw new Error("Customer profile auto-create नहीं हुआ। Auth trigger और database setup जाँचना होगा।");}
+  if(pr.data.role!=="customer"||pr.data.is_active!==true){await c.auth.signOut();throw new Error("यह active Customer account नहीं है। सहायता से संपर्क करें।");}
+  if(!String(pr.data.full_name||"").trim()||!String(pr.data.mobile||"").trim()){
+   var saved=await c.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});
+   if(saved.error)throw saved.error;
+  }
+  window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
+  updateCustomerOtpVisibility();
+  customerOtpMessage("Customer login सफल हुआ।",false);
+  if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+  if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
+  if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
+  if(typeof window.toast==="function")window.toast("Mobile OTP से Customer login सफल हुआ।");
+  window.__adBrandPendingCustomerOtpMobile=null;
+ }catch(e){
+  console.error("Customer OTP verification failed:",e);
+  customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
+ }finally{if(verify)verify.disabled=false;}
+};
+var originalCustomerAccountAccess=window.openAccountAccess;
+if(typeof originalCustomerAccountAccess==="function"){
+ window.openAccountAccess=function(role){
+  if(role==="customer"){
+   if(typeof window.openPanel==="function")window.openPanel("customer");
+   setTimeout(function(){$("adCustomerOtpPanel")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
+   return;
+  }
+  return originalCustomerAccountAccess.apply(this,arguments);
+ };
+}
 var adCustomerSearchTimer=null;
 window.adCustomerDebouncedSearch=function(){
  if(adCustomerSearchTimer)clearTimeout(adCustomerSearchTimer);
@@ -20557,6 +20646,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     ["adCustomerSort","adCustomerAvailability","adCustomerMinPrice","adCustomerMaxPrice"].forEach(function(id){
       const field=el(id);if(field&&!field.dataset.discoveryBound){field.addEventListener("change",window.adCustomerApplyDiscovery);field.dataset.discoveryBound="1";}
     });
+    updateCustomerOtpVisibility();
     if(!isCustomer()){
       try{
         const guest=JSON.parse(localStorage.getItem(cartKey)||"[]");
@@ -20591,6 +20681,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         })();
       },0);
     }else if(event==="SIGNED_OUT"){
+      updateCustomerOtpVisibility();
       window.__adBrandCustomerCartLoadedFor=null;
       window.__adBrandCustomerWishlistItems=[];
       window.__adBrandCustomerWishlistIds=new Set();
