@@ -18992,7 +18992,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       box.appendChild(card);
     }
     if(window.__adBrandCustomerRefreshTimer){clearTimeout(window.__adBrandCustomerRefreshTimer);window.__adBrandCustomerRefreshTimer=null;}
-    if(orders.some(o=>o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery")&&$("customer")?.classList.contains("active")){
+    if(orders.some(o=>(o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery")||(o.fulfillment_mode==="external_courier"&&["pending","accepted","packed_for_courier","external_booking_pending","external_fee_awaiting_customer","awaiting_customer_confirmation","picked_up","in_transit"].includes(String(o.status||""))))&&$("customer")?.classList.contains("active")){
       window.__adBrandCustomerRefreshTimer=setTimeout(function(){
         if(window.__adBrandAuthRole==="customer"&&document.visibilityState!=="hidden"&&$("customer")?.classList.contains("active"))window.adLiveLoadCustomerOrders();
       },15000);
