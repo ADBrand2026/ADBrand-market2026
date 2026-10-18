@@ -44,7 +44,7 @@
 const URL="https://jwvawjztfwfpmlnocwiw.supabase.co";
 const KEY="sb_publishable_6aSIMsfYxfjHLuiRajJUBQ_yrvF_3Rg";
 const el=id=>document.getElementById(id);
-const client=window.supabase&&window.supabase.createClient?window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
+const client=window.supabase&&window.supabase.createClient?window.supabase.createClient(URL,KEY,{auth:{storageKey:"adbrand_admin_portal_session_v1",persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}):null;
 let sessionUser=null;
 const tables=[["profiles","Total accounts"],["customer_profiles","Customers"],["seller_profiles","Sellers"],["delivery_profiles","Delivery partners"],["products","Products"],["orders","Orders"],["return_requests","Return requests"],["role_applications","Role applications"]];
 function node(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!=null)n.textContent=String(text);return n;}
