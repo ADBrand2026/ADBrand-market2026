@@ -443,6 +443,12 @@ img{max-width:100%}
 #adCustomerPolicy li{margin:0 0 10px;line-height:1.55}
 #adCustomerPolicy a{overflow-wrap:anywhere}
 </style>
+<style id="ad-clean-customer-single-catalog">
+/* Only the live Supabase catalogue is public; keep the old local-demo shopping UI hidden. */
+#legacyCustomerDemo{display:none!important}
+#adLiveCatalog .ad-live-product[hidden]{display:none!important}
+#adLiveCustomerMarket[hidden]{display:none!important}
+</style>
 <style id="ad-customer-top-search-ui">
 #adCustomer .ad-customer-top-search,#customer .ad-customer-top-search{position:relative;margin:14px 0 18px;padding:14px 16px;border:1px solid rgba(99,102,241,.22);border-radius:16px;background:var(--surface,#fff);box-shadow:0 8px 22px rgba(15,23,42,.07)}
 .ad-customer-top-search input{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--border,#d7dce5);border-radius:12px;font-size:1rem}
@@ -1669,9 +1675,12 @@ window.applyCustomerAuthGate=function(){
  var panel=$("customer");
  if(!panel)return;
  var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
+ var heading=panel.querySelector(".panel-header h2");
+ if(heading)heading.textContent=isCustomer?"🛍️ Customer Marketplace":"🔐 Customer Login / Register";
  Array.from(panel.children).forEach(function(child){
   if(child.classList.contains("panel-header")){child.hidden=false;return;}
   if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
+  if(child.id==="legacyCustomerDemo"){child.hidden=true;return;}
   child.hidden=!isCustomer;
  });
 };
@@ -21200,9 +21209,18 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var empty=box.querySelector(".adCustomerDiscoveryEmpty");if(!visible.length){if(!empty){empty=document.createElement("div");empty.className="empty adCustomerDiscoveryEmpty";empty.textContent="इन खोज/फ़िल्टर में कोई उत्पाद नहीं मिला। वर्तनी जाँचें या Clear all filters दबाएँ।";box.appendChild(empty);}}else if(empty)empty.remove();
   };
   document.addEventListener("DOMContentLoaded",function(){
-    window.__adBrandCustomerMarketMode="products";var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
-    try{if(new URLSearchParams(window.location.search).get("view")==="customer"&&typeof window.openPanel==="function"){window.openPanel("customer");setTimeout(function(){window.adCustomerSetMarketMode("products");},120);}}catch(e){}
-    var cat=document.getElementById("adLiveCategory");if(cat&&!cat.dataset.adModeBound){cat.dataset.adModeBound="1";if(["food","veg-food","non-veg-food","tea","snacks"].includes(cat.value)){window.__adBrandCustomerMarketMode="food";if(zone)zone.style.display="grid";}}
+    window.__adBrandCustomerMarketMode=null;
+    var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
+    var categoryBar=document.getElementById("adFoodCategoryBar");if(categoryBar)categoryBar.hidden=true;
+    var foodButton=document.getElementById("adMarketFoodButton"),productsButton=document.getElementById("adMarketProductsButton");
+    if(foodButton)foodButton.classList.remove("active");
+    if(productsButton)productsButton.classList.remove("active");
+    var cat=document.getElementById("adLiveCategory");
+    if(cat&&!cat.dataset.adModeBound){
+      cat.dataset.adModeBound="1";
+      if(["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(cat.value))cat.value="";
+    }
+    if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
   });
 })();
 </script>
