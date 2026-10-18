@@ -437,6 +437,12 @@ img{max-width:100%}
   </section>
 </main>
 
+<style id="ad-customer-auth-and-policy-ui">
+#customer>[hidden]{display:none!important}
+#adCustomerPolicy ul{padding-left:22px}
+#adCustomerPolicy li{margin:0 0 10px;line-height:1.55}
+#adCustomerPolicy a{overflow-wrap:anywhere}
+</style>
 <style id="ad-customer-top-search-ui">
 #adCustomer .ad-customer-top-search,#customer .ad-customer-top-search{position:relative;margin:14px 0 18px;padding:14px 16px;border:1px solid rgba(99,102,241,.22);border-radius:16px;background:var(--surface,#fff);box-shadow:0 8px 22px rgba(15,23,42,.07)}
 .ad-customer-top-search input{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--border,#d7dce5);border-radius:12px;font-size:1rem}
@@ -599,6 +605,18 @@ img{max-width:100%}
       </div>
     </div>
     <div class="section"><h3>📦 मेरे Live Orders</h3><button class="btn outline" type="button" onclick="adLiveLoadCustomerOrders()">↻ Refresh Orders</button><div id="adLiveOrders"></div></div>
+    <div class="section card" id="adCustomerPolicy">
+      <h3>🛡️ Order, Cancellation, Return &amp; Refund Policy</h3>
+      <ul class="small">
+        <li><strong>Food &amp; drinks:</strong> Fresh food पर मन बदलने की वजह से सामान्य return नहीं। गलत/missing item, spill, खराब/unsafe food या delivery न मिलने पर तुरंत support ticket खोलें और फोटो/Order code दें; लक्ष्य है delivery के 2 घंटे के अंदर report करना ताकि जाँच हो सके। यह समय-सीमा आपके कानूनी अधिकारों को सीमित नहीं करती।</li>
+        <li><strong>कपड़े/जूते/अन्य eligible सामान:</strong> eligible items के लिए delivery के 7 दिनों के अंदर return request दें। इस्तेमाल/धोए हुए, damaged-by-customer या listing में स्पष्ट रूप से non-returnable items अलग हो सकते हैं; defective/wrong item पर applicable law के अनुसार समीक्षा होगी। Return approve होना automatic नहीं है।</li>
+        <li><strong>Order cancellation:</strong> Order place होते ही seller preparation शुरू कर सकता है। Cancel request को support से तुरंत दर्ज करें। अभी customer पर कोई automatic 100% penalty लागू नहीं है; यदि future में कोई disclosed cancellation fee लागू करनी हो, तो वह checkout से पहले स्पष्ट दिखाई जाएगी और लागू कानून/वास्तविक लागत के अनुसार ही तय होगी।</li>
+        <li><strong>COD:</strong> अगर COD order cancel हो गया और आपने पैसे दिए ही नहीं, तो cash refund बनता ही नहीं। अगर delivery पर COD पैसे ले लिए गए हों और बाद में refund approve हो, तो अलग refund process जरूरी है; यह अभी automatic नहीं है।</li>
+        <li><strong>Prepaid / UPI:</strong> UPI gateway अभी चालू नहीं है। भविष्य में prepaid payment enable होने पर approved refund उसी original payment source पर भेजने का लक्ष्य रहेगा; बैंक/PSP की processing time अलग हो सकती है।</li>
+        <li><strong>Refund कौन देगा?</strong> Payment collect करने वाला platform refund request को process करेगा; seller/platform की गलती और settlement agreement के अनुसार रकम seller settlement से adjust हो सकती है। अभी website support ticket दर्ज कर सकती है, लेकिन पैसे अपने-आप transfer/refund नहीं करती।</li>
+      </ul>
+      <p class="small muted">Support ticket में order code, समस्या का समय और फोटो/वीडियो evidence दें। Food safety की शिकायत के लिए FSSAI Food Safety Connect portal भी उपलब्ध है: <a href="https://foscos.fssai.gov.in/consumergrievance/faqs" target="_blank" rel="noopener noreferrer">FSSAI Food Grievance</a>; helpline 1800-11-2100.</p>
+    </div>
     <div class="section card">
       <h3>🆘 Customer Support / Complaint</h3>
       <p class="small muted">Order, rider, payment, product या return/refund की समस्या यहाँ दर्ज करें। Ticket Admin queue में जाएगा; पैसे transfer या courier booking इस form से नहीं होती।</p>
@@ -1139,7 +1157,7 @@ function goHome() {
 }
 
 function openPanel(panelName) {
-  // Customers may browse the catalogue without registering; login is required only for checkout.
+  // Customer panel opens as an authentication-only screen until a valid Customer session exists.
   if (["seller","delivery"].includes(panelName)) {
     if (!window.__adBrandAuthUser) { openAccountAccess(panelName); toast("पहले secure login करें।"); return; }
     if (window.__adBrandAuthRole !== panelName) {
@@ -1178,6 +1196,7 @@ function openPanel(panelName) {
   target.classList.add("active");
 
   if (panelName === "customer") {
+    if (typeof window.applyCustomerAuthGate === "function") window.applyCustomerAuthGate();
     loadCustomer();
     renderProducts();
     renderWishlist();
@@ -1334,6 +1353,7 @@ async function restoreAdBrandAuthSession() {
     if (pe || !profile || profile.is_active!==true) { await client.auth.signOut(); return; }
     window.__adBrandAuthUser=user;
     window.__adBrandAuthRole=profile.role;
+    if(profile.role==="customer"&&typeof updateCustomerOtpVisibility==="function")updateCustomerOtpVisibility();
   } catch(e) { console.warn("Could not restore saved auth session.",e); }
 }
 
@@ -1639,10 +1659,21 @@ window.adLiveCheckout=async function(){
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
  finally{if(btn)btn.disabled=false;}
 };
-function updateCustomerOtpVisibility(){
- var panel=$("adCustomerOtpPanel");
+window.applyCustomerAuthGate=function(){
+ var panel=$("customer");
+ if(!panel)return;
  var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
+ Array.from(panel.children).forEach(function(child){
+  if(child.classList.contains("panel-header")){child.hidden=false;return;}
+  if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
+  child.hidden=!isCustomer;
+ });
+};
+function updateCustomerOtpVisibility(){
+ var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
+ var panel=$("adCustomerOtpPanel");
  if(panel)panel.hidden=isCustomer;
+ if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
  if(isCustomer&&window.__adBrandPendingCheckoutOpen){
   window.__adBrandPendingCheckoutOpen=false;
   var details=$("adLiveCheckoutDetails");
@@ -1717,8 +1748,11 @@ window.adCustomerVerifyOtp=async function(){
    if(saved.error)throw saved.error;
   }
   window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
+  window.__adBrandCustomerMarketMode=null;
   if($("adCheckoutName")&&!$("adCheckoutName").value)$("adCheckoutName").value=pr.data.full_name||name;
   if($("adCheckoutMobile")&&!$("adCheckoutMobile").value)$("adCheckoutMobile").value=String(pr.data.mobile||mobile).replace(/\D/g,"").slice(-10);
+  updateCustomerOtpVisibility();
+  if(typeof window.openPanel==="function")window.openPanel("customer");
   updateCustomerOtpVisibility();
   customerOtpMessage("Customer login सफल हुआ।",false);
   if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
@@ -18937,8 +18971,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const box = $("adLiveCatalog");
     if (!client || !box) return;
     const search = String($("adLiveSearch")?.value || "").trim().slice(0,100);
-    const marketMode = window.__adBrandCustomerMarketMode === "food" ? "food" : "products";
+    const marketMode = window.__adBrandCustomerMarketMode === "food" ? "food" : window.__adBrandCustomerMarketMode === "products" ? "products" : null;
     const selectedCategory = String($("adLiveCategory")?.value || "").trim();
+    if (!marketMode) {
+      box.replaceChildren(liveNode("div","empty","खरीदारी शुरू करने के लिए ऊपर Food & Drinks या Shop Products चुनें।"));
+      return;
+    }
     const category = selectedCategory;
     const city = String($("adLiveDeliveryCity")?.value || $("adCheckoutCity")?.value || "").trim().slice(0,80);
     const state = String($("adLiveDeliveryState")?.value || $("adCheckoutState")?.value || "").trim().slice(0,80);
