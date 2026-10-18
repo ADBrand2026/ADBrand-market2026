@@ -21140,7 +21140,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(categoryField)categoryField.style.display=mode==="food"?"none":"";
     var foodBar=document.getElementById("adFoodCategoryBar");
     if(foodBar)foodBar.hidden=mode!=="food";
-    if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile/i.test(search.value))search.value="";
+    if(mode==="food"&&search&&/cover|phone|saree|साड़ी|pant|shoe|mobile|jewell|ज्वेल|laptop|electronics/i.test(search.value))search.value="";
+    if(mode==="products"&&search&&/pizza|पिज्जा|पिज़्ज़ा|samosa|समोसा|momos|मोमोज|burger|बर्गर|tea|चाय|snack|नाश्ता|cold.?drink|कोल्ड.?ड्रिंक|beverage|sweets|मिठाई|veg-food|non.?veg/i.test(search.value))search.value="";
     window.adCustomerSetFoodCategoryActive(category?category.value:"");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
     var market=document.getElementById("adLiveCustomerMarket");
