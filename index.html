@@ -18897,6 +18897,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
 
   window.adLiveLoadCustomerOrders = async function () {
+    if(window.__adBrandCustomerRefreshTimer){clearTimeout(window.__adBrandCustomerRefreshTimer);window.__adBrandCustomerRefreshTimer=null;}
     const client=supa(),box=$("adLiveOrders");
     if(!client||!box)return;
     if(!liveRole("customer")) { liveEmpty(box,"अपने orders देखने और delivery confirm करने के लिए Customer login करें।"); return; }
