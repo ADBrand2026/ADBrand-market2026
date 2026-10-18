@@ -18865,6 +18865,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     for (const product of products) {
       const card = liveNode("article","card ad-live-product");
       card.style.margin = "0";
+      card.dataset.productId = String(product.id || "");
       card.dataset.price = String(Number(product.sale_price ?? product.price ?? 0));
       card.dataset.stock = String(Number(product.stock ?? 0));
       card.dataset.sale = String(product.sale_price != null && Number(product.sale_price) < Number(product.price || 0));
@@ -18942,8 +18943,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           const option = document.createElement("option");
           option.value = variant.id;
           const effectivePrice = variant.sale_price ?? variant.price;
+          const publicAttributes = variant.attributes && typeof variant.attributes === "object"
+            ? Object.entries(variant.attributes).filter(([key,value]) => value != null && String(value).trim() && !/internal|private|secret|admin/i.test(key))
+                .map(([key,value]) => key.replace(/[_-]/g," ") + ": " + (Array.isArray(value) ? value.join(", ") : String(value))).join(" · ")
+            : "";
           option.textContent = (variant.variant_name || "Variant") + " — " + liveMoney(effectivePrice) + " • stock " + Number(variant.stock || 0)
-            + (variant.attributes?.food_type ? " • " + String(variant.attributes.food_type).replace("_","-").toUpperCase() : "");
+            + (publicAttributes ? " • " + publicAttributes : "");
           option.disabled = Number(variant.stock || 0) <= 0;
           variantSelect.appendChild(option);
         }
@@ -20543,7 +20548,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const products=toList(window.__adBrandLiveProducts);
     const cards=Array.from(box.querySelectorAll(".ad-live-product"));
     cards.forEach((card,index)=>{
-      const p=products[index];if(!p)return;
+      const p=products.find(function(item){return String(item.id)===String(card.dataset.productId);})||products[index];if(!p)return;
       if(el("adCustomerRating_"+p.id)||el("adCustomerWish_"+p.id))return;
       if(Number(p.rating_count||0)>0){
         const rating=node("p","small muted","⭐ "+Number(p.rating||0).toFixed(1)+" ("+Number(p.rating_count)+" verified rating"+(Number(p.rating_count)===1?"":"s")+")");
@@ -20924,8 +20929,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(availability==="stock")show=show&&stock>0;if(availability==="deals")show=show&&price<=99;if(availability==="sale")show=show&&sale;
       if(query){
         var aliases={"saree":"साड़ी saree sari sarees","sari":"साड़ी saree sari sarees","साड़ी":"साड़ी saree sari sarees","pant":"pant pants trouser trousers पैंट","pants":"pant pants trouser trousers पैंट","पैंट":"pant pants trouser trousers","phone cover":"phone cover mobile cover back cover case कवर","cover":"cover case mobile cover phone cover कवर","phone":"phone mobile smartphone handset फोन मोबाइल","mobile":"phone mobile smartphone handset फोन मोबाइल","shoe":"shoe shoes footwear जूते","shoes":"shoe shoes footwear जूते","जूते":"shoe shoes footwear","slipper":"slipper slippers sandal sandals चप्पल","चप्पल":"slipper slippers sandal sandals","kurti":"kurti kurta कुर्ती","shirt":"shirt shirts शर्ट","jeans":"jeans denim जीन्स"};
-        var terms=aliases[query]||query,hay=norm(card.dataset.search||"");
-        show=show&&(hay.includes(query)||terms.split(/\s+/).some(function(t){return t.length>1&&hay.includes(norm(t));}));
+        var terms=aliases[query]||"",hay=norm(card.dataset.search||"");
+        var queryTokens=query.split(/\s+/).filter(function(t){return t.length>0;});
+        var phraseMatch=terms?terms.split(/\s+/).filter(Boolean).some(function(t){return hay.includes(norm(t));}):false;
+        var allWordsMatch=queryTokens.length>1&&queryTokens.every(function(t){return hay.includes(norm(t));});
+        show=show&&(hay.includes(query)||allWordsMatch||phraseMatch||(queryTokens.length===1&&hay.includes(query)));
       }
       Object.keys(selected).forEach(function(k){if(selected[k]){var values=norm(card.dataset[k]||"").split("|").map(function(v){return v.trim();});show=show&&values.includes(selected[k]);}});
       card.hidden=!show;
