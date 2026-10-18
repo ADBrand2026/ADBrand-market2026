@@ -317,6 +317,22 @@ img{max-width:100%}
 @media(max-width:640px){.ad-simple-market-actions{grid-template-columns:1fr}.ad-home-market-button{grid-template-columns:94px 1fr;min-height:118px}.ad-home-market-photo{width:94px;height:96px}}
 </style>
 
+
+<style id="ad-hide-duplicate-public-options-v3">
+/* Public home: show only the two active customer entry points. Hide duplicate legacy role/dashboard blocks. */
+.m5-hero-buttons,.m5-grid,.m5-section-head,.m5-role-grid,
+.m5-dashboard,.m5-stats,.m5-role-cards,.m5-footer-links,
+.role-grid,.category-grid,.footer-links {display:none!important}
+/* Customer panel: do not repeat the two home choices or show manually curated category buttons. */
+#adCustomer .ad-customer-market-switch,
+#customer .ad-customer-market-switch,
+#adCustomer .ad-customer-quick-categories,
+#customer .ad-customer-quick-categories,
+#customer #adLiveCategory,
+#customer .ad-customer-category-tiles {display:none!important}
+/* Keep the customer search, seller-uploaded catalogue, filters, cart and checkout available. */
+</style>
+
 </head>
 
 <body>
