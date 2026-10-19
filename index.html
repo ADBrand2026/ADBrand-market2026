@@ -21351,7 +21351,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         try{localStorage.setItem(zoneKey,JSON.stringify({
           city:String(document.getElementById("adLiveDeliveryCity")?.value||"").trim(),
           state:String(document.getElementById("adLiveDeliveryState")?.value||"").trim(),
-          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\\D/g,"").slice(0,6)
+          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\D/g,"").slice(0,6)
         }));}catch(e){}
       });
     });
