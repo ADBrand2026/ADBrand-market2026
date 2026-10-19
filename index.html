@@ -20891,14 +20891,15 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const cards=Array.from(box.querySelectorAll(".ad-live-product"));
     cards.forEach((card,index)=>{
       const p=products.find(function(item){return String(item.id)===String(card.dataset.productId);})||products[index];if(!p)return;
-      if(el("adCustomerRating_"+p.id)||el("adCustomerWish_"+p.id))return;
-      if(Number(p.rating_count||0)>0){
+      if(Number(p.rating_count||0)>0&&!el("adCustomerRating_"+p.id)){
         const rating=node("p","small muted","⭐ "+Number(p.rating||0).toFixed(1)+" ("+Number(p.rating_count)+" verified rating"+(Number(p.rating_count)===1?"":"s")+")");
         rating.id="adCustomerRating_"+p.id;
         const meta=card.querySelector("p.small.muted");if(meta)meta.insertAdjacentElement("afterend",rating);else card.appendChild(rating);
       }
-      const wish=btn((window.__adBrandCustomerWishlistIds instanceof Set&&window.__adBrandCustomerWishlistIds.has(String(p.id)))?"♥ Saved to Wishlist":"♡ Add to Wishlist",()=>toggleWishlist(p,wish),"outline");
-      wish.id="adCustomerWish_"+p.id;card.appendChild(wish);
+      if(!el("adCustomerWish_"+p.id)){
+        const wish=btn((window.__adBrandCustomerWishlistIds instanceof Set&&window.__adBrandCustomerWishlistIds.has(String(p.id)))?"♥ Saved to Wishlist":"♡ Add to Wishlist",()=>toggleWishlist(p,wish),"outline");
+        wish.id="adCustomerWish_"+p.id;card.appendChild(wish);
+      }
     });
   }
   async function loadAndRenderCustomerExtra(){
@@ -21004,6 +21005,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       }catch(e){console.error("Customer cart sync failed:",e);status("adCustomerProfileMessage","Cart sync नहीं हुई: "+(e.message||"फिर प्रयास करें।"));}
       finally{cartSaving=false;}
     },500);
+  }
+  const originalCartRender=window.adLiveRenderCart;
+  if(typeof originalCartRender==="function"){
+    window.adLiveRenderCart=function(){
+      const result=originalCartRender.apply(this,arguments);
+      scheduleCartSync();
+      return result;
+    };
   }
   const originalCatalogLoad=window.adLiveLoadCatalog;
   if(typeof originalCatalogLoad==="function"){
