@@ -1756,12 +1756,12 @@ function customerOtpMessage(message,isError){
 window.adCustomerSendOtp=async function(){
  var c=client(),name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
- if(name.length<2)return customerOtpMessage("पहली बार profile सुरक्षित रखने के लिए पूरा नाम भरें।",true);
+ if(name && name.length<2)return customerOtpMessage("पूरा नाम कम से कम 2 अक्षरों का लिखें, या पुराने account में login के लिए नाम खाली छोड़ें।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
  var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
  if(send)send.disabled=true;
  try{
-  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name,mobile:mobile}}});
+  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name||"",mobile:mobile}}});
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
   var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
