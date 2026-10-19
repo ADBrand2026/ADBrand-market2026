@@ -382,6 +382,20 @@ img{max-width:100%}
   scroll-margin-top: 0 !important;
 }
 </style>
+<style id="ad-customer-simple-mode-ui">
+/* Until a shopper chooses a department, show only the search and two clear department buttons. */
+#customer:not(.ad-market-selected) #adLiveCustomerMarket{display:none!important}
+#customer.ad-market-selected #adLiveCustomerMarket{display:block}
+#adLiveCustomerMarket .ad-customer-filters{margin:12px 0 18px;padding:12px 16px;border:1px solid var(--border,#e0e4eb);border-radius:14px;background:var(--surface,#fff)}
+#adLiveCustomerMarket .ad-customer-filters>summary{cursor:pointer;font-weight:700;padding:5px 0}
+#adLiveCustomerMarket .ad-customer-filters[open]>summary{margin-bottom:12px}
+#adLiveCustomerMarket .ad-customer-filters .form-grid{margin-top:8px}
+#adLiveCustomerMarket .notice{line-height:1.55}
+#adMarketFoodButton[aria-pressed="true"],#adMarketProductsButton[aria-pressed="true"]{outline:3px solid rgba(91,53,213,.3);outline-offset:2px}
+#adLiveCustomerMarket[data-market-mode="food"] .ad-customer-filters{border-color:rgba(16,185,129,.28)}
+#adLiveCustomerMarket[data-market-mode="products"] .ad-customer-filters{border-color:rgba(91,53,213,.24)}
+@media(max-width:620px){#adLiveCustomerMarket .ad-customer-filters{padding:10px 12px}}
+</style>
 </head>
 
 <body>
@@ -518,7 +532,10 @@ img{max-width:100%}
 
   <div id="adLiveCustomerMarket" class="section">
     <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
-    <div class="form-grid">
+    <details class="section card ad-customer-filters">
+      <summary>⚙️ Product filters (optional)</summary>
+      <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
+<div class="form-grid">
       <div class="field"><label for="adLiveCategory">Category</label><select id="adLiveCategory" onchange="adCustomerCategoryChanged()">
         <option value="">सभी categories</option><option value="clothes">कपड़े / Fashion</option><option value="men-fashion">Men Fashion</option><option value="women-fashion">Women Fashion</option><option value="kids-fashion">Kids Fashion</option><option value="sarees">साड़ी / Sarees</option><option value="pants-jeans">Pants / Jeans</option><option value="shirts-tshirts">Shirts / T-shirts</option><option value="dresses-kurtis">Dresses / Kurtis</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option><option value="jewelry">Jewellery / आभूषण</option><option value="bags-accessories">Bags & Accessories</option><option value="watches">Watches</option><option value="home-kitchen">Home & Kitchen</option><option value="furniture-decor">Furniture & Decor</option><option value="home-appliances">Home Appliances</option><option value="beauty-personal-care">Beauty & Personal Care</option><option value="electronics">Electronics</option><option value="mobile-phones">Mobile Phones</option><option value="mobile-accessories">Mobile Covers & Accessories</option><option value="computers-laptops">Computers & Laptops</option><option value="groceries">Grocery / राशन</option><option value="stationery">Stationery / किताबें</option><option value="toys-games">Toys & Games</option><option value="baby-kids">Baby & Kids</option><option value="sports-fitness">Sports & Fitness</option><option value="automotive">Automotive</option><option value="pet-supplies">Pet Supplies</option><option value="travel-luggage">Travel & Luggage</option><option value="health-wellness">Health & Wellness</option><option value="musical-instruments">Musical Instruments</option><option value="food">खाना / Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="pizza-burgers">Pizza & Burgers</option><option value="sweets-bakery">Sweets & Bakery</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="beverages">Beverages</option>
       </select></div>
@@ -566,6 +583,7 @@ img{max-width:100%}
       <div class="field"><label>फ़िल्टर</label><button type="button" class="btn outline" onclick="adCustomerClearFilters()">✕ Clear all filters</button></div>
     </div>
     <p class="small muted">साइज़, रंग, gender/audience, brand, phone model और material फ़िल्टर लाइव कैटलॉग में मौजूद variant/product attributes से बनेंगे। जो विकल्प सेलर ने दर्ज नहीं किए हैं, उनके लिए सिस्टम झूठा स्टॉक या उपलब्धता नहीं दिखाएगा।</p>
+    </details>
     <div class="form-grid" id="adLiveFoodZoneFilter">
       <div class="field"><label for="adLiveDeliveryCity">Food delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
       <div class="field"><label for="adLiveDeliveryState">State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
@@ -582,7 +600,7 @@ img{max-width:100%}
       <button type="button" class="ad-food-category" data-food-category="sweets-bakery" onclick="adCustomerSetFoodCategory('sweets-bakery')">🍰 Sweets & Bakery</button>
       <button type="button" class="ad-food-category" data-food-category="tea" onclick="adCustomerSetFoodCategory('tea')">☕ चाय</button>
       <button type="button" class="ad-food-category" data-food-category="snacks" onclick="adCustomerSetFoodCategory('snacks')">🍟 Snacks</button>
-      <button type="button" class="ad-food-category" data-food-category="beverages" onclick="adCustomerSetFoodCategory('beverages')">🥤 Beverages</button>
+      <button type="button" class="ad-food-category" data-food-category="beverages" onclick="adCustomerSetFoodCategory('beverages')">🥤 Cold Drinks &amp; Beverages</button>
     </div>
     <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
     <div class="section">
@@ -21162,7 +21180,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     window.adCustomerSetFoodCategoryActive(category?category.value:"");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
     var market=document.getElementById("adLiveCustomerMarket");
-    if(market)market.scrollIntoView({behavior:"smooth",block:"start"});
+    var customerPanel=document.getElementById("customer");
+    if(customerPanel)customerPanel.classList.add("ad-market-selected");
+    if(market){market.dataset.marketMode=mode;market.scrollIntoView({behavior:"smooth",block:"start"});}
+    if(food)food.setAttribute("aria-pressed",mode==="food"?"true":"false");
+    if(products)products.setAttribute("aria-pressed",mode==="products"?"true":"false");
   };
   window.adCustomerSetFoodCategory=function(slug){
     var category=document.getElementById("adLiveCategory");
@@ -21213,6 +21235,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
   document.addEventListener("DOMContentLoaded",function(){
     window.__adBrandCustomerMarketMode=null;
+    var customerPanel=document.getElementById("customer");if(customerPanel)customerPanel.classList.remove("ad-market-selected");
+    var liveMarket=document.getElementById("adLiveCustomerMarket");if(liveMarket){liveMarket.removeAttribute("data-market-mode");liveMarket.style.display="";}
     var zone=document.getElementById("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
     var categoryBar=document.getElementById("adFoodCategoryBar");if(categoryBar)categoryBar.hidden=true;
     var foodButton=document.getElementById("adMarketFoodButton"),productsButton=document.getElementById("adMarketProductsButton");
