@@ -283,6 +283,9 @@ img{max-width:100%}
   .ad-quick-category:hover,.ad-quick-category:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--primary)}
   .ad-quick-category.active{outline:2px solid var(--primary);background:#eee9ff}
   @media(max-width:520px){.ad-customer-quick-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ad-quick-category{min-height:88px;padding:8px}.ad-quick-category b{font-size:.78rem}}
+  .ad-customer-language-picker{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.88rem;font-weight:750;color:inherit}
+  .ad-customer-language-picker select{max-width:180px;border:1px solid var(--border);border-radius:10px;padding:9px 10px;background:#fff;color:#172033}
+  @media(max-width:520px){.ad-customer-language-picker{width:100%;justify-content:flex-end}.ad-customer-language-picker select{flex:1;max-width:none}}
 </style>
 <style>
 /* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
@@ -504,6 +507,13 @@ img{max-width:100%}
   <div class="panel-header">
     <h2>🛍️ Customer Marketplace</h2>
     <button class="btn gray" onclick="goHome()">← Home</button>
+    <label class="ad-customer-language-picker" for="adCustomerLanguage">🌐 भाषा / Language
+      <select id="adCustomerLanguage" aria-label="Customer page language" onchange="adCustomerSetLanguage(this.value)">
+        <option value="hi">हिंदी</option>
+        <option value="en">English</option>
+        <option value="hi-en">हिंदी + English</option>
+      </select>
+    </label>
   </div>
   <div class="ad-customer-top-search field">
     <label for="adLiveSearch">🔎 Search / खोजें</label>
@@ -21282,6 +21292,104 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     }
     if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
   });
+})();
+</script>
+<script>
+/* Customer page language layer: Hindi is the source language; add new locales to this dictionary. */
+(function(){
+  "use strict";
+  var translations={
+    en:{
+      "#customer .panel-header h2":"🛍️ Customer Marketplace",
+      "#customer .ad-customer-top-search label":"🔎 Search",
+      "#adMarketFoodButton .ad-market-copy strong":"🍕 Food & Drinks",
+      "#adMarketFoodButton .ad-market-copy small":"Food, Veg / Non-Veg, sweets, tea, snacks, cold drinks and beverages",
+      "#adMarketFoodButton .ad-market-copy b":"Order food →",
+      "#adMarketProductsButton .ad-market-copy strong":"🛍️ Shop Products",
+      "#adMarketProductsButton .ad-market-copy small":"Clothes, sarees, pants, shoes, mobile phones, covers, jewellery and home items",
+      "#adMarketProductsButton .ad-market-copy b":"Browse products →",
+      "#adCustomerOtpPanel h3":"📱 Customer Login / Register — Mobile OTP",
+      "#adCustomerOtpPanel > p":"First time? Enter your name and mobile number and verify the OTP to create a Customer account. Next time, use the same verified number. SMS OTP works only after Supabase Phone Auth and an SMS provider are enabled.",
+      "label[for='adCustomerOtpName']":"Full name",
+      "label[for='adCustomerOtpMobile']":"10-digit mobile number",
+      "label[for='adCustomerOtpCode']":"SMS OTP",
+      "#adCustomerOtpSend":"📨 Send OTP",
+      "#adCustomerOtpVerify":"✅ Verify OTP and log in",
+      "#adCustomerUseExistingLogin":"Existing account: email/password login",
+      "#adLiveCustomerMarket > .notice":"✅ Live catalogue — active and verified local sellers. Food orders are delivered by AD Brand Market riders only within the seller's service area. Non-food courier booking is not confirmed until the carrier booking is verified.",
+      "#adLiveCustomerMarket .ad-customer-filters > summary":"⚙️ Product filters (optional)",
+      "label[for='adLiveDeliveryCity']":"Food delivery city",
+      "label[for='adLiveDeliveryState']":"State",
+      "label[for='adLiveDeliveryPincode']":"6-digit PIN code",
+      "label[for='adLiveCategory']":"Category",
+      "label[for='adCustomerSort']":"Sort products",
+      "label[for='adCustomerAvailability']":"Availability",
+      "label[for='adCustomerMinPrice']":"Minimum price (₹)",
+      "label[for='adCustomerMaxPrice']":"Maximum price (₹)",
+      "label[for='adCustomerVoiceStatus']":"Voice search",
+      "#adLiveCustomerMarket .section > h3":"🛒 Live Cart and Checkout",
+      "#adLiveCheckoutDetails > h4":"📍 Delivery address",
+      "label[for='adCheckoutSavedAddress']":"Saved address / Address Book",
+      "label[for='adCheckoutName']":"Name",
+      "label[for='adCheckoutMobile']":"Mobile",
+      "label[for='adCheckoutCity']":"City",
+      "label[for='adCheckoutState']":"State",
+      "label[for='adCheckoutPincode']":"PIN code",
+      "label[for='adCheckoutPayment']":"Payment method",
+      "label[for='adCheckoutFulfillment']":"How would you like non-food products delivered?",
+      "label[for='adCheckoutNotes']":"Order instructions (optional)",
+      "#adLiveProceedCheckout":"Continue — enter address and delivery option",
+      "#adLiveCheckoutDetails button[onclick='adLiveCheckout()']":"✅ Place order",
+      "#adCustomerPolicy h3":"🛡️ Order, Cancellation, Return and Refund Policy",
+      "#adLiveCustomerMarket .section.card h3":"🆘 Customer Support / Complaint"
+    },
+    "hi-en":{
+      "#customer .panel-header h2":"🛍️ Customer Marketplace / ग्राहक बाज़ार",
+      "#customer .ad-customer-top-search label":"🔎 Search / खोजें",
+      "#adMarketFoodButton .ad-market-copy strong":"🍕 Food & Drinks / खाना",
+      "#adMarketFoodButton .ad-market-copy b":"Order food / खाना मँगाएँ →",
+      "#adMarketProductsButton .ad-market-copy strong":"🛍️ Shop Products / सामान",
+      "#adMarketProductsButton .ad-market-copy b":"Browse products / सामान देखें →",
+      "#adCustomerOtpPanel h3":"📱 Customer Login / Register — Mobile OTP",
+      "label[for='adCustomerOtpName']":"पूरा नाम / Full name",
+      "label[for='adCustomerOtpMobile']":"10-digit मोबाइल नंबर / Mobile",
+      "label[for='adCustomerOtpCode']":"SMS OTP",
+      "#adCustomerOtpSend":"📨 OTP भेजें / Send OTP",
+      "#adCustomerOtpVerify":"✅ OTP verify करके login करें",
+      "label[for='adCheckoutName']":"नाम / Name",
+      "label[for='adCheckoutMobile']":"मोबाइल / Mobile",
+      "label[for='adCheckoutCity']":"शहर / City",
+      "label[for='adCheckoutState']":"राज्य / State",
+      "label[for='adCheckoutPincode']":"PIN Code",
+      "label[for='adCheckoutPayment']":"भुगतान विकल्प / Payment",
+      "#adLiveProceedCheckout":"आगे बढ़ें / Continue — पता और delivery विकल्प"
+    }
+  };
+  var originals=new Map();
+  function apply(lang){
+    var map=translations[lang]||{};
+    Object.keys(map).forEach(function(selector){
+      document.querySelectorAll(selector).forEach(function(node){
+        if(!originals.has(node)) originals.set(node,node.textContent);
+        node.textContent=map[selector];
+      });
+    });
+    if(lang==="hi"){
+      originals.forEach(function(value,node){if(node&&node.isConnected)node.textContent=value;});
+    }
+    try{localStorage.setItem("adBrandCustomerLanguage",lang);}catch(e){}
+    document.documentElement.setAttribute("lang",lang==="en"?"en":"hi");
+  }
+  window.adCustomerSetLanguage=function(lang){
+    if(!["hi","en","hi-en"].includes(lang))lang="hi";
+    apply(lang);
+  };
+  var select=document.getElementById("adCustomerLanguage");
+  var saved="hi";
+  try{saved=localStorage.getItem("adBrandCustomerLanguage")||"hi";}catch(e){}
+  if(!["hi","en","hi-en"].includes(saved))saved="hi";
+  if(select)select.value=saved;
+  apply(saved);
 })();
 </script>
 </body>
