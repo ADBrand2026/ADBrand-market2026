@@ -1721,6 +1721,7 @@ window.applyCustomerAuthGate=function(){
  if(heading)heading.textContent=isCustomer?"🛍️ Customer Marketplace":"🔐 Customer Login / Register";
  Array.from(panel.children).forEach(function(child){
   if(child.classList.contains("panel-header")){child.hidden=false;return;}
+  if(child.id==="adCustomerAccountCenter"){child.hidden=false;return;}
   if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
   if(child.id==="legacyCustomerDemo"){child.hidden=true;return;}
   if(!isCustomer){child.hidden=true;return;}
