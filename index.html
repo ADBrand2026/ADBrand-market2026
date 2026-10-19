@@ -1609,6 +1609,19 @@ function liveVariantLabel(v){
  if(kind&&label.toLowerCase().indexOf(kind.toLowerCase())<0)label+=(label?" · ":"")+kind;
  return label||"Variant";
 }
+function liveProductFacet(product,key){
+ var aliases={gender:["gender","audience","target_gender"],size:["size"],color:["color"],brand:["brand"],model:["model"],material:["material"]};
+ var keys=aliases[key]||[key],values=[];
+ [product].concat(liveOptions(product&&product.variants)).forEach(function(item){
+  var attrs=item&&item.attributes&&typeof item.attributes==="object"?item.attributes:{};
+  keys.forEach(function(k){
+   var value=item&&item[k]!=null?item[k]:attrs[k];
+   if(Array.isArray(value))value.forEach(function(v){if(String(v||"").trim())values.push(String(v).trim().toLowerCase());});
+   else if(value!=null&&String(value).trim())values.push(String(value).trim().toLowerCase());
+  });
+ });
+ return Array.from(new Set(values)).join("|");
+}
 function liveSelectedProductVariant(product,select){
  var id=select?select.value:"";
  return liveOptions(product.variants).find(function(v){return v.id===id;})||null;
@@ -1623,8 +1636,17 @@ function liveRenderCatalog(){
  else {box.appendChild(liveEl("div","empty","पहले Food & Drinks या Shop Products चुनें।"));return;}
  if(!products.length){box.appendChild(liveEl("div","empty",mode==="food"?"इस इलाके में अभी कोई active food/drinks item नहीं मिला।":"अभी कोई active product उपलब्ध नहीं है।"));return;}
  products.forEach(function(p){
-  var card=liveEl("article","card product-card");
-  card.dataset.search=[p.name,p.description,p.seller_name,p.category_slug,p.brand].filter(Boolean).join(" ").toLowerCase();
+  var card=liveEl("article","card product-card ad-live-product");
+  card.dataset.productId=String(p.id||"");
+  card.dataset.category=String(p.category_slug||"").toLowerCase();
+  card.dataset.food=String(foodSlugs.includes(String(p.category_slug||"").toLowerCase()));
+  card.dataset.gender=liveProductFacet(p,"gender");
+  card.dataset.size=liveProductFacet(p,"size");
+  card.dataset.color=liveProductFacet(p,"color");
+  card.dataset.brand=liveProductFacet(p,"brand");
+  card.dataset.model=liveProductFacet(p,"model");
+  card.dataset.material=liveProductFacet(p,"material");
+  card.dataset.search=[p.name,p.description,p.seller_name,p.category_slug,p.brand,p.model,p.material].concat(liveOptions(p.variants).map(function(v){return [v.variant_name,v.sku,JSON.stringify(v.attributes||{})].filter(Boolean).join(" ");})).filter(Boolean).join(" ").toLowerCase();
   card.dataset.rating=String(Number(p.rating||0));
   card.dataset.created=String(p.created_at||p.createdAt||"");
   var img=liveEl("div","product-image","🛍️");
@@ -1673,6 +1695,7 @@ window.adLiveLoadCatalog=async function(){
   var result=await client.rpc("get_public_marketplace_catalog_for_zone",{p_search:search||null,p_category_slug:category,p_city:city||null,p_state:state||null,p_pincode:pincode||null});
   if(result.error)throw result.error;
   window.__adBrandLiveCatalog=liveNormalizeCatalogResult(result.data);
+  window.__adBrandLiveProducts=window.__adBrandLiveCatalog;
   liveRenderCatalog();
  }catch(e){liveError("Live catalogue load नहीं हुआ",e);box.replaceChildren(liveEl("div","empty","Catalogue अभी load नहीं हो पाया। Connection और catalogue permissions जाँचें।"));}
 };
@@ -20925,7 +20948,16 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     let serverItems=[];
     const {data,error}=await c.rpc("customer_get_cart");
     if(error){console.error("Saved cart load failed:",error);return;}
-    serverItems=toList(data).map(x=>({key:x.key||String(x.product_id)+":"+(x.variant_id||""),product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1),product:x.product,variant:x.variant||null,stock:Number((x.variant&&x.variant.stock)||((x.product||{}).stock)||0)}));
+    serverItems=toList(data).map(x=>{
+      const product=x.product||{},variant=x.variant||null;
+      const regular=Number((variant&&variant.price)??product.price??0);
+      const sale=Number((variant&&variant.sale_price)??product.sale_price??0);
+      return {key:x.key||String(x.product_id)+":"+(x.variant_id||""),product_id:x.product_id,variant_id:x.variant_id||null,quantity:Number(x.quantity||1),product,variant,
+        name:product.name||"Product",variant_name:variant?(variant.variant_name||[variant.attributes?.size,variant.attributes?.color].filter(Boolean).join(" / ")):"",
+        unit_price:sale>0&&sale<regular?sale:regular,stock:Number((variant&&variant.stock)??product.stock??0),
+        seller_name:product.seller_name||"Local seller",seller_city:product.seller_city||"",seller_state:product.seller_state||"",
+        seller_type:product.seller_type||"",category_slug:product.category_slug||""};
+     });
     const guests=currentGuestCart();
     const combined=new Map();
     serverItems.forEach(x=>combined.set(String(x.product_id)+":"+(x.variant_id||""),x));
@@ -20937,7 +20969,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const stock=Number(v?v.stock:(p&&p.stock)||x.stock||0);
       if(!p||stock<=0)return;
       if(combined.has(key)){const cur=combined.get(key);cur.quantity=Math.min(stock,Number(cur.quantity||0)+Number(x.quantity||1));}
-      else combined.set(key,{key,product_id:x.product_id,variant_id:x.variant_id||null,quantity:Math.min(stock,Number(x.quantity||1)),product:p,variant:v,stock:stock});
+      else {
+         const regular=Number((v&&v.price)??(p&&p.price)??0),sale=Number((v&&v.sale_price)??(p&&p.sale_price)??0);
+         combined.set(key,{key,product_id:x.product_id,variant_id:x.variant_id||null,quantity:Math.min(stock,Number(x.quantity||1)),product:p,variant:v,
+           name:(p&&p.name)||x.name||"Product",variant_name:v?(v.variant_name||[v.attributes?.size,v.attributes?.color].filter(Boolean).join(" / ")):"",
+           unit_price:sale>0&&sale<regular?sale:regular,stock:stock,seller_name:(p&&p.seller_name)||x.seller_name||"Local seller",
+           seller_city:(p&&p.seller_city)||x.seller_city||"",seller_state:(p&&p.seller_state)||x.seller_state||"",
+           seller_type:(p&&p.seller_type)||x.seller_type||"",category_slug:(p&&p.category_slug)||x.category_slug||""});
+       }
     });
     const target=window.__adBrandLiveCart=window.__adBrandLiveCart||[];
     target.splice(0,target.length,...Array.from(combined.values()).filter(x=>Number(x.quantity)>0));
@@ -20971,6 +21010,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     window.adLiveLoadCatalog=async function(){
       const result=await originalCatalogLoad.apply(this,arguments);
       decorateCatalog();
+      if(typeof window.adCustomerApplyDiscovery==="function")window.adCustomerApplyDiscovery();
       return result;
     };
   }
