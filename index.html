@@ -619,7 +619,7 @@ img{max-width:100%}
       <button type="button" class="ad-food-category" data-food-category="beverages" onclick="adCustomerSetFoodCategory('beverages')">🥤 Cold Drinks &amp; Beverages</button>
     </div>
     <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
-    <div class="section">
+    <div id="adCustomerLiveCartSection" class="section">
       <h3>🛒 Live Cart और Checkout</h3>
       <div id="adLiveCart"><div class="empty">Cart खाली है।</div></div>
       <button id="adLiveProceedCheckout" class="btn primary" type="button" hidden onclick="adLiveOpenCheckout()">आगे बढ़ें — पता और डिलीवरी विकल्प भरें</button>
@@ -644,7 +644,7 @@ img{max-width:100%}
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
     </div>
-    <div class="section"><h3>📦 मेरे Live Orders</h3><button class="btn outline" type="button" onclick="adLiveLoadCustomerOrders()">↻ Refresh Orders</button><div id="adLiveOrders"></div></div>
+    <div id="adCustomerOrdersSection" class="section"><h3>📦 मेरे Live Orders</h3><button class="btn outline" type="button" onclick="adLiveLoadCustomerOrders()">↻ Refresh Orders</button><div id="adLiveOrders"></div></div>
     <div class="section card" id="adCustomerPolicy">
       <h3>🛡️ Order, Cancellation, Return &amp; Refund Policy</h3>
       <ul class="small">
@@ -657,7 +657,7 @@ img{max-width:100%}
       </ul>
       <p class="small muted">Support ticket में order code, समस्या का समय और फोटो/वीडियो evidence दें। Food safety की शिकायत के लिए FSSAI Food Safety Connect portal भी उपलब्ध है: <a href="https://foscos.fssai.gov.in/consumergrievance/faqs" target="_blank" rel="noopener noreferrer">FSSAI Food Grievance</a>; helpline 1800-11-2100.</p>
     </div>
-    <div class="section card">
+    <div id="adCustomerSupport" class="section card">
       <h3>🆘 Customer Support / Complaint</h3>
       <p class="small muted">Order, rider, payment, product या return/refund की समस्या यहाँ दर्ज करें। Ticket Admin queue में जाएगा; पैसे transfer या courier booking इस form से नहीं होती।</p>
       <div class="form-grid">
@@ -21327,7 +21327,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "label[for='adCustomerMinPrice']":"Minimum price (₹)",
       "label[for='adCustomerMaxPrice']":"Maximum price (₹)",
       "label[for='adCustomerVoiceStatus']":"Voice search",
-      "#adLiveCustomerMarket .section > h3":"🛒 Live Cart and Checkout",
+      "#adCustomerLiveCartSection > h3":"🛒 Live Cart and Checkout",
+      "#adCustomerOrdersSection > h3":"📦 My Live Orders",
       "#adLiveCheckoutDetails > h4":"📍 Delivery address",
       "label[for='adCheckoutSavedAddress']":"Saved address / Address Book",
       "label[for='adCheckoutName']":"Name",
@@ -21341,7 +21342,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "#adLiveProceedCheckout":"Continue — enter address and delivery option",
       "#adLiveCheckoutDetails button[onclick='adLiveCheckout()']":"✅ Place order",
       "#adCustomerPolicy h3":"🛡️ Order, Cancellation, Return and Refund Policy",
-      "#adLiveCustomerMarket .section.card h3":"🆘 Customer Support / Complaint"
+      "#adCustomerSupport h3":"🆘 Customer Support / Complaint"
     },
     "hi-en":{
       "#customer .panel-header h2":"🛍️ Customer Marketplace / ग्राहक बाज़ार",
