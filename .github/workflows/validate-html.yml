@@ -57,7 +57,7 @@ jobs:
                       self.kind = ""
                       self.chunks = []
 
-          files = [Path("index.html"), Path("private-admin.html")]
+          files = [Path("index.html")]
           count = 0
           for path in files:
               if not path.is_file():
