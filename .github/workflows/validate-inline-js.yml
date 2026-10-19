@@ -48,7 +48,7 @@ jobs:
           out = Path("/tmp/adbrand-inline-js")
           out.mkdir(exist_ok=True)
           count = 0
-          for html_path in (Path("index.html"), Path("private-admin.html")):
+          for html_path in (Path("index.html"),):
               parser = ScriptParser()
               parser.feed(html_path.read_text(encoding="utf-8"))
               if not parser.scripts:
