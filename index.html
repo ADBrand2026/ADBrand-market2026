@@ -603,12 +603,12 @@ img{max-width:100%}
     <p class="small muted">साइज़, रंग, gender/audience, brand, phone model और material फ़िल्टर लाइव कैटलॉग में मौजूद variant/product attributes से बनेंगे। जो विकल्प सेलर ने दर्ज नहीं किए हैं, उनके लिए सिस्टम झूठा स्टॉक या उपलब्धता नहीं दिखाएगा।</p>
     </details>
     <div class="form-grid" id="adLiveFoodZoneFilter">
-      <div class="field"><label for="adLiveDeliveryCity">Food delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
-      <div class="field"><label for="adLiveDeliveryState">State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
+      <div class="field"><label for="adLiveDeliveryCity">आपका शहर / Delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
+      <div class="field"><label for="adLiveDeliveryState">राज्य / State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
       <div class="field"><label for="adLiveDeliveryPincode">6-digit PIN Code</label><input id="adLiveDeliveryPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="जैसे 226001"></div>
-      <div class="field"><label for="adLiveZoneApply">Local Food availability</label><button id="adLiveUseCheckoutZone" type="button" class="btn outline" onclick="adLiveUseCheckoutZone()">Use checkout address</button><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">Show products for this zone</button></div>
+      <div class="field"><label for="adLiveZoneApply">आपके इलाके के sellers</label><button id="adLiveUseCheckoutZone" type="button" class="btn outline" onclick="adLiveUseCheckoutZone()">Checkout address इस्तेमाल करें</button><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">मेरे इलाके के सामान दिखाएँ</button></div>
     </div>
-    <p class="small muted">Food/Pizza/Tea/Snacks sellers तभी दिखेंगे जब उनकी active service zone आपके City, State और PIN Code से match करेगी। बिना zone के Non-food courier items दिख सकते हैं। अपना saved checkout address भरने के बाद location fields उसी address से भरें।</p>
+    <p class="small muted">AD Brand Market पहले आपके चुने हुए शहर और राज्य के sellers दिखाएगा। Food, चाय और snacks तभी दिखेंगे जब seller की active delivery zone में आपका 6-digit PIN भी शामिल हो। दूसरे शहर के sellers अपने-आप local sellers की जगह नहीं दिखेंगे। अपना zone यहाँ भरें या checkout address से लाएँ।</p>
     <div id="adFoodCategoryBar" class="ad-food-category-bar" hidden aria-label="Food categories">
       <button type="button" class="ad-food-category active" data-food-category="" onclick="adCustomerSetFoodCategory('')">🍽️ सभी Food</button>
       <button type="button" class="ad-food-category" data-food-category="food" onclick="adCustomerSetFoodCategory('food')">🍛 Other Food</button>
@@ -1829,8 +1829,31 @@ window.adCustomerVerifyOtp=async function(){
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
 };
+/* Auto-send one OTP when a valid mobile field is completed and left; never resend repeatedly while typing. */
+(function bindCustomerOtpAutoSend(){
+ var field=document.getElementById("adCustomerOtpMobile");
+ if(!field||field.dataset.adOtpAutoBound)return;
+ field.dataset.adOtpAutoBound="1";
+ field.addEventListener("blur",function(){
+  var mobile=String(field.value||"").replace(/\D/g,"");
+  if(!/^[6-9]\d{9}$/.test(mobile))return;
+  if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer")return;
+  if(window.__adBrandOtpAutoAttempted===mobile)return;
+  window.__adBrandOtpAutoAttempted=mobile;
+  if(typeof window.adCustomerSendOtp==="function")window.adCustomerSendOtp();
+ });
+ field.addEventListener("input",function(){
+  var mobile=String(field.value||"").replace(/\D/g,"");
+  if(window.__adBrandOtpAutoAttempted&&window.__adBrandOtpAutoAttempted!==mobile)window.__adBrandOtpAutoAttempted=null;
+ });
+})(); 
 var originalCustomerAccountAccess=window.openAccountAccess;
 window.adCustomerUseExistingLogin=function(){
+ if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
+  if(typeof window.openPanel==="function")window.openPanel("customer");
+  document.getElementById("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
+  return;
+ }
  if(typeof originalCustomerAccountAccess==="function")return originalCustomerAccountAccess("customer");
  customerOtpMessage("Existing login dialog अभी उपलब्ध नहीं है।",true);
 };
@@ -1838,7 +1861,11 @@ if(typeof originalCustomerAccountAccess==="function"){
  window.openAccountAccess=function(role){
   if(role==="customer"){
    if(typeof window.openPanel==="function")window.openPanel("customer");
-   setTimeout(function(){$("adCustomerOtpPanel")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
+   if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
+    setTimeout(function(){$("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});},80);
+   }else{
+    setTimeout(function(){$("adCustomerOtpPanel")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
+   }
    return;
   }
   return originalCustomerAccountAccess.apply(this,arguments);
@@ -19112,7 +19139,20 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       liveEmpty(box,"Live catalogue अभी load नहीं हुई। Database policy/RPC error: " + liveErr(error));
       return;
     }
-    const products = asList(data);
+    let products = asList(data);
+    if (city.length < 2 || state.length < 2) {
+      window.__adBrandLiveProducts = [];
+      liveEmpty(box,"📍 पहले ऊपर अपना शहर और राज्य भरें। हम default में आपके इलाके के sellers दिखाएँगे; Food delivery के लिए PIN Code भी जरूरी है।");
+      return;
+    }
+    if (marketMode === "products") {
+      const localCity = city.trim().toLocaleLowerCase("hi-IN");
+      const localState = state.trim().toLocaleLowerCase("hi-IN");
+      products = products.filter(function(product) {
+        return String(product.seller_city || "").trim().toLocaleLowerCase("hi-IN") === localCity
+          && String(product.seller_state || "").trim().toLocaleLowerCase("hi-IN") === localState;
+      });
+    }
     window.__adBrandLiveProducts = products;
     if (!products.length) {
       const zoneReady=city.length>=2&&state.length>=2&&/^[1-9][0-9]{5}$/.test(pincode);
@@ -21185,7 +21225,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var f=document.getElementById("adMarketFoodButton"),p=document.getElementById("adMarketProductsButton");
     if(f)f.classList.toggle("active",isFood);if(p)p.classList.toggle("active",!isFood);
     document.querySelectorAll(".ad-quick-category").forEach(function(button){button.classList.toggle("active",button.getAttribute("data-category")===String(category&&category.value||""));});
-    if(zone)zone.style.display=isFood?"grid":"none";
+    if(zone)zone.style.display="grid";
     var categoryField=category?category.closest(".field"):null;if(categoryField)categoryField.style.display=isFood?"none":"";
     var foodBar=document.getElementById("adFoodCategoryBar");if(foodBar)foodBar.hidden=!isFood;
     if(isFood&&typeof window.adCustomerSetFoodCategoryActive==="function")window.adCustomerSetFoodCategoryActive(category?category.value:"");
@@ -21213,7 +21253,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       else if(foodSlugs.includes(category.value))category.value="";
     }
     var zone=document.getElementById("adLiveFoodZoneFilter");
-    if(zone)zone.style.display=mode==="food"?"grid":"none";
+    if(zone)zone.style.display="grid";
     var categoryField=category?category.closest(".field"):null;
     if(categoryField)categoryField.style.display=mode==="food"?"none":"";
     var foodBar=document.getElementById("adFoodCategoryBar");
@@ -21295,6 +21335,26 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(cat.value))cat.value="";
     }
     if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
+    /* Remember the shopper's chosen delivery zone on this device, and reuse a saved checkout address when available. */
+    var zoneKey="adBrandCustomerDeliveryZone";
+    try{
+      var savedZone=JSON.parse(localStorage.getItem(zoneKey)||"null");
+      ["adLiveDeliveryCity","adLiveDeliveryState","adLiveDeliveryPincode"].forEach(function(id,index){
+        var input=document.getElementById(id);
+        var value=savedZone&&[savedZone.city,savedZone.state,savedZone.pincode][index];
+        if(input&&!input.value&&value)input.value=String(value);
+      });
+    }catch(e){}
+    ["adLiveDeliveryCity","adLiveDeliveryState","adLiveDeliveryPincode"].forEach(function(id){
+      var input=document.getElementById(id);if(!input||input.dataset.adZoneBound)return;input.dataset.adZoneBound="1";
+      input.addEventListener("change",function(){
+        try{localStorage.setItem(zoneKey,JSON.stringify({
+          city:String(document.getElementById("adLiveDeliveryCity")?.value||"").trim(),
+          state:String(document.getElementById("adLiveDeliveryState")?.value||"").trim(),
+          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\\D/g,"").slice(0,6)
+        }));}catch(e){}
+      });
+    });
   });
 })();
 </script>
