@@ -1724,10 +1724,11 @@ window.applyCustomerAuthGate=function(){
   if(child.id==="adCustomerAccountCenter"){child.hidden=false;return;}
   if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
   if(child.id==="legacyCustomerDemo"){child.hidden=true;return;}
-  if(!isCustomer){child.hidden=true;return;}
+  /* Let guests browse/search and build a local cart; login is required only for checkout/account data. */
   if(child.classList.contains("ad-customer-top-search")){child.hidden=false;return;}
   if(child.classList.contains("ad-customer-market-switch")){child.hidden=false;return;}
   if(child.id==="adLiveCustomerMarket"){child.hidden=!mode;return;}
+  if(!isCustomer){child.hidden=true;return;}
   child.hidden=true;
  });
  if(isCustomer&&mode&&typeof window.adLiveUpdateCheckoutVisibility==="function")window.adLiveUpdateCheckoutVisibility();
