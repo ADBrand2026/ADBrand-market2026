@@ -463,6 +463,12 @@ img{max-width:100%}
 #adLiveCatalog .ad-live-product[hidden]{display:none!important}
 #adLiveCustomerMarket[hidden]{display:none!important}
 </style>
+<style id="ad-customer-simple-flow-v2">
+#adLiveCustomerMarket[hidden]{display:none!important}
+#customer>.ad-customer-top-search[hidden],#customer>.ad-customer-market-switch[hidden],#customer>#adLiveCustomerMarket[hidden],#customer>#adCustomerOtpPanel[hidden]{display:none!important}
+#adMarketFoodButton.active,#adMarketProductsButton.active{outline:3px solid rgba(91,53,213,.3);border-color:var(--primary,#5b35d5)}
+#adCustomerOtpPanel .small{line-height:1.55}
+</style>
 <style id="ad-customer-top-search-ui">
 #adCustomer .ad-customer-top-search,#customer .ad-customer-top-search{position:relative;margin:14px 0 18px;padding:14px 16px;border:1px solid rgba(99,102,241,.22);border-radius:16px;background:var(--surface,#fff);box-shadow:0 8px 22px rgba(15,23,42,.07)}
 .ad-customer-top-search input{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--border,#d7dce5);border-radius:12px;font-size:1rem}
@@ -1598,7 +1604,12 @@ function liveSelectedProductVariant(product,select){
 function liveRenderCatalog(){
  var box=$("adLiveCatalog");if(!box)return;box.replaceChildren();
  var products=window.__adBrandLiveCatalog||[];
- if(!products.length){box.appendChild(liveEl("div","empty","इस search/category में अभी कोई active product उपलब्ध नहीं है।"));return;}
+ var foodSlugs=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
+ var mode=window.__adBrandCustomerMarketMode;
+ if(mode==="food")products=products.filter(function(p){return foodSlugs.includes(String(p.category_slug||"").toLowerCase());});
+ else if(mode==="products")products=products.filter(function(p){return !foodSlugs.includes(String(p.category_slug||"").toLowerCase());});
+ else {box.appendChild(liveEl("div","empty","पहले Food & Drinks या Shop Products चुनें।"));return;}
+ if(!products.length){box.appendChild(liveEl("div","empty",mode==="food"?"इस इलाके में अभी कोई active food/drinks item नहीं मिला।":"अभी कोई active product उपलब्ध नहीं है।"));return;}
  products.forEach(function(p){
   var card=liveEl("article","card product-card");
   card.dataset.search=[p.name,p.description,p.seller_name,p.category_slug,p.brand].filter(Boolean).join(" ").toLowerCase();
@@ -1693,14 +1704,20 @@ window.applyCustomerAuthGate=function(){
  var panel=$("customer");
  if(!panel)return;
  var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
+ var mode=window.__adBrandCustomerMarketMode;
  var heading=panel.querySelector(".panel-header h2");
  if(heading)heading.textContent=isCustomer?"🛍️ Customer Marketplace":"🔐 Customer Login / Register";
  Array.from(panel.children).forEach(function(child){
   if(child.classList.contains("panel-header")){child.hidden=false;return;}
   if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
   if(child.id==="legacyCustomerDemo"){child.hidden=true;return;}
-  child.hidden=!isCustomer;
+  if(!isCustomer){child.hidden=true;return;}
+  if(child.classList.contains("ad-customer-top-search")){child.hidden=false;return;}
+  if(child.classList.contains("ad-customer-market-switch")){child.hidden=false;return;}
+  if(child.id==="adLiveCustomerMarket"){child.hidden=!mode;return;}
+  child.hidden=true;
  });
+ if(isCustomer&&mode&&typeof window.adLiveUpdateCheckoutVisibility==="function")window.adLiveUpdateCheckoutVisibility();
 };
 function updateCustomerOtpVisibility(){
  var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
@@ -1816,7 +1833,13 @@ if(typeof originalCustomerAccountAccess==="function"){
 var adCustomerSearchTimer=null;
 window.adCustomerDebouncedSearch=function(){
  if(adCustomerSearchTimer)clearTimeout(adCustomerSearchTimer);
- adCustomerSearchTimer=setTimeout(function(){if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();},280);
+ adCustomerSearchTimer=setTimeout(function(){
+  if(!window.__adBrandCustomerMarketMode){
+   var box=$("adLiveCatalog");if(box)box.replaceChildren(liveEl("div","empty","Search करने से पहले Food & Drinks या Shop Products चुनें।"));
+   return;
+  }
+  if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+ },280);
 };
 window.adCustomerApplyDiscovery=function(){
  var box=$("adLiveCatalog");if(!box)return;
@@ -21188,7 +21211,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var market=document.getElementById("adLiveCustomerMarket");
     var customerPanel=document.getElementById("customer");
     if(customerPanel)customerPanel.classList.add("ad-market-selected");
-    if(market){market.dataset.marketMode=mode;market.scrollIntoView({behavior:"smooth",block:"start"});}
+    if(market){market.hidden=false;market.dataset.marketMode=mode;}
+    if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+    if(market)market.scrollIntoView({behavior:"smooth",block:"start"});
     if(food)food.setAttribute("aria-pressed",mode==="food"?"true":"false");
     if(products)products.setAttribute("aria-pressed",mode==="products"?"true":"false");
   };
@@ -21197,6 +21223,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var allowed=["","food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
     slug=allowed.includes(String(slug||""))?String(slug||""):"";
     window.__adBrandCustomerMarketMode="food";
+    var market=document.getElementById("adLiveCustomerMarket");if(market)market.hidden=false;
+    if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
     if(category)category.value=slug;
     var zone=document.getElementById("adLiveFoodZoneFilter");
     if(zone)zone.style.display="grid";
