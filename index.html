@@ -542,7 +542,7 @@ img{max-width:100%}
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
       <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ OTP verify करके login करें</button>
-      <button class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Existing account: email/password login</button>
+      <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Existing account: email/password login</button>
     </div>
     <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">OTP आपके अपने मोबाइल पर आएगा। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
@@ -588,7 +588,7 @@ img{max-width:100%}
       <div class="field"><label for="adCustomerAvailability">Availability</label><select id="adCustomerAvailability" onchange="adCustomerApplyDiscovery()"><option value="all">All products</option><option value="stock">In stock only</option><option value="deals">Deals under ₹99</option><option value="sale">Discounted products</option></select></div>
       <div class="field"><label for="adCustomerMinPrice">Minimum price (₹)</label><input id="adCustomerMinPrice" type="number" min="0" max="10000000" inputmode="numeric" placeholder="₹0" oninput="adCustomerApplyDiscovery()"></div>
       <div class="field"><label for="adCustomerMaxPrice">Maximum price (₹)</label><input id="adCustomerMaxPrice" type="number" min="0" max="10000000" inputmode="numeric" placeholder="No limit" oninput="adCustomerApplyDiscovery()"></div>
-      <div class="field"><label>Voice search</label><button class="btn outline" type="button" onclick="adCustomerStartVoiceSearch()">🎙️ बोलकर खोजें</button><small id="adCustomerVoiceStatus" class="muted" role="status">Browser support और microphone permission आवश्यक हैं।</small></div>
+      <div class="field"><label id="adCustomerVoiceSearchLabel">Voice search</label><button class="btn outline" type="button" onclick="adCustomerStartVoiceSearch()">🎙️ बोलकर खोजें</button><small id="adCustomerVoiceStatus" class="muted" role="status">Browser support और microphone permission आवश्यक हैं।</small></div>
     </div>
     <div id="adCustomerAttributeFilters" class="ad-customer-attribute-filters" aria-label="Category-specific product filters">
       <div class="field"><label for="adCustomerGenderFilter">किसके लिए / Audience</label><select id="adCustomerGenderFilter" onchange="adCustomerApplyDiscovery()"><option value="">सभी</option></select></div>
@@ -21327,7 +21327,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "label[for='adCustomerAvailability']":"Availability",
       "label[for='adCustomerMinPrice']":"Minimum price (₹)",
       "label[for='adCustomerMaxPrice']":"Maximum price (₹)",
-      "label[for='adCustomerVoiceStatus']":"Voice search",
+      "#adCustomerVoiceSearchLabel":"Voice search",
       "#adCustomerLiveCartSection > h3":"🛒 Live Cart and Checkout",
       "#adCustomerOrdersSection > h3":"📦 My Live Orders",
       "#adLiveCheckoutDetails > h4":"📍 Delivery address",
