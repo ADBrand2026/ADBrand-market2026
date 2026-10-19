@@ -21158,7 +21158,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     mode=mode==="food"?"food":"products";
     var previousMode=window.__adBrandCustomerMarketMode;
     var search=document.getElementById("adLiveSearch");
-    if(previousMode!==mode&&search)search.value="";
+    if(previousMode!==mode){
+      if(search)search.value="";
+      ["adCustomerMinPrice","adCustomerMaxPrice","adCustomerGenderFilter","adCustomerSizeFilter","adCustomerColorFilter","adCustomerBrandFilter","adCustomerModelFilter","adCustomerMaterialFilter"].forEach(function(id){var field=document.getElementById(id);if(field)field.value="";});
+      var availability=document.getElementById("adCustomerAvailability");if(availability)availability.value="all";
+      var sort=document.getElementById("adCustomerSort");if(sort)sort.value="relevance";
+      var filters=document.querySelector("#adLiveCustomerMarket .ad-customer-filters");if(filters)filters.open=false;
+    }
     window.__adBrandCustomerMarketMode=mode;
     var food=document.getElementById("adMarketFoodButton"),products=document.getElementById("adMarketProductsButton");
     if(food)food.classList.toggle("active",mode==="food");
