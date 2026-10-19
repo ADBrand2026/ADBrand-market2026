@@ -21369,6 +21369,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
   var originals=new Map();
   function apply(lang){
+    /* Always restore the source text first so switching EN <-> bilingual cannot leave stale translations. */
+    originals.forEach(function(value,node){
+      if(node&&node.isConnected)node.textContent=value;
+    });
     var map=translations[lang]||{};
     Object.keys(map).forEach(function(selector){
       document.querySelectorAll(selector).forEach(function(node){
@@ -21376,9 +21380,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         node.textContent=map[selector];
       });
     });
-    if(lang==="hi"){
-      originals.forEach(function(value,node){if(node&&node.isConnected)node.textContent=value;});
-    }
     try{localStorage.setItem("adBrandCustomerLanguage",lang);}catch(e){}
     document.documentElement.setAttribute("lang",lang==="en"?"en":"hi");
   }
