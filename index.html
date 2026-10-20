@@ -619,6 +619,7 @@ img{max-width:100%}
       <button type="button" class="ad-food-category" data-food-category="tea" onclick="adCustomerSetFoodCategory('tea')">☕ चाय</button>
       <button type="button" class="ad-food-category" data-food-category="snacks" onclick="adCustomerSetFoodCategory('snacks')">🍟 Snacks</button>
       <button type="button" class="ad-food-category" data-food-category="beverages" onclick="adCustomerSetFoodCategory('beverages')">🥤 Cold Drinks &amp; Beverages</button>
+      <button type="button" class="ad-food-category" data-food-category="groceries" onclick="adCustomerSetFoodCategory('groceries')">🛒 Grocery &amp; Daily Needs</button>
     </div>
     <div id="adLiveCatalog" class="product-grid"><div class="empty">Live catalogue load हो रहा है…</div></div>
     <div id="adCustomerLiveCartSection" class="section">
@@ -21362,7 +21363,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   };
   window.adCustomerSetFoodCategory=function(slug){
     var category=document.getElementById("adLiveCategory");
-    var allowed=["","food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"];
+    var allowed=["","food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages","groceries"];
     slug=allowed.includes(String(slug||""))?String(slug||""):"";
     window.__adBrandCustomerMarketMode="food";
     var market=document.getElementById("adLiveCustomerMarket");if(market)market.hidden=false;
