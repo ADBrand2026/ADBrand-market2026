@@ -1699,9 +1699,27 @@ window.adLiveLoadCatalog=async function(){
   liveRenderCatalog();
  }catch(e){liveError("Live catalogue load नहीं हुआ",e);box.replaceChildren(liveEl("div","empty","Catalogue अभी load नहीं हो पाया। Connection और catalogue permissions जाँचें।"));}
 };
+function adLiveSyncFulfillmentOption(){
+ var select=$("adCheckoutFulfillment");
+ if(!select)return;
+ var cart=window.__adBrandLiveCart||[];
+ var eligible=cart.length>0&&cart.every(function(item){
+  return ["clothes","shoes","slippers"].includes(String(item.category_slug||"").toLowerCase())
+   &&String(item.seller_type||"").toLowerCase()!=="food";
+ });
+ var pickup=select.querySelector('option[value="self_pickup"]');
+ if(pickup){
+  pickup.disabled=!eligible;
+  pickup.textContent=eligible
+   ?"Self pickup — clothes/shoes/slippers की local shop से"
+   :"Self pickup — केवल eligible clothes/shoes/slippers के लिए";
+ }
+ if(!eligible&&select.value==="self_pickup")select.value="delivery";
+}
 window.adLiveRenderCart=function(){
  var box=$("adLiveCart");if(!box)return;box.replaceChildren();
  var cart=window.__adBrandLiveCart||[];
+ adLiveSyncFulfillmentOption();
  var counter=$("cartCount");if(counter)counter.textContent=String(cart.reduce(function(n,x){return n+Number(x.quantity||0);},0));
  if(!cart.length){box.appendChild(liveEl("div","empty","Cart खाली है।"));return;}
  var total=0;
