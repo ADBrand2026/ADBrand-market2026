@@ -21171,9 +21171,33 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   window.selectCategory=function(category){
     if(typeof window.openPanel==="function")window.openPanel("customer");
     const slug=categorySlug[String(category)]||String(category||"");
-    if(el("adLiveCategory"))el("adLiveCategory").value=slug;
+    const foodSlugs=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages","groceries"];
+    if(foodSlugs.includes(slug)){
+      if(typeof window.adCustomerSetFoodCategory==="function"){
+        window.adCustomerSetFoodCategory(slug);
+      }else{
+        window.__adBrandCustomerMarketMode="food";
+        if(el("adLiveCategory"))el("adLiveCategory").value=slug;
+        const market=el("adLiveCustomerMarket");if(market)market.hidden=false;
+        const bar=el("adFoodCategoryBar");if(bar)bar.hidden=false;
+        const zone=el("adLiveFoodZoneFilter");if(zone)zone.style.display="grid";
+        const products=el("adMarketProductsButton");if(products)products.classList.remove("active");
+        const food=el("adMarketFoodButton");if(food)food.classList.add("active");
+        if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+      }
+    }else{
+      window.__adBrandCustomerMarketMode="products";
+      if(el("adLiveCategory"))el("adLiveCategory").value=slug;
+      const market=el("adLiveCustomerMarket");if(market)market.hidden=false;
+      const bar=el("adFoodCategoryBar");if(bar)bar.hidden=true;
+      const zone=el("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
+      const categoryField=el("adLiveCategory")?.closest(".field");if(categoryField)categoryField.style.display="";
+      const food=el("adMarketFoodButton");if(food)food.classList.remove("active");
+      const products=el("adMarketProductsButton");if(products)products.classList.add("active");
+      if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+    }
     if(el("adLiveSearch"))el("adLiveSearch").value="";
-    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+    if(typeof window.adCustomerApplyDiscovery==="function")window.adCustomerApplyDiscovery();
     setTimeout(()=>el("adLiveCatalog")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
   };
   initAccountCenter();
