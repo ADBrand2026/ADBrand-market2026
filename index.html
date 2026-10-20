@@ -1719,6 +1719,7 @@ function adLiveSyncFulfillmentOption(){
 window.adLiveRenderCart=function(){
  var box=$("adLiveCart");if(!box)return;box.replaceChildren();
  var cart=window.__adBrandLiveCart||[];
+ cart.forEach(function(item){if(item&&item.product&&!item.name){var p=item.product,v=item.variant;item.name=p.name||"Product";item.variant_name=v?String(v.variant_name||"Variant"):"";item.unit_price=Number((v?(v.sale_price??v.price):(p.sale_price??p.price))||0);item.seller_name=p.seller_name||"Local seller";item.seller_city=p.seller_city||"";item.seller_state=p.seller_state||"";item.seller_type=p.seller_type||"";item.category_slug=p.category_slug||"";item.stock=Number(v?v.stock:p.stock||0);}});
  adLiveSyncFulfillmentOption();
  var counter=$("cartCount");if(counter)counter.textContent=String(cart.reduce(function(n,x){return n+Number(x.quantity||0);},0));
  if(!cart.length){box.appendChild(liveEl("div","empty","Cart खाली है।"));return;}
