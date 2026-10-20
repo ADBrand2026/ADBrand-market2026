@@ -4558,6 +4558,14 @@ function initPage2() {
     return category === "food" || category === "tea";
   };
 
+  ADBM3.orderCategory = function (order) {
+    if (!order) return "";
+    const product = ADBM3.data.products.find(function (item) {
+      return item.id === order.productId;
+    });
+    return String(order.category || product?.category || "").toLowerCase();
+  };
+
   ADBM3.deliveryOptions = function (category) {
     if (ADBM3.isFood(category)) {
       return ["delivery"];
@@ -4830,7 +4838,7 @@ function initPage2() {
             'Cancel Demo Order</button>';
         }
 
-        if (order.status === "delivered") {
+        if (order.status === "delivered" && ADBM3.orderCategory(order) && !ADBM3.isFood(ADBM3.orderCategory(order))) {
           actions +=
             '<button class="adbm3-btn secondary" ' +
             'data-adbm3-return="' +
@@ -5546,6 +5554,7 @@ function initPage2() {
       customerAddress: customer.address,
       productId: product.id,
       productName: product.name,
+      category: product.category,
       sellerId: product.sellerId,
       sellerName: product.sellerName,
       quantity: 1,
@@ -5763,6 +5772,12 @@ function initPage2() {
 
     if (!order || order.status !== "delivered") {
       ADBM3.toast("केवल delivered demo order पर return request बनाएं।");
+      return;
+    }
+
+    const category = ADBM3.orderCategory(order);
+    if (!category || ADBM3.isFood(category)) {
+      ADBM3.toast("Food/खाना return नहीं होता। केवल eligible non-food order पर request करें।");
       return;
     }
 
