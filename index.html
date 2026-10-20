@@ -1812,7 +1812,9 @@ window.adCustomerSendOtp=async function(){
  }catch(e){
   console.error("Customer OTP send failed:",e);
   var message=String(e.message||"");
-  if(/not found|no user|user.*exist/i.test(message)){
+  if(/phone.*(disabled|not enabled|not configured)|unsupported phone provider|sms.*(disabled|not configured)|provider.*disabled|phone signups are disabled/i.test(message)){
+   customerOtpMessage("इस समय SMS OTP सेवा enabled/configured नहीं है। अभी Existing account: email/password login इस्तेमाल करें। SMS provider configure होने के बाद ही mobile OTP चलेगा।",true);
+  }else if(/not found|no user|user.*exist/i.test(message)){
    customerOtpMessage("यह नंबर अभी phone-OTP account से जुड़ा नहीं है। Existing account के लिए email/password login चुनें। Duplicate account नहीं बनाया गया।",true);
   }else{
    customerOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
