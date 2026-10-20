@@ -2020,7 +2020,7 @@ window.adLiveLoadCustomerOrders=async function(){
    if(o.status==="delivered"&&o.fulfillment_mode!=="inhouse_food"){
     liveOptions(o.items).forEach(function(it){
      var category=String(it.category_slug||"").toLowerCase();
-     if(!it.order_item_id||["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category))return;
+     if(!it.order_item_id||!["clothes","shoes","slippers"].includes(category))return;
      var existing=liveOptions(o.return_requests).find(function(x){return x.order_item_id===it.order_item_id;});
      if(existing){card.appendChild(liveEl("p","small","Return status for "+(it.name||"item")+": "+existing.status+" · "+(existing.review_note||"")));}
      else {var ret=liveEl("button","btn outline small-btn","↩️ Request return · "+(it.name||"item"));ret.onclick=async function(){var reason=prompt("Return का कारण (उदाहरण: size issue, damaged item):","");if(reason===null)return;if(reason.trim().length<5){toast("Return reason कम से कम 5 characters का होना चाहिए।");return;}try{var rr=await client.rpc("customer_request_return",{p_order_item_id:it.order_item_id,p_reason:reason.trim()});if(rr.error)throw rr.error;toast("Return request Admin review के लिए भेज दी गई।");await adLiveLoadCustomerOrders();}catch(e){liveError("Return request submit नहीं हुई",e);}};card.appendChild(ret);}
@@ -19635,7 +19635,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         card.appendChild(liveButton("↩️ Request return / refund review",async()=>{
           const {data:items,error:itemsError}=await client.rpc("customer_get_returnable_items",{p_order_id:o.id});
           if(itemsError){alert("Return eligibility load नहीं हुई: "+liveErr(itemsError));return;}
-          const choices=asList(items).filter(item=>!["pending","approved"].includes(String(item.return_status||"")));
+          const choices=asList(items).filter(item=>{const category=String(item.category_slug||item.product_category_slug||item.category||"").toLowerCase();return ["clothes","shoes","slippers"].includes(category)&&!["pending","approved"].includes(String(item.return_status||""));});
           if(!choices.length){alert("इस order में अभी returnable item नहीं है; शायद return pending/already approved है या delivery के 7 दिन गुजर गए हैं।");return;}
           const menu=choices.map((item,index)=>(index+1)+". "+item.name+(item.variant_name?" — "+item.variant_name:"")+" × "+item.quantity+" ("+liveMoney(item.total_price)+")").join("\n");
           const choice=prompt("कौन-सा item return करना है? Number लिखें:\n"+menu,"1");
