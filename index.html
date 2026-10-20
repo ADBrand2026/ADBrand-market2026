@@ -21171,6 +21171,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   window.selectCategory=function(category){
     if(typeof window.openPanel==="function")window.openPanel("customer");
     const slug=categorySlug[String(category)]||String(category||"");
+    if(el("adLiveSearch"))el("adLiveSearch").value="";
     const foodSlugs=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages","groceries"];
     if(foodSlugs.includes(slug)){
       if(typeof window.adCustomerSetFoodCategory==="function"){
@@ -21196,7 +21197,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const products=el("adMarketProductsButton");if(products)products.classList.add("active");
       if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
     }
-    if(el("adLiveSearch"))el("adLiveSearch").value="";
+    const foodButton=el("adMarketFoodButton"),productsButton=el("adMarketProductsButton");
+    if(foodButton)foodButton.classList.toggle("active",foodSlugs.includes(slug));
+    if(productsButton)productsButton.classList.toggle("active",!foodSlugs.includes(slug));
     if(typeof window.adCustomerApplyDiscovery==="function")window.adCustomerApplyDiscovery();
     setTimeout(()=>el("adLiveCatalog")?.scrollIntoView({behavior:"smooth",block:"start"}),80);
   };
