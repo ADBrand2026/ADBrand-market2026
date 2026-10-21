@@ -21191,7 +21191,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(el("adLiveCategory"))el("adLiveCategory").value=slug;
       const market=el("adLiveCustomerMarket");if(market)market.hidden=false;
       const bar=el("adFoodCategoryBar");if(bar)bar.hidden=true;
-      const zone=el("adLiveFoodZoneFilter");if(zone)zone.style.display="none";
+      const zone=el("adLiveFoodZoneFilter");if(zone)zone.style.display="grid";
       const categoryField=el("adLiveCategory")?.closest(".field");if(categoryField)categoryField.style.display="";
       const food=el("adMarketFoodButton");if(food)food.classList.remove("active");
       const products=el("adMarketProductsButton");if(products)products.classList.add("active");
