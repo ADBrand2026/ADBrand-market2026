@@ -774,6 +774,27 @@ img{max-width:100%}
         <div class="field"><label>Large · Non-Veg price / stock</label><div class="form-grid"><input id="adFoodLargeNonVegPrice" type="number" min="1" step=".01" placeholder="₹ price"><input id="adFoodLargeNonVegStock" type="number" min="0" step="1" placeholder="Stock"></div></div>
       </div>
       <button class="btn primary" type="button" onclick="adLiveAddFoodProduct()">➕ Add food/menu item</button>
+      <div id="adFoodPayoutTerms" class="section card" style="margin-top:18px">
+        <h3>💰 Food Seller — Charges, Settlement & Payout</h3>
+        <p class="small muted">AD Brand Market की प्रस्तावित शुरुआती नीति — यह अभी अनुमान/preview है, लागू contract या live payout नहीं। Final charges seller agreement और Admin approval के बाद ही लागू होंगे।</p>
+        <ul>
+          <li><strong>प्रस्तावित platform commission: 5%</strong> — food item subtotal पर; delivery charge इसमें शामिल नहीं। इसे अभी live settlement से deduct नहीं किया जा रहा।</li>
+          <li><strong>कोई fixed listing fee नहीं</strong> प्रस्तावित; listing या दुकान online रखने का अलग monthly charge नहीं।</li>
+          <li><strong>Delivery charge अलग</strong> — checkout में customer को order confirm करने से पहले दिखेगा; seller payout में delivery charge को food sales न माना जाए। Actual rider cost और customer charge का नियम launch से पहले तय/दिखाया जाएगा।</li>
+          <li><strong>Discount/offer:</strong> seller-funded discount seller की earning घटाएगा; AD-funded promotion केवल स्पष्ट opt-in और अलग ledger entry के साथ। बिना सहमति कोई ad/marketing deduction नहीं।</li>
+          <li><strong>Proposed payout cycle: weekly</strong>, delivered/eligible orders के लिए; cancellations, refunds, disputes और COD reconciliation का itemised statement साथ होगा। Bank/UPI payout अभी automated/live नहीं है।</li>
+          <li><strong>Tax & documents:</strong> लागू FSSAI registration/licence ज़रूरी है। GST/PAN और tax treatment कारोबार/कानून के अनुसार verify होंगे; यह calculator tax advice या tax calculation नहीं है।</li>
+        </ul>
+        <div class="form-grid">
+          <div class="field"><label for="adFoodPayoutGross">Example: eligible food sales (₹)</label><input id="adFoodPayoutGross" type="number" min="0" step="0.01" value="1000" oninput="adFoodPayoutPreview()"></div>
+          <div class="field"><label for="adFoodPayoutDiscount">Seller-funded discount (₹)</label><input id="adFoodPayoutDiscount" type="number" min="0" step="0.01" value="0" oninput="adFoodPayoutPreview()"></div>
+        </div>
+        <div class="notice" aria-live="polite">
+          <div>Commission preview (5%): <strong id="adFoodPayoutCommission">₹50.00</strong></div>
+          <div>Illustrative seller amount before refunds/tax/other agreed adjustments: <strong id="adFoodPayoutNet">₹950.00</strong></div>
+        </div>
+        <p id="adFoodPayoutPreviewNote" class="small muted">Example only. Not a settlement statement, invoice, tax calculation, or promise of payment.</p>
+      </div>
     </div>
     <div id="adLiveNonFoodSellerTools" class="section" style="display:none">
       <h3>👕 Non-food Seller Dashboard — Clothes / Shoes / Slippers</h3>
@@ -21602,6 +21623,23 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   if(select)select.value=saved;
   apply(saved);
 })();
+</script>
+<script id="ad-food-payout-preview">
+window.adFoodPayoutPreview=function(){
+  var grossEl=document.getElementById("adFoodPayoutGross");
+  var discountEl=document.getElementById("adFoodPayoutDiscount");
+  var commissionEl=document.getElementById("adFoodPayoutCommission");
+  var netEl=document.getElementById("adFoodPayoutNet");
+  if(!grossEl||!discountEl||!commissionEl||!netEl)return;
+  var gross=Math.max(0,Number(grossEl.value)||0);
+  var discount=Math.min(gross,Math.max(0,Number(discountEl.value)||0));
+  var eligible=Math.max(0,gross-discount);
+  var commission=Math.round(eligible*0.05*100)/100;
+  var net=Math.round((eligible-commission)*100)/100;
+  commissionEl.textContent="₹"+commission.toFixed(2);
+  netEl.textContent="₹"+net.toFixed(2);
+};
+window.adFoodPayoutPreview();
 </script>
 </body>
 </html>
