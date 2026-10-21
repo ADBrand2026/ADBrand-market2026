@@ -532,7 +532,11 @@ img{max-width:100%}
     </button>
   </section>
 
-  <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel">
+  <div id="adCustomerLoginEntry" class="section" style="margin:14px 0">
+    <button id="adCustomerOpenLoginRegister" class="btn primary" type="button" onclick="adCustomerOpenLoginRegister()" style="width:100%;min-height:58px;font-size:1.12rem;font-weight:800;border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.16)">🔐 Login / Register करें</button>
+    <p class="small muted" style="text-align:center;margin:8px 0 0">Account बनाकर address save करें, wishlist रखें और orders track करें।</p>
+  </div>
+  <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
     <h3>📱 Customer Login / Register — Mobile OTP</h3>
     <p class="small muted">पहली बार: नाम और मोबाइल डालें। सही 10-digit नंबर पूरा करके field से बाहर निकलते ही OTP अपने-आप भेजने की कोशिश होगी; चाहें तो OTP भेजें बटन भी दबा सकते हैं। OTP verify होने पर Customer login हो जाएगा और Login/Register विकल्प छिप जाएँगे। पहले से email/password वाला account है तो Existing account login चुनें। SMS OTP तभी सच में आएगा जब Supabase Phone Auth और SMS provider configure और enabled हों। OTP किसी delivery agent या किसी दूसरे व्यक्ति को कभी न बताएँ।</p>
     <div class="form-grid">
@@ -1767,7 +1771,8 @@ window.applyCustomerAuthGate=function(){
  Array.from(panel.children).forEach(function(child){
   if(child.classList.contains("panel-header")){child.hidden=false;return;}
   if(child.id==="adCustomerAccountCenter"){child.hidden=false;return;}
-  if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer;return;}
+  if(child.id==="adCustomerLoginEntry"){child.hidden=isCustomer;return;}
+  if(child.id==="adCustomerOtpPanel"){child.hidden=isCustomer||window.__adCustomerAuthPanelOpen!==true;return;}
   if(child.id==="legacyCustomerDemo"){child.hidden=true;return;}
   /* Let guests browse/search and build a local cart; login is required only for checkout/account data. */
   if(child.classList.contains("ad-customer-top-search")){child.hidden=false;return;}
@@ -1780,8 +1785,9 @@ window.applyCustomerAuthGate=function(){
 };
 function updateCustomerOtpVisibility(){
  var isCustomer=window.__adBrandAuthRole==="customer"&&!!window.__adBrandAuthUser;
- var panel=$("adCustomerOtpPanel");
- if(panel)panel.hidden=isCustomer;
+ var panel=$("adCustomerOtpPanel"),entry=$("adCustomerLoginEntry");
+ if(entry)entry.hidden=isCustomer;
+ if(panel)panel.hidden=isCustomer||window.__adCustomerAuthPanelOpen!==true;
  if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
  if(isCustomer&&window.__adBrandPendingCheckoutOpen){
   window.__adBrandPendingCheckoutOpen=false;
@@ -1812,6 +1818,18 @@ function customerOtpMessage(message,isError){
  box.textContent=String(message||"");
  box.style.borderColor=isError?"#dc2626":"";
 }
+window.adCustomerOpenLoginRegister=function(){
+ if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
+  if(typeof window.openPanel==="function")window.openPanel("customer");
+  $("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
+  return;
+ }
+ window.__adCustomerAuthPanelOpen=true;
+ if(typeof window.openPanel==="function")window.openPanel("customer");
+ updateCustomerOtpVisibility();
+ var panel=$("adCustomerOtpPanel");
+ if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
+};
 window.adCustomerSendOtp=async function(){
  var c=client(),name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
@@ -1864,6 +1882,7 @@ window.adCustomerVerifyOtp=async function(){
   window.__adBrandCustomerMarketMode=null;
   if($("adCheckoutName")&&!$("adCheckoutName").value)$("adCheckoutName").value=pr.data.full_name||name;
   if($("adCheckoutMobile")&&!$("adCheckoutMobile").value)$("adCheckoutMobile").value=String(pr.data.mobile||mobile).replace(/\D/g,"").slice(-10);
+  window.__adCustomerAuthPanelOpen=false;
   updateCustomerOtpVisibility();
   if(typeof window.openPanel==="function")window.openPanel("customer");
   updateCustomerOtpVisibility();
@@ -1878,24 +1897,7 @@ window.adCustomerVerifyOtp=async function(){
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
 };
-/* Auto-send one OTP when a valid mobile field is completed and left; never resend repeatedly while typing. */
-(function bindCustomerOtpAutoSend(){
- var field=document.getElementById("adCustomerOtpMobile");
- if(!field||field.dataset.adOtpAutoBound)return;
- field.dataset.adOtpAutoBound="1";
- field.addEventListener("blur",function(){
-  var mobile=String(field.value||"").replace(/\D/g,"");
-  if(!/^[6-9]\d{9}$/.test(mobile))return;
-  if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer")return;
-  if(window.__adBrandOtpAutoAttempted===mobile)return;
-  window.__adBrandOtpAutoAttempted=mobile;
-  if(typeof window.adCustomerSendOtp==="function")window.adCustomerSendOtp();
- });
- field.addEventListener("input",function(){
-  var mobile=String(field.value||"").replace(/\D/g,"");
-  if(window.__adBrandOtpAutoAttempted&&window.__adBrandOtpAutoAttempted!==mobile)window.__adBrandOtpAutoAttempted=null;
- });
-})(); 
+/* OTP is sent only after the customer explicitly presses the Send OTP button. */
 var originalCustomerAccountAccess=window.openAccountAccess;
 window.adCustomerUseExistingLogin=function(){
  if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
@@ -1903,6 +1905,8 @@ window.adCustomerUseExistingLogin=function(){
   document.getElementById("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
   return;
  }
+ window.__adCustomerAuthPanelOpen=true;
+ updateCustomerOtpVisibility();
  if(typeof originalCustomerAccountAccess==="function")return originalCustomerAccountAccess("customer");
  customerOtpMessage("Existing login dialog अभी उपलब्ध नहीं है।",true);
 };
@@ -1913,7 +1917,9 @@ if(typeof originalCustomerAccountAccess==="function"){
    if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
     setTimeout(function(){$("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});},80);
    }else{
-    setTimeout(function(){$("adCustomerOtpPanel")?.scrollIntoView({behavior:"smooth",block:"center"});},80);
+    window.__adCustomerAuthPanelOpen=true;
+    updateCustomerOtpVisibility();
+    setTimeout(function(){var p=$("adCustomerOtpPanel");if(p){p.hidden=false;p.scrollIntoView({behavior:"smooth",block:"center"});}},80);
    }
    return;
   }
