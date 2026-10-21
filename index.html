@@ -647,7 +647,7 @@ img{max-width:100%}
           <div class="field"><label>Map pin (optional)</label><button class="btn outline" type="button" onclick="adLiveUseCustomerLocation()">📍 Use current location</button><small id="adCheckoutLocationStatus" class="muted">Optional map pin helps the rider find your gate. Full house, area and landmark address is still required.</small><input id="adCheckoutLatitude" type="hidden"><input id="adCheckoutLongitude" type="hidden"></div>
           <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
           <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
-          <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — Valmo / external courier (booking confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
+          <div class="field"><label for="adCheckoutFulfillment">कपड़े/जूते/चप्पल कैसे लेने हैं?</label><select id="adCheckoutFulfillment"><option value="delivery">Delivery — external courier (provider और charge confirm होने पर)</option><option value="self_pickup">Self pickup — seller की local shop से (food पर लागू नहीं)</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
         <p class="small muted">अभी COD चालू है। UPI gateway connect और test होने के बाद ही उपलब्ध होगा। बाहरी courier की booking confirm न हो तो order booking-pending दिखेगा; कोई काल्पनिक tracking नहीं दी जाएगी।</p>
@@ -753,7 +753,7 @@ img{max-width:100%}
     </div>
     <div id="adLiveFoodSellerTools" class="section" style="display:none">
       <h3>🍕 Food Seller Dashboard — Menu, Sizes, Veg/Non-Veg Price</h3>
-      <p class="small muted">हर size की कीमत और stock दुकान खुद भरेगी; वेबसाइट कोई pizza price अनुमान से नहीं डालती। Food: केवल local AD rider delivery, self-pickup या Valmo नहीं।</p>
+      <p class="small muted">हर size की कीमत और stock दुकान खुद भरेगी; वेबसाइट कोई pizza price अनुमान से नहीं डालती। Food: केवल local AD rider delivery; self-pickup या external courier नहीं।</p>
       <div class="form-grid">
         <div class="field"><label for="adFoodName">Menu item नाम</label><input id="adFoodName" maxlength="150" placeholder="जैसे Pizza"></div>
         <div class="field"><label for="adFoodCategory">Category</label><select id="adFoodCategory"><option value="food">खाना / Other Food</option><option value="veg-food">Veg</option><option value="non-veg-food">Non-Veg</option><option value="pizza-burgers">Pizza &amp; Burgers</option><option value="sweets-bakery">Sweets &amp; Bakery</option><option value="tea">चाय</option><option value="snacks">Snacks</option><option value="beverages">Beverages / Drinks</option></select></div>
@@ -798,7 +798,7 @@ img{max-width:100%}
     </div>
     <div id="adLiveNonFoodSellerTools" class="section" style="display:none">
       <h3>👕 Non-food Seller Dashboard — Clothes / Shoes / Slippers</h3>
-      <p class="small muted">Every product gets a unique product code; each order gets a different internal barcode. After a real courier booking and tracking ID, seller can print the internal packing slip and hand the parcel to the booked courier. This slip is not a Valmo airway bill.</p>
+      <p class="small muted">Every product gets a unique product code; each order gets a different internal barcode. After a real courier booking and tracking ID, seller can print the internal packing slip and hand the parcel to the booked courier. This slip is not a courier airway bill.</p>
       <div class="form-grid">
         <div class="field"><label for="adNonFoodName">Product name</label><input id="adNonFoodName" maxlength="150"></div>
         <div class="field"><label for="adNonFoodCategory">Category</label><select id="adNonFoodCategory"><option value="clothes">कपड़े</option><option value="shoes">जूते</option><option value="slippers">चप्पल</option></select></div>
@@ -2450,7 +2450,7 @@ async function adLiveAdminShipments(c){
  var box=$("adminCourierShipments");if(!box)return;box.replaceChildren();var r=await c.from("external_shipments").select("id,order_id,courier_provider,courier_order_reference,tracking_number,shipment_status,internal_barcode,label_reference").order("created_at",{ascending:false}).limit(100);
  if(r.error){box.textContent="Shipment queue load नहीं हुई: "+r.error.message;return;}if(!r.data.length){box.appendChild(liveEl("div","empty","अभी कोई non-food courier shipment नहीं है।"));return;}
  r.data.forEach(function(s){var card=liveEl("div","card");card.append(liveEl("strong","", "Order "+s.order_id),liveEl("p","small","Provider: "+s.courier_provider+" · Status: "+s.shipment_status),liveEl("p","small","Tracking: "+(s.tracking_number||"pending")+" · Parcel code: "+(s.internal_barcode||"—")));
-  var config=liveEl("button","btn primary small-btn","Save real courier booking details");config.onclick=async function(){var provider=prompt("Real courier provider (only after actual booking)",s.courier_provider==="valmo_pending_onboarding"?"Valmo":s.courier_provider||"");if(!provider)return;var track=prompt("Provider's actual tracking/AWB number (blank if not booked yet)",s.tracking_number||"");if(track===null)return;var ref=prompt("Courier order/reference ID (optional)",s.courier_order_reference||"");if(ref===null)return;var charge=Number(prompt("Confirmed shipping charge in ₹","0"));if(!Number.isFinite(charge)||charge<0){toast("Shipping charge गलत है।");return;}try{var z=await c.rpc("admin_configure_external_shipment",{p_shipment_id:s.id,p_courier_provider:provider,p_tracking_number:track,p_courier_reference:ref,p_shipping_charge:charge});if(z.error)throw z.error;toast("Courier details saved. API booking का दावा नहीं किया गया।");await adLiveLoadAdminOperations();}catch(e){liveError("Courier data save नहीं हुआ",e);}};
+  var config=liveEl("button","btn primary small-btn","Save real courier booking details");config.onclick=async function(){var provider=prompt("Real courier provider (only after actual booking)",s.courier_provider==="valmo_pending_onboarding"?"":s.courier_provider||"");if(!provider)return;var track=prompt("Provider's actual tracking/AWB number (blank if not booked yet)",s.tracking_number||"");if(track===null)return;var ref=prompt("Courier order/reference ID (optional)",s.courier_order_reference||"");if(ref===null)return;var charge=Number(prompt("Confirmed shipping charge in ₹","0"));if(!Number.isFinite(charge)||charge<0){toast("Shipping charge गलत है।");return;}try{var z=await c.rpc("admin_configure_external_shipment",{p_shipment_id:s.id,p_courier_provider:provider,p_tracking_number:track,p_courier_reference:ref,p_shipping_charge:charge});if(z.error)throw z.error;toast("Courier details saved. API booking का दावा नहीं किया गया।");await adLiveLoadAdminOperations();}catch(e){liveError("Courier data save नहीं हुआ",e);}};
   var state=liveEl("button","btn outline small-btn","Update shipment status");state.onclick=async function(){var val=prompt("Status: pending_quote, pending_booking, booked, picked_up, in_transit, delivered, returned, cancelled, failed",s.shipment_status);if(!val)return;var track=prompt("Actual tracking number (optional)",s.tracking_number||"");if(track===null)return;try{var z=await c.rpc("admin_update_shipment_status",{p_shipment_id:s.id,p_status:val,p_tracking_number:track||null});if(z.error)throw z.error;toast("Shipment status saved; only actual provider status डालें।");await adLiveLoadAdminOperations();}catch(e){liveError("Shipment status नहीं बदला",e);}};
   card.append(config,state);box.appendChild(card);
  });
@@ -19914,7 +19914,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const {data,error}=await client.rpc(getter);
     if(error){container.appendChild(liveNode("div","notice","Service-zone settings load नहीं हुईं: "+liveErr(error)));return;}
     if(isSeller&&data?.base?.seller_type!=="food"){
-      container.appendChild(liveNode("div","notice","Non-food orders Valmo/other authorized courier booking या same-city Self Pickup flow से जाएंगे; AD Food rider को assign नहीं होंगे."));
+      container.appendChild(liveNode("div","notice","Non-food orders only go through a real, approved external courier booking or same-city Self Pickup; they are never assigned to AD food riders."));
       return;
     }
     let areas=asList(data?.areas).map(a=>({pincode:a.pincode||"",city:a.city,state:a.state}));
@@ -20650,7 +20650,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           card.appendChild(liveNode("h4","", "Order: "+sh.order_id));
           card.appendChild(liveNode("p","small muted","Barcode: "+sh.internal_barcode+" • "+sh.shipment_status+" • "+(sh.tracking_number||"tracking not set")));
           const prefix="adShip"+i;
-          const provider=document.createElement("input");provider.id=prefix+"Provider";provider.value=sh.courier_provider==="valmo_pending_onboarding"?"Valmo (manual booking)":(sh.courier_provider||"Valmo");provider.placeholder="Courier provider";
+          const provider=document.createElement("input");provider.id=prefix+"Provider";provider.value=sh.courier_provider==="valmo_pending_onboarding"?"":(sh.courier_provider||"");provider.placeholder="Actual courier name — only after quote/account is confirmed";
           const tracking=document.createElement("input");tracking.id=prefix+"Tracking";tracking.value=sh.tracking_number||"";tracking.placeholder="Confirmed courier tracking / AWB";
           const reference=document.createElement("input");reference.id=prefix+"Reference";reference.value=sh.courier_order_reference||"";reference.placeholder="Courier booking reference (optional)";
           const charge=document.createElement("input");charge.id=prefix+"Charge";charge.type="number";charge.min="0";charge.step=".01";charge.value="0";charge.placeholder="Shipping charge ₹";
