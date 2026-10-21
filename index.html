@@ -19993,7 +19993,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       // Keep the item category and food type aligned so a Veg item cannot be listed as Non-Veg.
       let foodType=category==="veg-food"?"veg":category==="non-veg-food"?"non_veg":kindInput;
       if($("adFoodKind")&&foodType!==kindInput)$("adFoodKind").value=foodType;
-      if(!["food","veg-food","non-veg-food","tea","snacks"].includes(category))throw new Error("Food seller के लिए active food category चुनें।");
+      if(!["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages"].includes(category))throw new Error("Food seller के लिए active food category चुनें।");
       const allRows=[
         ["Small","veg","adFoodSmallVegPrice","adFoodSmallVegStock"],
         ["Medium","veg","adFoodMediumVegPrice","adFoodMediumVegStock"],
@@ -20003,7 +20003,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         ["Large","non_veg","adFoodLargeNonVegPrice","adFoodLargeNonVegStock"]
       ];
       // Tea and snacks use base price/stock; pizza/main-food items use size/type variants.
-      const rows=["tea","snacks"].includes(category)?[]
+      const rows=["tea","snacks","beverages","sweets-bakery"].includes(category)?[]
         :foodType==="veg"?allRows.filter(r=>r[1]==="veg")
         :foodType==="non_veg"?allRows.filter(r=>r[1]==="non_veg")
         :foodType==="egg"?[]:allRows;
@@ -20021,7 +20021,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           attributes:{size,food_type:type,veg_label:type==="veg"?"Veg":"Non-Veg"}
         });
       });
-      if(foodType==="both"&&!["tea","snacks"].includes(category)&&variants.length){
+      if(foodType==="both"&&!["tea","snacks","beverages","sweets-bakery"].includes(category)&&variants.length){
         if(!variants.some(v=>v.attributes.food_type==="veg")||!variants.some(v=>v.attributes.food_type==="non_veg")){
           throw new Error("Food type Both चुना है: कम से कम एक Veg और एक Non-Veg size की price/stock भरें, या केवल एक food type चुनें।");
         }
@@ -20031,7 +20031,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(variants.length){
         price=Math.min(...variants.map(v=>v.price));
         stock=variants.reduce((sum,v)=>sum+v.stock,0);
-      }else if(foodType==="both"&&!["tea","snacks"].includes(category)){
+      }else if(foodType==="both"&&!["tea","snacks","beverages","sweets-bakery"].includes(category)){
         throw new Error("Veg + Non-Veg menu item के लिए size-wise prices भरें, या एक food type चुनें।");
       }else if(!Number.isFinite(price)||price<=0||!Number.isInteger(stock)||stock<0){
         throw new Error("Size variants नहीं हैं तो positive base price और valid stock भरें।");
