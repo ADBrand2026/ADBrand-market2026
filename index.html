@@ -557,7 +557,7 @@ img{max-width:100%}
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
-    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। Non-food checkout फिलहाल बंद है जब तक वास्तविक courier quote, customer/seller 50-50 shipping split, COD fees और RTO/return खर्च checkout से पहले दिखाने की व्यवस्था live न हो जाए। अभी कोई non-food order नहीं बनेगा और कोई non-food payment नहीं ली जाएगी.</div>
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। Non-food checkout फिलहाल बंद है जब तक seller-paid courier booking, असली shipping/RTO खर्च का हिसाब और COD handling तैयार न हो जाए। ग्राहक को ₹20 प्रति non-food seller order की AD Brand Market platform fee अलग दिखेगी; seller का वास्तविक courier खर्च अलग रहेगा। अभी कोई non-food order नहीं बनेगा.</div>
     <details class="section card ad-customer-filters">
       <summary>⚙️ Product filters (optional)</summary>
       <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
@@ -650,7 +650,7 @@ img{max-width:100%}
           <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" selected>Home Delivery — courier आपके घर आएगा</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">Non-food सामान भी आपके दिए Home Address पर ही आएगा—customer को दुकान पर लेने नहीं जाना होगा। अभी courier provider/API और live rate quote connect नहीं हैं; इसलिए courier charge और delivery booking confirm होने तक order pending रह सकता है। Checkout पर courier charge पहले से स्पष्ट न हो तो order को confirmed/paid न मानें। अभी COD चालू है; UPI gateway live नहीं है।</p>
+        <p id="adCourierHomeDeliveryNote" class="small muted">Non-food सामान भी आपके दिए Home Address पर ही आएगा—customer को दुकान पर लेने नहीं जाना होगा। ग्राहक से ₹20 प्रति non-food seller order की AD Brand Market platform fee ली जाएगी; वास्तविक courier shipping seller देगा और वह इस fee से अलग है। अभी seller-paid courier API/booking और RTO हिसाब live नहीं हैं, इसलिए non-food checkout अस्थायी रूप से बंद है। अभी COD चालू है; UPI gateway live नहीं है।</p>
         <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
@@ -1852,7 +1852,19 @@ window.adLiveRenderCart=function(){
   remove.onclick=function(){cart.splice(index,1);adLiveRenderCart();};
   actions.append(minus,plus,remove);card.append(title,price,actions);box.appendChild(card);
  });
- box.appendChild(liveEl("h3","", "Items subtotal (delivery charge checkout में confirm होगा): "+liveMoney(total)));
+ var nonFoodSellerKeys=new Set();
+ cart.forEach(function(item){
+  if(String(item.seller_type||item.product?.seller_type||"").toLowerCase()==="food")return;
+  var sellerKey=String(item.seller_id||item.product?.seller_id||item.seller_profile_id||item.product?.seller_profile_id||item.seller_name||item.product?.seller_name||"unknown-seller");
+  nonFoodSellerKeys.add(sellerKey);
+ });
+ var platformFee=nonFoodSellerKeys.size*20;
+ box.appendChild(liveEl("p","", "सामान का कुल: "+liveMoney(total)));
+ if(platformFee>0){
+  box.appendChild(liveEl("p","", "AD Brand Market delivery/platform fee ("+nonFoodSellerKeys.size+" non-food seller order × ₹20): "+liveMoney(platformFee)));
+  box.appendChild(liveEl("p","small muted", "Non-food seller वास्तविक courier shipping cost देगा; यह ₹20 fee उससे अलग है. Courier/API चालू होने तक checkout बंद रहेगा."));
+ }
+ box.appendChild(liveEl("h3","", "कुल अनुमानित राशि: "+liveMoney(total+platformFee)));
 };
 window.adLiveCheckout=async function(){
  var client=liveClient(),cart=window.__adBrandLiveCart||[],resultBox=$("adLiveCheckoutResult");
@@ -1868,7 +1880,7 @@ window.adLiveCheckout=async function(){
   return sellerType!=="food";
  });
  if(nonFoodInCart){
-  var gateMessage="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+  var gateMessage="Non-food checkout अभी रुका है: AD की ₹20 platform fee दिखाई गई है, लेकिन seller-paid live courier booking और shipping/RTO settlement अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें.";
   if(resultBox)resultBox.textContent=gateMessage;
   toast(gateMessage);
   return;
@@ -19591,7 +19603,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       return sellerType!=="food";
     });
     if(nonFoodInCart){
-      const message="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+      const message="Non-food checkout अभी रुका है: AD की ₹20 platform fee दिखाई गई है, लेकिन seller-paid live courier booking और shipping/RTO settlement अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें.";
       const result=$("adLiveCheckoutResult");
       if(result)result.replaceChildren(liveNode("p","",message));
       liveStatus(message,false);
