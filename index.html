@@ -500,6 +500,10 @@ img{max-width:100%}
   };
   window.adChooseSellerType = function(type){
     window.__adBrandSellerEntryType = type === "food" ? "food" : "products";
+    var sellerTypeSelect = document.getElementById("roleSellerType");
+    if (sellerTypeSelect) {
+      sellerTypeSelect.value = window.__adBrandSellerEntryType === "food" ? "food" : "non_food";
+    }
     openAccountAccess("seller");
   };
 </script>
