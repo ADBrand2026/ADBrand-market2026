@@ -937,7 +937,7 @@ img{max-width:100%}
         <div class="field"><label for="roleApplicantPincode">PIN Code</label><input id="roleApplicantPincode" inputmode="numeric" maxlength="6"></div>
       </div>
       <div id="roleVehicleFields" style="display:none">
-        <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bike">Bike</option><option value="Scooter">Scooter</option><option value="Bicycle">Bicycle</option><option value="Other">Other</option></select></div>
+        <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
         <div class="field"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30"></div>
         <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png"></div>
         <div class="field"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
@@ -20167,7 +20167,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const d=data?.delivery||{};
     box.replaceChildren();
     box.appendChild(liveNode("div","card","Delivery ID: "+(d.delivery_code||"Pending")));
-    box.appendChild(liveNode("div","card","Verification: "+(d.is_verified?"Verified":"Pending Admin verification")+" • Status: "+(d.is_online?"Online":"Offline")));
+    box.appendChild(liveNode("div","card","Vehicle: "+(d.vehicle_type||"Not set")+" • Food delivery zone: "+Number(d.max_delivery_distance_km||5)+" km"));
+    box.appendChild(liveNode("div","card","Service area: "+[d.city,d.state,d.pincode].filter(Boolean).join(", ")+" • "+(d.is_verified?"Verified":"Pending Admin verification")+" • "+(d.is_online?"Online":"Offline")));
     await adLiveRenderServiceAreaEditor(box,"delivery");
     if($("adLiveDeliveryOnline")){
       $("adLiveDeliveryOnline").textContent=d.is_online?"🔴 Go Offline":"🟢 Go Online";
