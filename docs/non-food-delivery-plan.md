@@ -18,7 +18,8 @@ Do not select a courier by base freight alone. Compare total payable cost includ
 - Supabase `checkout_marketplace_order_v2` rejects any non-food fulfilment value other than `delivery`; client-side UI is not the only enforcement.
 - Existing `external_shipments` and customer quote acceptance/rejection workflow remain in place for compatibility with any previously created pending shipment.
 - Courier API/account, live quote-before-order, real booking, tracking webhooks, insurance handling and courier pickup are **not live**.
-- **Safety gate active:** non-food checkout is paused in both the storefront and `checkout_marketplace_order_v2` until live quote-before-order and cost-split logic are connected. A direct RPC call must not bypass this gate.
+- **Safety gate active:** non-food checkout is paused in both the storefront and `checkout_marketplace_order_v2` until seller-paid courier booking and shipping/RTO settlement are connected. A direct RPC call must not bypass this gate.
+- Proposed customer fee: ₹20 per non-food seller order, recorded separately as `orders.platform_fee`; actual courier shipping is a separate seller liability tracked in `orders.seller_shipping_cost` and `orders.seller_shipping_status`. These fields are not a live deduction/payment by themselves.
 - No new non-food order should be created with an unknown delivery fee. Existing pending shipments are not proof of courier booking.
 - Customers can accept a displayed quote with one explicit action, or decline to cancel without a platform cancellation penalty; extra confirmation and note prompts were removed.
 
@@ -26,8 +27,9 @@ Do not select a courier by base freight alone. Compare total payable cost includ
 - Keep provider credentials only in Supabase Edge Function secrets; never put them in `index.html`, public config, or client-side JavaScript.
 - Edge Function must authenticate/authorize the customer/order, calculate shipment weight/dimensions from trusted product/package data, validate pickup and delivery PINs, and fetch a live rate before the final customer commitment.
 - Present the actual fee and delivery estimate once before order confirmation; avoid placing a customer order and then surprising them with an unknown fee.
-- Calculate the billable courier total from the provider response, including freight, COD/handling charges and applicable taxes/surcharges. Set customer share to half (rounded to a rupee) and seller share to the remainder so both shares add up exactly to the carrier total; do not count shipping reimbursement as AD profit.
-- Keep AD's approved commission and any separately disclosed platform fee distinct from courier cost. Apply RTO/reverse charges only under the published, responsibility-based policy; never silently deduct unknown fees.
+- The customer platform fee is ₹20 per non-food seller order and must be shown before checkout confirmation. It is AD revenue, not courier reimbursement.
+- The seller bears the actual courier total from the provider response, including freight, COD/handling charges and applicable taxes/surcharges. Deduct it from seller settlement only after a verified shipment quote/booking and under the published seller agreement; do not silently deduct unknown fees.
+- Keep AD's approved seller commission/service charge distinct from both the customer platform fee and courier cost. Apply RTO/reverse charges only under the published, responsibility-based policy; never silently deduct unknown fees.
 - Create courier booking only after customer consent and the correct COD/prepaid mode are verified.
 - Validate webhook authentication/signature, make updates idempotent, store provider event IDs, and accept only valid state transitions.
 - Store actual provider, quote, charge, AWB, label reference and tracking events; never fabricate them.
