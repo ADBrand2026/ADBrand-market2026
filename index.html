@@ -19883,21 +19883,23 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     box.replaceChildren();
     const title=liveNode("div","card",(seller.seller_type==="food"?"🍕 Food Seller":"👕 Non-food Seller")+" • "+(seller.shop_name||"Seller Shop"));
     title.appendChild(liveNode("p","small muted","Seller code: "+(seller.seller_code||"Pending")+" • "+[seller.city,seller.state].filter(Boolean).join(", ")));
-    title.appendChild(liveNode("p","small muted","Documents: "+(seller.is_verified?"Verified":"Waiting Admin verification")+" • Shop: "+(seller.is_open?"Open":"Closed")));
+    title.appendChild(liveNode("p","small muted","Documents: "+(seller.is_verified?"Verified":"Waiting Admin verification")+" • "+(seller.seller_type==="food"?(seller.is_open?"Food shop open":"Food shop closed"):"Always online · no opening-hours schedule")));
     box.appendChild(title);
     if(seller.seller_type==="food")await adLiveRenderServiceAreaEditor(box,"seller");
-    else await adLiveRenderServiceAreaEditor(box,"seller");
     const food=seller.seller_type==="food";
     if($("adLiveFoodSellerTools"))$("adLiveFoodSellerTools").style.display=food?"block":"none";
     if($("adLiveNonFoodSellerTools"))$("adLiveNonFoodSellerTools").style.display=food?"none":"block";
+    if($("adLiveFoodHoursPanel"))$("adLiveFoodHoursPanel").style.display=food?"block":"none";
     if($("adLiveShopToggle")){
+      $("adLiveShopToggle").style.display=food?"inline-flex":"none";
       $("adLiveShopToggle").textContent=seller.is_open?"🔴 Close Shop":"🟢 Open Shop";
-      $("adLiveShopToggle").disabled=!seller.is_verified;
-      $("adLiveShopToggle").title=seller.is_verified?"":"Admin verification pending";
+      $("adLiveShopToggle").disabled=!seller.is_verified||!food;
+      $("adLiveShopToggle").title=!food?"Non-food sellers stay online without shop hours":seller.is_verified?"":"Admin verification pending";
     }
-    liveText("adLiveSellerStatus",seller.is_verified
-      ?(seller.is_open?"Shop verified and open. Public catalogue active.":"Verified seller. Open the shop to show products.")
-      :"Seller dashboard active, but public products remain hidden until private documents are reviewed and Admin verifies the profile.");
+    liveText("adLiveSellerStatus",!seller.is_verified
+      ?"Seller dashboard active, but public products remain hidden until private documents are reviewed and Admin verifies the profile."
+      :food?(seller.is_open?"Food shop verified and open. Scheduled hours control menu visibility.":"Food shop is closed; its menu stays hidden.")
+      :"Non-food seller verified. Always online; no opening-hours schedule applies.");
     adLiveRenderSellerProducts(data?.products||[]);
     adLiveRenderSellerOrders(data?.orders||[]);
   };
