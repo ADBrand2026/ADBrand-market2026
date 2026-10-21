@@ -660,6 +660,7 @@ img{max-width:100%}
       <h3>🛡️ Order, Cancellation, Return &amp; Refund Policy</h3>
       <ul class="small">
         <li><strong>Food, drinks, tea और snacks:</strong> ये returnable नहीं हैं — इनके लिए return request नहीं बनाई जाएगी। गलत/missing item, spill, खराब/unsafe food या delivery न मिलने पर Return नहीं, बल्कि Support complaint दर्ज करें; फोटो और Order code दें ताकि जाँच के बाद लागू नियमों के अनुसार उचित समाधान/refund पर विचार हो सके। जल्दी report करना मददगार है; यह आपके कानूनी अधिकारों को सीमित नहीं करता।</li>
+        <li><strong>Non-food platform fee:</strong> ग्राहक को checkout पर ₹20 प्रति non-food seller order की AD Brand Market platform/delivery fee अलग दिखाई जाएगी। यह वास्तविक courier shipping charge नहीं है; वास्तविक courier, COD और लागू RTO/return खर्च seller से अलग हिसाब में लिया जाएगा। यह fee और कुल राशि ऑर्डर confirm करने से पहले दिखाई जानी चाहिए।</li>
         <li><strong>Non-food (कपड़े/जूते/चप्पल):</strong> केवल eligible non-food items के लिए delivery के 7 दिनों के अंदर return request दें। इस्तेमाल/धोए हुए, customer द्वारा damaged या listing में स्पष्ट रूप से non-returnable items पात्र नहीं हो सकते; defective/wrong item पर लागू नियमों के अनुसार समीक्षा होगी। Return approve होना automatic नहीं है।</li>
         <li><strong>Order cancellation:</strong> Order place होते ही seller preparation शुरू कर सकता है। Cancel request को support से तुरंत दर्ज करें। अभी customer पर कोई automatic 100% penalty लागू नहीं है; यदि future में कोई disclosed cancellation fee लागू करनी हो, तो वह checkout से पहले स्पष्ट दिखाई जाएगी और लागू कानून/वास्तविक लागत के अनुसार ही तय होगी।</li>
         <li><strong>COD:</strong> अगर COD order cancel हो गया और आपने पैसे दिए ही नहीं, तो cash refund बनता ही नहीं। अगर delivery पर COD पैसे ले लिए गए हों और बाद में refund approve हो, तो अलग refund process जरूरी है; यह अभी automatic नहीं है।</li>
@@ -19702,7 +19703,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const card=liveNode("div","card");
       card.appendChild(liveNode("h4","",o.order_code+" • "+(o.seller_name||"Seller")));
       card.appendChild(liveNode("p","", "स्थिति: "+o.status+" • "+(o.fulfillment_mode==="inhouse_food"?"AD Brand Market food delivery":o.fulfillment_mode==="self_pickup"?"Self pickup at seller shop":"External courier")));
-      card.appendChild(liveNode("p","", "कुल "+liveMoney(o.total_amount)+" • भुगतान: "+o.payment_status+" ("+o.payment_method+")"));
+      card.appendChild(liveNode("p","", "सामान: "+liveMoney(o.subtotal)+" • AD platform fee: "+liveMoney(o.platform_fee||0)+" • कुल: "+liveMoney(o.total_amount)+" • भुगतान: "+o.payment_status+" ("+o.payment_method+")"));
+      if(o.seller_shipping_cost!=null)card.appendChild(liveNode("p","small muted","Seller-paid courier cost: "+liveMoney(o.seller_shipping_cost)+" • Status: "+(o.seller_shipping_status||"pending")));
       if(o.internal_barcode)card.appendChild(liveNode("p","small muted","Internal barcode: "+o.internal_barcode));
       if(o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery"){
         const tracking=o.tracking||{};
