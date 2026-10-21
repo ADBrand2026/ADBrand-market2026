@@ -953,7 +953,7 @@ img{max-width:100%}
         <div class="field"><label for="roleSellerGSTIN">GSTIN (optional; enter only if registered)</label><input id="roleSellerGSTIN" maxlength="15" autocapitalize="characters" autocomplete="off" placeholder="15-character GSTIN"></div>
         <div class="field"><label for="roleSellerRegistrationDoc">Business registration proof (optional, private JPG/PNG/PDF)</label><input id="roleSellerRegistrationDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div id="roleFoodComplianceFields" style="display:none">
-          <div class="field"><label for="roleFssaiLicenseNumber">FSSAI Registration / Licence Number (Food Seller के लिए जरूरी)</label><input id="roleFssaiLicenseNumber" maxlength="40" autocomplete="off" placeholder="FSSAI certificate पर दिया नंबर"></div>
+          <div class="field"><label for="roleFssaiLicenseNumber">FSSAI Registration / Licence Number (14 digits; Food Seller के लिए जरूरी)</label><input id="roleFssaiLicenseNumber" type="text" inputmode="numeric" pattern="[0-9]{14}" maxlength="14" autocomplete="off" placeholder="14-digit FSSAI number"><small class="small muted">नंबर और certificate Admin manually verify करेगा। <a href="https://foscos.fssai.gov.in/" target="_blank" rel="noopener noreferrer">Official FoSCoS portal</a></small></div>
           <div class="field"><label for="roleSellerFoodLicenseDoc">FSSAI Registration / Licence Certificate (private JPG/PNG/PDF)</label><input id="roleSellerFoodLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
           <p class="small muted">Food Seller approval में FSSAI document को Admin manually verify करेगा। Upload होने से licence वैध होने की automatic पुष्टि नहीं होती।</p>
         </div>
@@ -1480,11 +1480,11 @@ async function submitRoleApplication() {
     return;
   }
   const requestedSellerType = String($("roleSellerType")?.value || "non_food");
-  const fssaiLicenseNumber = String($("roleFssaiLicenseNumber")?.value || "").trim();
+  const fssaiLicenseNumber = String($("roleFssaiLicenseNumber")?.value || "").replace(/\D/g,"");
   const gstin = String($("roleSellerGSTIN")?.value || "").trim().toUpperCase();
   const businessRegistrationNumber = String($("roleSellerRegistrationNumber")?.value || "").trim();
-  if (requestedRole === "seller" && requestedSellerType === "food" && fssaiLicenseNumber.length < 5) {
-    toast("Food Seller के लिए FSSAI registration/licence number जरूरी है।");
+  if (requestedRole === "seller" && requestedSellerType === "food" && !/^\d{14}$/.test(fssaiLicenseNumber)) {
+    toast("Food Seller के लिए certificate पर दिया हुआ 14-digit FSSAI registration/licence number सही भरें।");
     return;
   }
   if (requestedRole === "seller" && gstin && !/^[0-9]{2}[A-Z0-9]{13}$/.test(gstin)) {
@@ -2151,7 +2151,7 @@ window.adLiveLoadSellerWorkspace=async function(){
  try{
   var r=await client.rpc("seller_get_workspace");if(r.error)throw r.error;var w=r.data||{};window.__adBrandSellerWorkspace=w;
   var seller=w.seller||{};if(status){var openLabel=seller.seller_type!=="food"?"Always online · No opening-hours schedule":!seller.is_open?"Manually closed":seller.hours_enabled?(seller.hours_open_now?"Within scheduled hours":"Outside scheduled hours — catalogue hidden"):"Open";status.textContent=(seller.shop_name||"Seller shop")+" · "+(seller.seller_type==="food"?"Food Seller":"Non-food Seller")+" · "+(seller.is_verified?"Verified":"Admin verification pending")+" · "+openLabel;}
-  if(profileBox){profileBox.replaceChildren();[["Shop",seller.shop_name],["Seller Code",seller.seller_code],["City",seller.city],["Status",seller.is_active?"Active":"Inactive"],["Type",seller.seller_type==="food"?"Food":"Non-food"]].forEach(function(x){var n=liveEl("div","card");n.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));profileBox.appendChild(n);});}
+  if(profileBox){profileBox.replaceChildren();[["Shop",seller.shop_name],[seller.seller_type==="food"?"Food Seller ID":"Seller Code",seller.seller_code],["City",seller.city],["Status",seller.is_active?"Active":"Inactive"],["Type",seller.seller_type==="food"?"Food":"Non-food"]].forEach(function(x){var n=liveEl("div","card");n.append(liveEl("strong","",x[0]),liveEl("p","",x[1]||"—"));profileBox.appendChild(n);});}
   var isFood=seller.seller_type==="food",food=$("adLiveFoodSellerTools"),non=$("adLiveNonFoodSellerTools"),hoursPanel=$("adLiveFoodHoursPanel"),toggle=$("adLiveShopToggle");if(food)food.style.display=isFood?"block":"none";if(non)non.style.display=isFood?"none":"block";if(hoursPanel)hoursPanel.style.display=isFood?"block":"none";if(toggle){toggle.style.display=isFood?"inline-flex":"none";toggle.textContent=seller.is_open?"🔴 Shop Close":"🟢 Shop Open";}
   var toggle=$("adLiveShopToggle");if(toggle)toggle.textContent=seller.is_open?"🔴 Shop Close":"🟢 Shop Open";
   var hoursEnabled=$("adLiveHoursEnabled"),hoursOpen=$("adLiveHoursOpen"),hoursClose=$("adLiveHoursClose");
