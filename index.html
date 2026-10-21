@@ -816,6 +816,30 @@ img{max-width:100%}
         <div class="field"><label>Variant 4</label><input id="adNfV4Name" placeholder="XL / Red"><input id="adNfV4Size" placeholder="Size"><input id="adNfV4Color" placeholder="Color"><input id="adNfV4Price" type="number" min="1" step=".01" placeholder="Price"><input id="adNfV4Stock" type="number" min="0" step="1" placeholder="Stock"></div>
       </div>
       <button class="btn primary" type="button" onclick="adLiveAddNonFoodProduct()">➕ Add non-food product</button>
+      <div id="adNonFoodPayoutTerms" class="section card" style="margin-top:16px">
+        <h3>💰 Non-food Seller — Fees, Shipping & Payouts</h3>
+        <p class="small muted">Transparent proposed AD policy for clothes, shoes and slippers. These are planning terms, not a signed contract or an active deduction schedule.</p>
+        <ul>
+          <li><strong>Proposed platform commission: 5%</strong> of the discounted product subtotal on eligible, completed orders; delivery charge is excluded. No fixed listing fee or monthly shop-online fee is proposed.</li>
+          <li><strong>Shipping/courier is separate:</strong> actual courier charge depends on parcel weight/dimensions, pickup/destination and provider. Show the confirmed quote to the customer before payment/order confirmation. Do not label an internal packing slip as a courier airway bill; courier API/booking is not yet live here.</li>
+          <li><strong>Self-pickup:</strong> no courier fee for an order genuinely fulfilled by customer pickup; only enable it where the product/order supports pickup. Do not charge delivery for pickup.</li>
+          <li><strong>Discounts:</strong> seller-funded discount reduces seller proceeds; AD-funded offer must be opted into and recorded separately. No hidden advertising, penalty or promotion deduction.</li>
+          <li><strong>Proposed payout:</strong> weekly after delivery and applicable return/dispute checks, with order-level gross, discount, commission, courier, refund/return and net breakdown. COD proceeds require reconciliation before payout. This website does not yet execute automated bank/UPI payouts or create live settlement statements.</li>
+          <li><strong>Returns/cancellations:</strong> cancelled or undelivered orders are not treated as completed sales; refunds, return shipping and any chargeback must be itemised and handled under the published seller/customer policy, not silently deducted.</li>
+          <li><strong>Compliance:</strong> seller remains responsible for accurate product details, stock, packaging, invoices and applicable GST/tax obligations. Any tax on platform fees must be shown separately where applicable.</li>
+        </ul>
+        <div class="form-grid">
+          <div class="field"><label for="adNfPayoutSales">Discounted product subtotal (₹)</label><input id="adNfPayoutSales" type="number" min="0" step="0.01" value="1000" oninput="adNonFoodPayoutPreview()"></div>
+          <div class="field"><label for="adNfPayoutDiscount">Seller-funded discount (₹, if not already deducted above)</label><input id="adNfPayoutDiscount" type="number" min="0" step="0.01" value="0" oninput="adNonFoodPayoutPreview()"></div>
+          <div class="field"><label for="adNfPayoutCommission">Illustrative commission rate (%)</label><input id="adNfPayoutCommission" type="number" min="0" max="30" step="0.5" value="5" oninput="adNonFoodPayoutPreview()"></div>
+        </div>
+        <div class="card" aria-live="polite">
+          <p>Eligible product amount: <strong id="adNfPayoutGross">₹1,000.00</strong></p>
+          <p>Illustrative platform commission: <strong id="adNfPayoutFee">₹50.00</strong></p>
+          <p>Illustrative amount after commission: <strong id="adNfPayoutNet">₹950.00</strong></p>
+          <p class="small muted" id="adNfPayoutNote">Example only. Courier charge, product cost, taxes, refunds, return charges and other agreed adjustments are not included. Not a payout promise or settlement statement.</p>
+        </div>
+      </div>
     </div>
     <div class="section"><h3>📦 Live inventory</h3><div id="adLiveSellerProducts"></div></div>
     <div class="section"><h3>🧾 Live seller orders / parcel slips</h3><div id="adLiveSellerOrders"></div></div>
@@ -1001,7 +1025,26 @@ img{max-width:100%}
 
 <!-- PAGE 1 END
      PAGE 2 will continue here inside the body.
-     Do not add </body> or </html> until the final page.
+     Do not add <script>
+window.adNonFoodPayoutPreview = function () {
+  const read = id => { const el = document.getElementById(id); const n = Number(el && el.value); return Number.isFinite(n) ? n : 0; };
+  const amount = Math.max(0, read("adNfPayoutSales"));
+  const discount = Math.max(0, read("adNfPayoutDiscount"));
+  const rate = Math.min(30, Math.max(0, read("adNfPayoutCommission")));
+  const eligible = Math.max(0, amount - discount);
+  const fee = eligible * rate / 100;
+  const money = n => "₹" + n.toLocaleString("en-IN", {minimumFractionDigits:2, maximumFractionDigits:2});
+  const grossEl = document.getElementById("adNfPayoutGross");
+  const feeEl = document.getElementById("adNfPayoutFee");
+  const netEl = document.getElementById("adNfPayoutNet");
+  if (grossEl) grossEl.textContent = money(eligible);
+  if (feeEl) feeEl.textContent = money(fee);
+  if (netEl) netEl.textContent = money(Math.max(0, eligible - fee));
+  const note = document.getElementById("adNfPayoutNote");
+  if (note) note.textContent = "Example only. Courier charge, product cost, taxes, refunds, return charges and other agreed adjustments are not included. No live deduction or payout is triggered.";
+};
+</script>
+</body> or </html> until the final page.
 -->
 
 <script>
