@@ -860,6 +860,15 @@ img{max-width:100%}
     <button id="adLiveDeliveryOnline" class="btn green" type="button" onclick="adLiveToggleOnline()">🟢 Go Online</button>
     <button class="btn primary" type="button" onclick="adLiveClaimFoodOrder()">🔎 Claim next ready Food Order</button>
     <p class="small muted">केवल verified/online rider को ready food orders मिलेंगे। कपड़े/जूते/चप्पल वाले orders AD rider को assign नहीं होंगे; वे external courier flow में रहेंगे।</p>
+    <div class="card">
+      <h3>🧭 Rider quick actions</h3>
+      <p class="small muted">Order मिलने पर पहले Food Seller तक जाएँ, pickup verify करें, फिर Customer तक delivery करें। रास्ते के लिए navigation button उपयोग करें; चलते वाहन में फोन न चलाएँ।</p>
+      <div class="ad-live-actions">
+        <a class="btn outline" href="https://www.google.com/maps" target="_blank" rel="noopener noreferrer">🗺️ Open Maps</a>
+        <a class="btn outline" href="tel:112">🆘 Emergency 112</a>
+      </div>
+      <p class="small muted">112 भारत का emergency number है; इसका उपयोग केवल वास्तविक emergency में करें। AD Brand Market की live SOS dispatch service अभी configured नहीं है।</p>
+    </div>
     <div class="section"><h3>🛵 Assigned Food Orders</h3><div id="adLiveDeliveryOrders"></div></div>
     <div class="section"><h3>⚖️ Your proposed penalty cases</h3><div id="adLiveDeliveryPenalties"></div></div>
   </div>
@@ -20216,6 +20225,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       card.appendChild(liveNode("p","", "Customer: "+(o.address?.full_name||"Customer")+" • "+(o.address?.mobile||"")));
       card.appendChild(liveNode("p","", (o.address?.address_line||"")+", "+[o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", ")));
       card.appendChild(liveNode("p","small muted","Seller: "+(o.seller_name||"Food seller")+" • "+(o.seller_address||"")));
+      const routeActions=liveNode("div","ad-live-actions");
+      const sellerQuery=[o.seller_address,o.seller_name].filter(Boolean).join(", ");
+      const customerQuery=[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", ");
+      if(sellerQuery){const navSeller=document.createElement("a");navSeller.className="btn outline";navSeller.target="_blank";navSeller.rel="noopener noreferrer";navSeller.href="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(sellerQuery);navSeller.textContent="🧭 Navigate to Food Seller";routeActions.appendChild(navSeller);}
+      if(customerQuery){const navCustomer=document.createElement("a");navCustomer.className="btn outline";navCustomer.target="_blank";navCustomer.rel="noopener noreferrer";navCustomer.href="https://www.google.com/maps/dir/?api=1&destination="+encodeURIComponent(customerQuery);navCustomer.textContent="📍 Navigate to Customer";routeActions.appendChild(navCustomer);}
+      if(routeActions.childNodes.length)card.appendChild(routeActions);
       asList(o.items).forEach(line=>card.appendChild(liveNode("p","small",line.name+(line.variant_name?" — "+line.variant_name:"")+" × "+line.quantity)));
       if(o.customer_promised_until)card.appendChild(liveNode("p","", "Customer requested time until: "+new Date(o.customer_promised_until).toLocaleString()));
       const actions=liveNode("div","ad-live-actions");
