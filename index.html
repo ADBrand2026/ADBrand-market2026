@@ -21287,8 +21287,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           }catch(e){console.warn("Customer session refresh did not complete.",e);}
         })();
       },0);
-    }else if(event==="SIGNED_OUT"){
-      updateCustomerOtpVisibility();
+    }else if(event==="SIGNED_OUT"){ window.__adBrandAuthUser=null; window.__adBrandAuthRole=null; window.__adBrandAdminAuthorized=false; window.__adCustomerAuthPanelOpen=false; updateCustomerOtpVisibility();
       window.__adBrandCustomerCartLoadedFor=null;
       window.__adBrandCustomerWishlistItems=[];
       window.__adBrandCustomerWishlistIds=new Set();
