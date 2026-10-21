@@ -1868,7 +1868,7 @@ window.adLiveCheckout=async function(){
   return sellerType!=="food";
  });
  if(nonFoodInCart){
-  var gateMessage="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; कोई non-food order नहीं बनेगा. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+  var gateMessage="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
   if(resultBox)resultBox.textContent=gateMessage;
   toast(gateMessage);
   return;
@@ -19591,7 +19591,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       return sellerType!=="food";
     });
     if(nonFoodInCart){
-      const message="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; कोई non-food order नहीं बनेगा. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+      const message="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
       const result=$("adLiveCheckoutResult");
       if(result)result.replaceChildren(liveNode("p","",message));
       liveStatus(message,false);
