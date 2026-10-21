@@ -557,7 +557,7 @@ img{max-width:100%}
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
-    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। कपड़े/जूते/चप्पल की courier shipment की booking अलग से confirm होने तक payment pending रहेगी।</div>
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। Non-food checkout फिलहाल बंद है जब तक वास्तविक courier quote, customer/seller 50-50 shipping split, COD fees और RTO/return खर्च checkout से पहले दिखाने की व्यवस्था live न हो जाए। अभी कोई non-food order नहीं बनेगा और कोई non-food payment नहीं ली जाएगी.</div>
     <details class="section card ad-customer-filters">
       <summary>⚙️ Product filters (optional)</summary>
       <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
@@ -821,8 +821,8 @@ img{max-width:100%}
         <p class="small muted">Transparent proposed AD policy for clothes, shoes and slippers. These are planning terms, not a signed contract or an active deduction schedule.</p>
         <ul>
           <li><strong>Proposed platform commission: 5%</strong> of the discounted product subtotal on eligible, completed orders; delivery charge is excluded. No fixed listing fee or monthly shop-online fee is proposed.</li>
-          <li><strong>Home delivery/courier charge:</strong> customer delivery address is mandatory; self-pickup is not offered. Because a live courier quote API is not connected yet, the order may temporarily show quote pending after placement. Customer sees the quote in My Orders and must accept once before courier booking; declining cancels the order and releases reserved stock without a platform cancellation penalty. Courier booking/tracking is not live until a real provider account and API are connected.</li>
-          <li><strong>Home delivery only:</strong> customers will not be asked to visit the seller shop. Every non-food order must be delivered to the customer address; show the real courier quote before the customer commits. Courier API/booking is not live yet.</li>
+          <li><strong>Home delivery/courier charge:</strong> customer delivery address is mandatory; self-pickup is not offered. Because live courier rates and RTO costs are not connected yet, non-food checkout is temporarily paused. No customer order will be created until the real courier quote, the customer/seller 50-50 shipping split, COD fees and return/RTO charges can be shown before the customer confirms. This avoids surprise charges and prevents AD from accepting a shipment with unknown costs.</li>
+          <li><strong>Home delivery only:</strong> customers will not be asked to visit the seller shop. Every non-food order must be delivered to the customer address. Checkout will reopen only after the live courier quote and shipping split can be shown before customer confirmation.</li>
           <li><strong>Discounts:</strong> seller-funded discount reduces seller proceeds; AD-funded offer must be opted into and recorded separately. No hidden advertising, penalty or promotion deduction.</li>
           <li><strong>Proposed payout:</strong> weekly after delivery and applicable return/dispute checks, with order-level gross, discount, commission, courier, refund/return and net breakdown. COD proceeds require reconciliation before payout. This website does not yet execute automated bank/UPI payouts or create live settlement statements.</li>
           <li><strong>Returns/cancellations:</strong> cancelled or undelivered orders are not treated as completed sales; refunds, return shipping and any chargeback must be itemised and handled under the published seller/customer policy, not silently deducted.</li>
@@ -1827,19 +1827,12 @@ window.adLiveLoadCatalog=async function(){
 function adLiveSyncFulfillmentOption(){
  var select=$("adCheckoutFulfillment");
  if(!select)return;
- var cart=window.__adBrandLiveCart||[];
- var eligible=cart.length>0&&cart.every(function(item){
-  return ["clothes","dresses-kurtis","pants-jeans","shirts-tshirts","sarees","men-fashion","women-fashion","kids-fashion","shoes","slippers"].includes(String(item.category_slug||"").toLowerCase())
-   &&String(item.seller_type||"").toLowerCase()!=="food";
+ // Platform policy: every customer order is delivered to the saved home address.
+ // Remove any stale self-pickup option even if older cached markup is loaded.
+ Array.from(select.options).forEach(function(option){
+  if(option.value!=="delivery")option.remove();
  });
- var pickup=select.querySelector('option[value="self_pickup"]');
- if(pickup){
-  pickup.disabled=!eligible;
-  pickup.textContent=eligible
-   ?"Self pickup — clothes/shoes/slippers की local shop से"
-   :"Self pickup — केवल eligible clothes/shoes/slippers के लिए";
- }
- if(!eligible&&select.value==="self_pickup")select.value="delivery";
+ select.value="delivery";
 }
 window.adLiveRenderCart=function(){
  var box=$("adLiveCart");if(!box)return;box.replaceChildren();
@@ -1870,6 +1863,16 @@ window.adLiveCheckout=async function(){
  var zoneMismatch=cart.find(function(item){return item.seller_city&&item.seller_state&&(String(item.seller_city).trim().toLowerCase()!==address.city.toLowerCase()||String(item.seller_state).trim().toLowerCase()!==address.state.toLowerCase());});
  if(zoneMismatch){if(resultBox)resultBox.textContent="यह सामान केवल seller के local city/state zone में deliver हो सकता है। अपने delivery address का शहर/राज्य सही करें या उसी इलाके के seller से सामान चुनें।";toast("Local seller zone और delivery address match नहीं करते।");return;}
  var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
+ var nonFoodInCart=cart.some(function(item){
+  var sellerType=String(item.seller_type||item.product?.seller_type||"").toLowerCase();
+  return sellerType!=="food";
+ });
+ if(nonFoodInCart){
+  var gateMessage="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; कोई non-food order नहीं बनेगा. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+  if(resultBox)resultBox.textContent=gateMessage;
+  toast(gateMessage);
+  return;
+ }
  var btn=document.querySelector("button[onclick='adLiveCheckout()']");if(btn)btn.disabled=true;
  try{
   var fulfillment=String($("adCheckoutFulfillment")?.value||"delivery");var res=await client.rpc("checkout_marketplace_order_v2",{p_items:cart.map(function(x){return {product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity};}),p_address:address,p_payment_method:payment,p_notes:notes||null,p_nonfood_fulfillment:fulfillment});
@@ -19581,6 +19584,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const payment=String($("adCheckoutPayment")?.value || "cod");
     if(payment!=="cod"){
       alert("Live UPI gateway अभी configure/verify नहीं है। सुरक्षित checkout के लिए COD चुनें; unverified UPI payment accepted नहीं मानी जाएगी.");
+      return;
+    }
+    const nonFoodInCart=cart.some(item=>{
+      const sellerType=String(item.seller_type || item.product?.seller_type || "").toLowerCase();
+      return sellerType!=="food";
+    });
+    if(nonFoodInCart){
+      const message="Non-food checkout अभी सुरक्षित रूप से रुका है: live courier quote और customer/seller 50-50 shipping split अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; कोई non-food order नहीं बनेगा. वास्तविक courier, COD और RTO खर्च दिखने के बाद checkout खुलेगा.";
+      const result=$("adLiveCheckoutResult");
+      if(result)result.replaceChildren(liveNode("p","",message));
+      liveStatus(message,false);
       return;
     }
     const notes=String($("adCheckoutNotes")?.value || "").trim();
