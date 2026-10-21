@@ -841,6 +841,16 @@ img{max-width:100%}
         </div>
       </div>
     </div>
+    <div id="adSellerPayoutOverview" class="section card">
+      <h3>💳 Seller earnings & payout overview</h3>
+      <p class="small muted">यह केवल delivered orders का read-only estimate है। यह बैंक/UPI payment या final settlement नहीं है।</p>
+      <div class="form-grid">
+        <div class="field"><label for="adSellerPayoutFrom">From date</label><input id="adSellerPayoutFrom" type="date"></div>
+        <div class="field"><label for="adSellerPayoutTo">To date</label><input id="adSellerPayoutTo" type="date"></div>
+      </div>
+      <button class="btn primary" type="button" onclick="adLoadSellerPayoutOverview()">📊 Load earnings estimate</button>
+      <div id="adSellerPayoutOverviewResult" aria-live="polite" class="small muted">Load a date range to view delivered-order totals.</div>
+    </div>
     <div class="section"><h3>📦 Live inventory</h3><div id="adLiveSellerProducts"></div></div>
     <div class="section"><h3>🧾 Live seller orders / parcel slips</h3><div id="adLiveSellerOrders"></div></div>
   </div>
@@ -1042,6 +1052,41 @@ window.adNonFoodPayoutPreview = function () {
   if (netEl) netEl.textContent = money(Math.max(0, eligible - fee));
   const note = document.getElementById("adNfPayoutNote");
   if (note) note.textContent = "Example only. Courier charge, product cost, taxes, refunds, return charges and other agreed adjustments are not included. No live deduction or payout is triggered.";
+};
+</script>
+<script>
+window.adLoadSellerPayoutOverview = async function () {
+  const box = document.getElementById("adSellerPayoutOverviewResult");
+  if (!box) return;
+  box.textContent = "Loading…";
+  try {
+    if (window.__adBrandAuthRole !== "seller") throw new Error("Approved seller login is required.");
+    const client = typeof liveClient === "function" ? liveClient() : null;
+    if (!client) throw new Error("Secure Supabase connection is unavailable.");
+    const from = document.getElementById("adSellerPayoutFrom")?.value || "";
+    const to = document.getElementById("adSellerPayoutTo")?.value || "";
+    if (!from || !to) throw new Error("Please choose both dates.");
+    if (from > to) throw new Error("From date must not be after To date.");
+    const days = (Date.parse(to + "T00:00:00Z") - Date.parse(from + "T00:00:00Z")) / 86400000;
+    if (days > 92) throw new Error("Choose a period of up to 93 days.");
+    const { data, error } = await client.rpc("seller_get_payout_overview", { p_period_start: from, p_period_end: to });
+    if (error) throw error;
+    const d = data || {};
+    const money = n => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    box.replaceChildren();
+    const rows = [
+      ["Seller type", d.seller_type === "food" ? "Food" : "Non-food"],
+      ["Profile verification", d.seller_verified ? "Verified" : "Pending Admin verification"],
+      ["Delivered orders", String(d.delivered_order_count || 0)],
+      ["Delivered item gross (before order-level adjustments)", money(d.delivered_item_gross)],
+      ["Illustrative 5% commission only", money(d.illustrative_commission_amount)],
+      ["Illustrative amount after commission", money(d.illustrative_after_commission)],
+      ["Existing pending settlement records", money(d.existing_pending_settlement_total)],
+      ["Existing paid settlement records", money(d.existing_paid_settlement_total)]
+    ];
+    rows.forEach(([label, value]) => { const row = document.createElement("p"); const strong = document.createElement("strong"); strong.textContent = label + ": "; row.append(strong, document.createTextNode(value)); box.appendChild(row); });
+    const note = document.createElement("p"); note.className = "small muted"; note.textContent = d.note || "Read-only estimate only; no money was moved."; box.appendChild(note);
+  } catch (e) { box.textContent = e?.message || "Earnings overview could not be loaded."; }
 };
 </script>
 </body> or </html> until the final page.
