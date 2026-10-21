@@ -19716,17 +19716,15 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           card.appendChild(liveNode("p","", "Product subtotal: "+liveMoney(o.subtotal)+" • Final total after accepting the quoted fee: "+liveMoney(Number(o.subtotal||0)+fee)));
           card.appendChild(liveNode("p","small muted","यह quote courier की बताई fee है। आपके स्वीकार करने से पहले parcel book नहीं होगा; reject करने पर order cancel होगा और stock वापस होगा।"));
           card.appendChild(liveButton("✅ Accept courier fee & continue",async()=>{
-            if(!confirm("क्या आप courier fee "+liveMoney(fee)+" स्वीकार करते हैं? Accept करने पर order का total subtotal + courier fee होगा; actual courier booking इसके बाद होगी."))return;
+            // Clicking this clearly labelled button is the customer's explicit acceptance; avoid a second confirmation popup.
             const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:true,p_note:"Customer accepted courier fee in order page"});
             if(err){alert("Courier fee acceptance save नहीं हुई: "+liveErr(err));return;}
             toast(res?.message||"Courier fee accepted; actual booking अभी pending है.");
             await adLiveLoadCustomerOrders();
           },"primary"));
           card.appendChild(liveButton("❌ Reject fee & cancel order",async()=>{
-            if(!confirm("Courier fee reject करने पर यह order cancel होगा और reserved stock वापस होगा। कोई customer penalty नहीं लगेगी. जारी रखें?"))return;
-            const note=prompt("Cancellation note (optional):","Courier shipping fee स्वीकार नहीं की");
-            if(note===null)return;
-            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:false,p_note:note.trim()||null});
+            // Rejection button itself is explicit; use a standard note instead of prompting the customer again.
+            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:false,p_note:"Customer declined courier fee"});
             if(err){alert("Quote rejection/cancellation save नहीं हुई: "+liveErr(err));return;}
             toast(res?.message||"Courier fee declined; order cancelled.");
             await adLiveLoadCustomerOrders();
