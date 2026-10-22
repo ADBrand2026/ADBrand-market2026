@@ -996,7 +996,8 @@ img{max-width:100%}
       <div class="form-grid">
         <div class="field"><label for="roleApplicantCity">शहर</label><input id="roleApplicantCity" maxlength="80"></div>
         <div class="field"><label for="roleApplicantState">राज्य</label><input id="roleApplicantState" maxlength="80"></div>
-        <div class="field"><label for="roleApplicantPincode">Service PIN Code / सेवा क्षेत्र का PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">अपना 6-digit PIN Code भरें। इसी से शुरुआती service area तय होगा।</small></div>
+        <div class="field" id="roleApplicantPincodeField"><label for="roleApplicantPincode">Service PIN Code / सेवा क्षेत्र का PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">Seller के लिए दुकान/सेवा क्षेत्र का PIN Code भरें।</small></div>
+        <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">Preferred Delivery Zone / पसंदीदा डिलीवरी ज़ोन</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" placeholder="जैसे Gomti Nagar, Hazratganj" aria-describedby="roleApplicantZoneHelp"><small id="roleApplicantZoneHelp" class="small muted">PIN Code नहीं—वह इलाका लिखें जहाँ आप डिलीवरी करना चाहते हैं। Zone Admin verification के बाद confirm होगा।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
         <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="2008-10-22" required></div>
@@ -1561,6 +1562,7 @@ async function submitRoleApplication() {
   const city = String($("roleApplicantCity")?.value || "").trim();
   const state = String($("roleApplicantState")?.value || "").trim();
   const pincode = String($("roleApplicantPincode")?.value || "").trim();
+  const preferredZone = String($("roleApplicantZone")?.value || "").trim();
   const shop = String($("roleShopName")?.value || "").trim();
   if (name.length < 2 || !validIndianMobile(mobile) || address.length < 5) {
     toast("नाम, सही 10-digit मोबाइल और पूरा पता भरें।");
@@ -1570,8 +1572,12 @@ async function submitRoleApplication() {
     toast("Service zone बनाने के लिए City और State दोनों भरें।");
     return;
   }
-  if (!validPincode(pincode)) {
-    toast("Service zone के लिए सही 6-digit PIN Code जरूरी है।");
+  if (requestedRole === "seller" && !validPincode(pincode)) {
+    toast("Seller service area के लिए सही 6-digit PIN Code जरूरी है।");
+    return;
+  }
+  if (requestedRole === "delivery" && preferredZone.length < 2) {
+    toast("अपना पसंदीदा Delivery Zone / इलाका भरें।");
     return;
   }
   if (requestedRole === "seller" && shop.length < 2) {
@@ -1657,10 +1663,10 @@ async function submitRoleApplication() {
     fssai_license_number: requestedRole === "seller" && requestedSellerType === "food" ? fssaiLicenseNumber : null,
     gstin: requestedRole === "seller" && gstin ? gstin : null,
     business_registration_number: requestedRole === "seller" && businessRegistrationNumber ? businessRegistrationNumber : null,
-    address, city: city || null, state: state || null, pincode: pincode || null,
+    address, city: city || null, state: state || null, pincode: requestedRole === "seller" ? (pincode || null) : null,
     vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
     vehicle_number: requestedRole === "delivery" ? (String($("roleVehicleNumber").value || "").trim() || null) : null,
-    notes: String($("roleApplicationNotes").value || "").trim() || null,
+    notes: [requestedRole === "delivery" ? "Preferred delivery zone: " + preferredZone : "", String($("roleApplicationNotes").value || "").trim()].filter(Boolean).join("\n") || null,
     status: "pending"
   };
   let application = null;
@@ -1729,6 +1735,14 @@ function updateRoleApplicationFields() {
   setSection(fields, isSeller || isDelivery);
   setSection(shop, isSeller);
   setSection(vehicle, isDelivery);
+  const pincodeField = $("roleApplicantPincodeField");
+  const zoneField = $("roleApplicantZoneField");
+  if (pincodeField) { pincodeField.hidden = isDelivery; pincodeField.style.display = isDelivery ? "none" : "block"; }
+  if (zoneField) { zoneField.hidden = !isDelivery; zoneField.style.display = isDelivery ? "block" : "none"; }
+  const pincodeInput = $("roleApplicantPincode");
+  const zoneInput = $("roleApplicantZone");
+  if (pincodeInput) pincodeInput.required = isSeller;
+  if (zoneInput) zoneInput.required = isDelivery;
   setSection(identity, isDelivery);
   setSection(foodCompliance, isFoodSeller);
 
