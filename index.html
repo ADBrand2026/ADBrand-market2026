@@ -998,10 +998,18 @@ img{max-width:100%}
         <div class="field"><label for="roleApplicantState">राज्य</label><input id="roleApplicantState" maxlength="80"></div>
         <div class="field"><label for="roleApplicantPincode">PIN Code</label><input id="roleApplicantPincode" inputmode="numeric" maxlength="6"></div>
       </div>
+      <div id="roleDeliveryIdentityFields" hidden>
+        <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="2008-10-22" required></div>
+        <div class="field"><label for="roleDeliveryIdType">पहचान प्रमाण — इनमें से एक</label><select id="roleDeliveryIdType" required><option value="aadhaar">Aadhaar Card</option><option value="voter_id">Voter ID</option></select></div>
+        <div class="field"><label for="roleDeliveryIdDoc">Aadhaar / Voter ID की फोटो (private)</label><input id="roleDeliveryIdDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
+        <div class="field"><label for="roleDeliveryPanDoc">PAN Card (private)</label><input id="roleDeliveryPanDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
+        <div class="field"><label for="roleDeliveryBankProofDoc">Bank proof (वैकल्पिक; approval के बाद माँगा जा सकता है)</label><input id="roleDeliveryBankProofDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+      </div>
       <div id="roleVehicleFields" style="display:none">
         <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
         <div class="field"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30"></div>
-        <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png"></div>
+        <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png" required></div>
+        <div class="field" id="roleDeliveryRcField"><label for="roleDeliveryRcDoc">Vehicle Registration Certificate / RC (motor vehicle only; private)</label><input id="roleDeliveryRcDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryInsuranceDoc">Vehicle insurance (JPG/PNG/PDF; private)</label><input id="roleDeliveryInsuranceDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
@@ -1582,13 +1590,25 @@ async function submitRoleApplication() {
     toast("GSTIN भरने पर उसका सही 15-character format डालें, या field खाली छोड़ें।");
     return;
   }
+  const dob = String($("roleDeliveryDob")?.value || "");
+  if (requestedRole === "delivery") {
+    if (!dob) { toast("जन्मतिथि भरें। Delivery Partner की उम्र कम से कम 18 वर्ष होनी चाहिए।"); return; }
+    const ageDate = new Date(dob + "T00:00:00");
+    const today = new Date();
+    const cutoff = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    if (Number.isNaN(ageDate.getTime()) || ageDate > cutoff) { toast("Delivery Partner बनने के लिए उम्र कम से कम 18 वर्ष होनी चाहिए।"); return; }
+  }
   const docs = requestedRole === "seller" ? [
     ["business_registration","roleSellerRegistrationDoc"],
     ["shop_photo","roleSellerShopPhotoDoc"],
     ["address_proof","roleSellerAddressDoc"],
     ...(requestedSellerType === "food" ? [["food_license","roleSellerFoodLicenseDoc"]] : [])
   ] : [
+    ["identity_proof","roleDeliveryIdDoc"],
+    ["pan_card","roleDeliveryPanDoc"],
+    ["bank_proof","roleDeliveryBankProofDoc"],
     ["vehicle_photo","roleDeliveryVehiclePhotoDoc"],
+    ["vehicle_rc","roleDeliveryRcDoc"],
     ["driving_license","roleDeliveryLicenseDoc"],
     ["vehicle_insurance","roleDeliveryInsuranceDoc"],
     ["address_proof","roleDeliveryAddressDoc"]
@@ -1599,8 +1619,9 @@ async function submitRoleApplication() {
     && (requestedSellerType !== "food" || selectedTypes.has("food_license"));
   const selectedVehicleType = String($("roleVehicleType")?.value || "").toLowerCase();
   const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling"].includes(selectedVehicleType);
-  const deliveryDocsComplete = selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
-    && (!motorVehicleDocumentsRequired || (selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
+  const deliveryDocsComplete = selectedTypes.has("identity_proof") && selectedTypes.has("pan_card")
+    && selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
+    && (!motorVehicleDocumentsRequired || (selectedTypes.has("vehicle_rc") && selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
   if (requestedRole === "seller" && !sellerDocsComplete) {
     toast(requestedSellerType === "food"
       ? "Food Seller application के लिए Shop Photo, Shop Address Proof और FSSAI certificate तीनों जरूरी हैं।"
@@ -1609,8 +1630,8 @@ async function submitRoleApplication() {
   }
   if (requestedRole === "delivery" && !deliveryDocsComplete) {
     toast(motorVehicleDocumentsRequired
-      ? "Motor delivery application के लिए Address Proof, Vehicle Photo, Driving Licence और Vehicle Insurance चारों जरूरी हैं।"
-      : "Bicycle delivery application के लिए Address Proof और Vehicle Photo दोनों जरूरी हैं।");
+      ? "Motor delivery के लिए ID Proof, PAN, Address Proof, Vehicle Photo, RC, Driving Licence और Insurance जरूरी हैं।"
+      : "Cycle delivery के लिए ID Proof, PAN, Address Proof और Vehicle Photo जरूरी हैं।");
     return;
   }
   for (const doc of selectedDocs) {
@@ -1692,6 +1713,7 @@ function updateRoleApplicationFields() {
   const fields = $("roleApplicationFields");
   const shop = $("roleShopFields");
   const vehicle = $("roleVehicleFields");
+  const identity = $("roleDeliveryIdentityFields");
   const foodCompliance = $("roleFoodComplianceFields");
   const sellerType = String($("roleSellerType")?.value || "non_food");
   const isFoodSeller = isSeller && sellerType === "food";
@@ -1707,6 +1729,7 @@ function updateRoleApplicationFields() {
   setSection(fields, isSeller || isDelivery);
   setSection(shop, isSeller);
   setSection(vehicle, isDelivery);
+  setSection(identity, isDelivery);
   setSection(foodCompliance, isFoodSeller);
 
   const fssai = $("roleFssaiLicenseNumber");
@@ -1716,17 +1739,19 @@ function updateRoleApplicationFields() {
 
   // Required state follows the active application only; hidden inputs cannot block another role.
   const deliveryRequired = new Set([
-    "roleDeliveryVehiclePhotoDoc", "roleDeliveryAddressDoc"
+    "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryVehiclePhotoDoc", "roleDeliveryAddressDoc"
   ]);
   const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
   const motorVehicle = !["bicycle", "cycle", "cycling"].includes(motorType);
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
     deliveryRequired.add("roleDeliveryInsuranceDoc");
+    deliveryRequired.add("roleDeliveryRcDoc");
   }
   [
     "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
-    "roleDeliveryVehiclePhotoDoc", "roleDeliveryLicenseDoc",
+    "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryBankProofDoc",
+    "roleDeliveryVehiclePhotoDoc", "roleDeliveryRcDoc", "roleDeliveryLicenseDoc",
     "roleDeliveryInsuranceDoc", "roleDeliveryAddressDoc"
   ].forEach(function(id) {
     const input = $(id);
@@ -21813,7 +21838,8 @@ window.adFoodPayoutPreview();
 section[id^="adbm"]{display:none!important}
 #accountRolePicker[hidden],#accountFullNameField[hidden],
 #roleApplicationFields[hidden],#roleShopFields[hidden],
-#roleVehicleFields[hidden],#roleFoodComplianceFields[hidden]{display:none!important}
+#roleVehicleFields[hidden],#roleFoodComplianceFields[hidden],
+#roleDeliveryIdentityFields[hidden]{display:none!important}
 #roleApplicationFields[aria-hidden="true"],#roleShopFields[aria-hidden="true"],
 #roleVehicleFields[aria-hidden="true"],#roleFoodComplianceFields[aria-hidden="true"]{display:none!important}
 </style>
