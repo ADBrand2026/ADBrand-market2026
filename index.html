@@ -401,6 +401,26 @@ img{max-width:100%}
 #adLiveCustomerMarket[data-market-mode="products"] .ad-customer-filters{border-color:rgba(91,53,213,.24)}
 @media(max-width:620px){#adLiveCustomerMarket .ad-customer-filters{padding:10px 12px}}
 </style>
+
+<style id="ad-swiggy-inspired-rider-onboarding-v1">
+/* Delivery Partner onboarding: clean, staged, mobile-first. Inspired by common delivery-app flows; not a copy of Swiggy branding. */
+#roleApplicationFields{border:1px solid #e1e7f0;border-radius:20px;padding:clamp(14px,3vw,24px);background:linear-gradient(180deg,#fff,#f9fbff)}
+#roleApplicationTitle{font-size:clamp(1.35rem,3vw,1.8rem);margin:0 0 8px}
+.ad-rider-step-title{display:flex;align-items:center;gap:12px;margin:18px 0 12px;padding:13px;border-radius:14px;background:#f0edff;border:1px solid #ded6ff}
+.ad-rider-step-title>span{display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:12px;background:#5b35d5;color:white;font-weight:900}
+.ad-rider-step-title div{display:grid;gap:3px}.ad-rider-step-title small{color:#65718a;line-height:1.45}
+#roleApplicantZoneField{grid-column:1/-1;padding:12px;border:1px solid #c8e8dc;background:#f1fbf6;border-radius:14px}
+#roleApplicantZoneField label{color:#086b4b}
+#roleApplicantZoneHelp{display:block;margin-top:7px;line-height:1.5}
+#roleVehicleFields .field>p{padding:10px 12px;background:#f7f8fc;border-radius:10px;line-height:1.55}
+.ad-rider-optional{margin:16px 0;border:1px solid #e1e7f0;border-radius:12px;padding:12px;background:#fff}
+.ad-rider-optional summary{font-weight:750;cursor:pointer}.ad-rider-optional[open] summary{margin-bottom:8px}
+.ad-rider-submit-note{margin:14px 0;padding:12px;border-radius:12px;background:#eefaf4;color:#176347;font-size:.88rem;line-height:1.55}
+.ad-rider-submit{width:100%;min-height:48px;font-size:1rem}
+#roleVehicleNumberField[hidden],#roleDeliveryRcField[hidden],#roleDeliveryLicenseField[hidden],#roleDeliveryInsuranceField[hidden]{display:none!important}
+@media(max-width:600px){#roleApplicationFields{padding:13px}.ad-rider-step-title{margin-top:14px}}
+</style>
+
 </head>
 
 <body>
@@ -1007,16 +1027,18 @@ img{max-width:100%}
         <div class="field"><label for="roleDeliveryBankProofDoc">Bank proof (वैकल्पिक; approval के बाद माँगा जा सकता है)</label><input id="roleDeliveryBankProofDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <div id="roleVehicleFields" style="display:none">
-        <div class="field"><label for="roleVehicleType">वाहन</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
-        <div class="field"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30"></div>
+        <div class="ad-rider-step-title"><span>02</span><div><strong>वाहन और डिलीवरी ज़ोन</strong><small>अपना वाहन चुनें; उसी के अनुसार ज़रूरी दस्तावेज़ दिखेंगे।</small></div></div>
+        <div class="field"><label for="roleVehicleType">आप किस वाहन से डिलीवरी करेंगे?</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
+        <div class="field" id="roleVehicleNumberField"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30" autocomplete="off" placeholder="जैसे UP32 AB 1234"></div>
         <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png" required></div>
         <div class="field" id="roleDeliveryRcField"><label for="roleDeliveryRcDoc">Vehicle Registration Certificate / RC (motor vehicle only; private)</label><input id="roleDeliveryRcDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
-        <div class="field"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
-        <div class="field"><label for="roleDeliveryInsuranceDoc">Vehicle insurance (JPG/PNG/PDF; private)</label><input id="roleDeliveryInsuranceDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div class="field" id="roleDeliveryLicenseField"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
+        <div class="field" id="roleDeliveryInsuranceField"><label for="roleDeliveryInsuranceDoc">Vehicle insurance (JPG/PNG/PDF; private)</label><input id="roleDeliveryInsuranceDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
-      <div class="field"><label for="roleApplicationNotes">अतिरिक्त जानकारी (वैकल्पिक)</label><textarea id="roleApplicationNotes" maxlength="1000"></textarea></div>
-      <button class="btn primary" type="button" onclick="submitRoleApplication()">📨 आवेदन भेजें</button>
+      <details class="ad-rider-optional"><summary>अतिरिक्त जानकारी (वैकल्पिक)</summary><div class="field"><label for="roleApplicationNotes">कोई अतिरिक्त जानकारी</label><textarea id="roleApplicationNotes" maxlength="1000" placeholder="यहाँ वैकल्पिक जानकारी लिखें"></textarea></div></details>
+      <div class="ad-rider-submit-note">🔒 आपके दस्तावेज़ private storage में भेजे जाते हैं और Admin verification के लिए होते हैं।</div>
+      <button class="btn primary ad-rider-submit" type="button" onclick="submitRoleApplication()">📨 Delivery Partner आवेदन भेजें</button>
     </div>
 
     <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="setAccountAccessMode('signup');continueAccountAccess('signup')">Create Account</button></div>
@@ -1770,6 +1792,13 @@ function updateRoleApplicationFields() {
   ]);
   const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
   const motorVehicle = !["bicycle", "cycle", "cycling", "electric_bicycle", "electric cycle", "e-cycle"].includes(motorType);
+  const vehicleNumberField = $("roleVehicleNumberField");
+  const rcField = $("roleDeliveryRcField");
+  const licenseField = $("roleDeliveryLicenseField");
+  const insuranceField = $("roleDeliveryInsuranceField");
+  [[vehicleNumberField,motorVehicle],[rcField,motorVehicle],[licenseField,motorVehicle],[insuranceField,motorVehicle]].forEach(function(pair){
+    if(pair[0]){pair[0].hidden=!isDelivery||!pair[1];pair[0].style.display=isDelivery&&pair[1]?"block":"none";}
+  });
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
     deliveryRequired.add("roleDeliveryInsuranceDoc");
@@ -1797,6 +1826,7 @@ function updateRoleApplicationFields() {
   }
 }
 $("accountRole")?.addEventListener("change", function(){ setAccountAccessMode("login"); updateRoleApplicationFields(); });
+$("roleVehicleType")?.addEventListener("change", updateRoleApplicationFields);
 
 /* Public-role separation: account type is selected by the home entry point, never by an editable public dropdown. */
 (function(){
