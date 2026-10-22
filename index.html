@@ -1618,7 +1618,7 @@ async function submitRoleApplication() {
   const sellerDocsComplete = selectedTypes.has("shop_photo") && selectedTypes.has("address_proof")
     && (requestedSellerType !== "food" || selectedTypes.has("food_license"));
   const selectedVehicleType = String($("roleVehicleType")?.value || "").toLowerCase();
-  const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling"].includes(selectedVehicleType);
+  const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling","electric_bicycle","electric cycle","e-cycle"].includes(selectedVehicleType);
   const deliveryDocsComplete = selectedTypes.has("identity_proof") && selectedTypes.has("pan_card")
     && selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
     && (!motorVehicleDocumentsRequired || (selectedTypes.has("vehicle_rc") && selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
@@ -1742,7 +1742,7 @@ function updateRoleApplicationFields() {
     "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryVehiclePhotoDoc", "roleDeliveryAddressDoc"
   ]);
   const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
-  const motorVehicle = !["bicycle", "cycle", "cycling"].includes(motorType);
+  const motorVehicle = !["bicycle", "cycle", "cycling", "electric_bicycle", "electric cycle", "e-cycle"].includes(motorType);
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
     deliveryRequired.add("roleDeliveryInsuranceDoc");
