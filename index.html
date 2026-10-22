@@ -1685,23 +1685,64 @@ async function submitRoleApplication() {
   toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller/Delivery tools unlock नहीं होंगे।");
 }
 function updateRoleApplicationFields() {
-  const role = String($("accountRole")?.value || "");
+  const role = String($("accountRole")?.value || "customer");
+  const isSeller = role === "seller";
+  const isDelivery = role === "delivery";
+  const isCustomer = role === "customer";
   const fields = $("roleApplicationFields");
-  if (fields) fields.style.display = (role === "seller" || role === "delivery") ? "block" : "none";
   const shop = $("roleShopFields");
   const vehicle = $("roleVehicleFields");
   const foodCompliance = $("roleFoodComplianceFields");
   const sellerType = String($("roleSellerType")?.value || "non_food");
-  const isFoodSeller = role === "seller" && sellerType === "food";
-  if (shop) shop.style.display = role === "seller" ? "block" : "none";
-  if (vehicle) vehicle.style.display = role === "delivery" ? "block" : "none";
-  if (foodCompliance) foodCompliance.style.display = isFoodSeller ? "block" : "none";
+  const isFoodSeller = isSeller && sellerType === "food";
+
+  // Hide inactive role sections at the DOM level as well as visually.
+  // This prevents Seller fields leaking into the Delivery application (and vice versa).
+  function setSection(node, visible) {
+    if (!node) return;
+    node.hidden = !visible;
+    node.style.display = visible ? "block" : "none";
+    node.setAttribute("aria-hidden", visible ? "false" : "true");
+  }
+  setSection(fields, isSeller || isDelivery);
+  setSection(shop, isSeller);
+  setSection(vehicle, isDelivery);
+  setSection(foodCompliance, isFoodSeller);
+
   const fssai = $("roleFssaiLicenseNumber");
   const fssaiDoc = $("roleSellerFoodLicenseDoc");
   if (fssai) fssai.required = isFoodSeller;
   if (fssaiDoc) fssaiDoc.required = isFoodSeller;
+
+  // Required state follows the active application only; hidden inputs cannot block another role.
+  const deliveryRequired = new Set([
+    "roleDeliveryVehiclePhotoDoc", "roleDeliveryAddressDoc"
+  ]);
+  const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
+  const motorVehicle = !["bicycle", "cycle", "cycling", "electric_bicycle"].includes(motorType);
+  if (motorVehicle) {
+    deliveryRequired.add("roleDeliveryLicenseDoc");
+    deliveryRequired.add("roleDeliveryInsuranceDoc");
+  }
+  [
+    "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
+    "roleDeliveryVehiclePhotoDoc", "roleDeliveryLicenseDoc",
+    "roleDeliveryInsuranceDoc", "roleDeliveryAddressDoc"
+  ].forEach(function(id) {
+    const input = $(id);
+    if (input) input.required = isDelivery && deliveryRequired.has(id);
+  });
+
   const title = $("roleApplicationTitle");
-  if (title) title.textContent = role === "seller" ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
+  if (title) title.textContent = isSeller ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
+  const intent = $("accountIntentLabel");
+  if (intent) {
+    intent.textContent = isDelivery
+      ? "🛵 Delivery Partner आवेदन — केवल वाहन, पता और Delivery verification documents."
+      : isSeller
+        ? "🏪 Seller आवेदन — केवल दुकान और business verification documents."
+        : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
+  }
 }
 $("accountRole")?.addEventListener("change", function(){ setAccountAccessMode("login"); updateRoleApplicationFields(); });
 
@@ -21767,6 +21808,14 @@ window.adFoodPayoutPreview=function(){
 };
 window.adFoodPayoutPreview();
 </script>
-<style id="ad-public-role-separation">#adbm9[hidden]{display:none!important}section[id^="adbm"]{display:none!important}#accountRolePicker[hidden]{display:none!important}#accountFullNameField[hidden]{display:none!important}</style>
+<style id="ad-public-role-separation">
+#adbm9[hidden]{display:none!important}
+section[id^="adbm"]{display:none!important}
+#accountRolePicker[hidden],#accountFullNameField[hidden],
+#roleApplicationFields[hidden],#roleShopFields[hidden],
+#roleVehicleFields[hidden],#roleFoodComplianceFields[hidden]{display:none!important}
+#roleApplicationFields[aria-hidden="true"],#roleShopFields[aria-hidden="true"],
+#roleVehicleFields[aria-hidden="true"],#roleFoodComplianceFields[aria-hidden="true"]{display:none!important}
+</style>
 </body>
 </html>
