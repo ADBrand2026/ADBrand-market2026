@@ -994,10 +994,10 @@ img{max-width:100%}
       </div>
       <div class="field"><label for="roleApplicantAddress">पूरा पता</label><textarea id="roleApplicantAddress" maxlength="500"></textarea></div>
       <div class="form-grid">
-        <div class="field"><label for="roleApplicantCity">शहर</label><input id="roleApplicantCity" maxlength="80"></div>
-        <div class="field"><label for="roleApplicantState">राज्य</label><input id="roleApplicantState" maxlength="80"></div>
-        <div class="field" id="roleApplicantPincodeField"><label for="roleApplicantPincode">Service PIN Code / सेवा क्षेत्र का PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">Seller के लिए दुकान/सेवा क्षेत्र का PIN Code भरें।</small></div>
-        <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">Preferred Delivery Zone / पसंदीदा डिलीवरी ज़ोन</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" placeholder="जैसे Gomti Nagar, Hazratganj" aria-describedby="roleApplicantZoneHelp"><small id="roleApplicantZoneHelp" class="small muted">PIN Code नहीं—वह इलाका लिखें जहाँ आप डिलीवरी करना चाहते हैं। Zone Admin verification के बाद confirm होगा।</small></div>
+        <div class="field"><label for="roleApplicantCity">शहर / Select your city</label><input id="roleApplicantCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow" required></div>
+        <div class="field"><label for="roleApplicantState">राज्य / State</label><input id="roleApplicantState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
+        <div class="field" id="roleApplicantPincodeField"><label for="roleApplicantPincode">Shop Service PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">यह field केवल Seller के लिए है।</small></div>
+        <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">📍 Preferred Delivery Zone / अपना डिलीवरी ज़ोन चुनें</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" list="roleDeliveryZoneSuggestions" placeholder="अपने इलाके का नाम लिखें" aria-describedby="roleApplicantZoneHelp"><datalist id="roleDeliveryZoneSuggestions"><option value="Gomti Nagar"></option><option value="Hazratganj"></option><option value="Aliganj"></option><option value="Indira Nagar"></option><option value="Alambagh"></option><option value="Aminabad"></option><option value="Rajajipuram"></option><option value="Jankipuram"></option><option value="Chowk"></option><option value="Mahanagar"></option></datalist><small id="roleApplicantZoneHelp" class="small muted">अपना शहर चुनें और जिस इलाके में orders deliver करना चाहते हैं उसका नाम लिखें। सुझाव केवल उदाहरण हैं—अपना इलाका भी लिख सकते हैं। PIN Code नहीं माँगा जाएगा। Admin approval के बाद zone availability confirm होगी।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
         <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="2008-10-22" required></div>
@@ -1568,8 +1568,12 @@ async function submitRoleApplication() {
     toast("नाम, सही 10-digit मोबाइल और पूरा पता भरें।");
     return;
   }
-  if (city.length < 2 || state.length < 2) {
-    toast("Service zone बनाने के लिए City और State दोनों भरें।");
+  if (city.length < 2) {
+    toast("अपना शहर भरें।");
+    return;
+  }
+  if (requestedRole === "seller" && state.length < 2) {
+    toast("Seller के लिए राज्य भरें।");
     return;
   }
   if (requestedRole === "seller" && !validPincode(pincode)) {
@@ -1578,6 +1582,11 @@ async function submitRoleApplication() {
   }
   if (requestedRole === "delivery" && preferredZone.length < 2) {
     toast("अपना पसंदीदा Delivery Zone / इलाका भरें।");
+    return;
+  }
+  if (requestedRole === "delivery" && state.length < 2) {
+    // State is useful for disambiguating zones, but is not a postal-code substitute.
+    toast("अपना राज्य भरें ताकि Delivery Zone सही शहर से जुड़ सके।");
     return;
   }
   if (requestedRole === "seller" && shop.length < 2) {
@@ -1741,8 +1750,12 @@ function updateRoleApplicationFields() {
   if (zoneField) { zoneField.hidden = !isDelivery; zoneField.style.display = isDelivery ? "block" : "none"; }
   const pincodeInput = $("roleApplicantPincode");
   const zoneInput = $("roleApplicantZone");
+  const cityInput = $("roleApplicantCity");
+  const stateInput = $("roleApplicantState");
   if (pincodeInput) pincodeInput.required = isSeller;
   if (zoneInput) zoneInput.required = isDelivery;
+  if (cityInput) cityInput.required = isSeller || isDelivery;
+  if (stateInput) stateInput.required = isSeller || isDelivery;
   setSection(identity, isDelivery);
   setSection(foodCompliance, isFoodSeller);
 
