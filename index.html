@@ -410,7 +410,7 @@ img{max-width:100%}
       <div class="brand-logo">AD</div>
       <div>
         <h1>AD Brand Market</h1>
-        <p>Shopping • Food • Local Delivery • All India Marketplace</p>
+        <p>Local Shopping • Food Delivery • Home Delivery</p>
       </div>
     </div>
     <div class="header-actions">
@@ -436,9 +436,9 @@ img{max-width:100%}
           <span class="ad-role-entry-copy"><strong>Customer</strong><small>खाना या सामान खरीदें</small></span>
           <span class="ad-role-entry-arrow">→</span>
         </button>
-        <button class="ad-role-entry" type="button" onclick="adDeliveryBoyComingSoon()">
+        <button class="ad-role-entry" type="button" onclick="openPanel('delivery')">
           <span class="ad-role-entry-icon">🛵</span>
-          <span class="ad-role-entry-copy"><strong>Food Delivery Boy</strong><small>Food orders deliver करें</small></span>
+          <span class="ad-role-entry-copy"><strong>Delivery Partner</strong><small>Food delivery और eligible delivery orders करें</small></span>
           <span class="ad-role-entry-arrow">→</span>
         </button>
         <button class="ad-role-entry" type="button" onclick="adChooseSellerType('food')">
@@ -495,9 +495,6 @@ img{max-width:100%}
 </style>
 
 <script id="ad-role-entry-actions">
-  window.adDeliveryBoyComingSoon = function(){
-    alert("Food Delivery Boy का पेज अभी तैयार नहीं किया जा रहा है। इसे अगले चरण में बनाया जाएगा।");
-  };
   window.adChooseSellerType = function(type){
     window.__adBrandSellerEntryType = type === "food" ? "food" : "products";
     var sellerTypeSelect = document.getElementById("roleSellerType");
@@ -1021,12 +1018,9 @@ img{max-width:100%}
 <footer class="site-footer">
   <div class="container">
     <strong>AD Brand Market</strong>
-    <p>Local Shopping • Food Delivery • Express Delivery • All India Marketplace</p>
+    <p>Local Shopping • Food Delivery • Home Delivery</p>
     <div class="footer-links">
       <a href="#home" onclick="goHome()">Home</a>
-      <a href="#customer" onclick="openPanel('customer')">Customer</a>
-      <a href="#seller" onclick="openPanel('seller')">Seller</a>
-      <a href="#delivery" onclick="openPanel('delivery')">Delivery Partner</a>
     </div>
     <p class="small">© <span id="currentYear">2026</span> AD Brand Market</p>
   </div>
