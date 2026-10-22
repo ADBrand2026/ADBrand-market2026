@@ -417,7 +417,7 @@ img{max-width:100%}
 .ad-rider-optional summary{font-weight:750;cursor:pointer}.ad-rider-optional[open] summary{margin-bottom:8px}
 .ad-rider-submit-note{margin:14px 0;padding:12px;border-radius:12px;background:#eefaf4;color:#176347;font-size:.88rem;line-height:1.55}
 .ad-rider-submit{width:100%;min-height:48px;font-size:1rem}
-#roleVehicleNumberField[hidden],#roleDeliveryRcField[hidden],#roleDeliveryLicenseField[hidden],#roleDeliveryInsuranceField[hidden]{display:none!important}
+#roleVehicleNumberField[hidden],#roleDeliveryRcField[hidden],#roleDeliveryLicenseField[hidden]{display:none!important}
 @media(max-width:600px){#roleApplicationFields{padding:13px}.ad-rider-step-title{margin-top:14px}}
 </style>
 
@@ -1033,7 +1033,6 @@ img{max-width:100%}
         <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png" required></div>
         <div class="field" id="roleDeliveryRcField"><label for="roleDeliveryRcDoc">Vehicle Registration Certificate / RC (motor vehicle only; private)</label><input id="roleDeliveryRcDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field" id="roleDeliveryLicenseField"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
-        <div class="field" id="roleDeliveryInsuranceField"><label for="roleDeliveryInsuranceDoc">Vehicle insurance (JPG/PNG/PDF; private)</label><input id="roleDeliveryInsuranceDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <details class="ad-rider-optional"><summary>अतिरिक्त जानकारी (वैकल्पिक)</summary><div class="field"><label for="roleApplicationNotes">कोई अतिरिक्त जानकारी</label><textarea id="roleApplicationNotes" maxlength="1000" placeholder="यहाँ वैकल्पिक जानकारी लिखें"></textarea></div></details>
@@ -1647,7 +1646,6 @@ async function submitRoleApplication() {
     ["vehicle_photo","roleDeliveryVehiclePhotoDoc"],
     ["vehicle_rc","roleDeliveryRcDoc"],
     ["driving_license","roleDeliveryLicenseDoc"],
-    ["vehicle_insurance","roleDeliveryInsuranceDoc"],
     ["address_proof","roleDeliveryAddressDoc"]
   ];
   const selectedDocs = docs.map(([type,id])=>({type,input:$(id),file:$(id)?.files?.[0]})).filter(x=>x.file);
@@ -1658,7 +1656,7 @@ async function submitRoleApplication() {
   const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling","electric_bicycle","electric cycle","e-cycle"].includes(selectedVehicleType);
   const deliveryDocsComplete = selectedTypes.has("identity_proof") && selectedTypes.has("pan_card")
     && selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
-    && (!motorVehicleDocumentsRequired || (selectedTypes.has("vehicle_rc") && selectedTypes.has("driving_license") && selectedTypes.has("vehicle_insurance")));
+    && (!motorVehicleDocumentsRequired || (selectedTypes.has("vehicle_rc") && selectedTypes.has("driving_license")));
   if (requestedRole === "seller" && !sellerDocsComplete) {
     toast(requestedSellerType === "food"
       ? "Food Seller application के लिए Shop Photo, Shop Address Proof और FSSAI certificate तीनों जरूरी हैं।"
@@ -1667,7 +1665,7 @@ async function submitRoleApplication() {
   }
   if (requestedRole === "delivery" && !deliveryDocsComplete) {
     toast(motorVehicleDocumentsRequired
-      ? "Motor delivery के लिए ID Proof, PAN, Address Proof, Vehicle Photo, RC, Driving Licence और Insurance जरूरी हैं।"
+      ? "Motor delivery के लिए ID Proof, PAN, Address Proof, Vehicle Photo, RC, Driving Licence जरूरी हैं।"
       : "Cycle delivery के लिए ID Proof, PAN, Address Proof और Vehicle Photo जरूरी हैं।");
     return;
   }
@@ -1795,20 +1793,18 @@ function updateRoleApplicationFields() {
   const vehicleNumberField = $("roleVehicleNumberField");
   const rcField = $("roleDeliveryRcField");
   const licenseField = $("roleDeliveryLicenseField");
-  const insuranceField = $("roleDeliveryInsuranceField");
-  [[vehicleNumberField,motorVehicle],[rcField,motorVehicle],[licenseField,motorVehicle],[insuranceField,motorVehicle]].forEach(function(pair){
+  [[vehicleNumberField,motorVehicle],[rcField,motorVehicle],[licenseField,motorVehicle]].forEach(function(pair){
     if(pair[0]){pair[0].hidden=!isDelivery||!pair[1];pair[0].style.display=isDelivery&&pair[1]?"block":"none";}
   });
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
-    deliveryRequired.add("roleDeliveryInsuranceDoc");
     deliveryRequired.add("roleDeliveryRcDoc");
   }
   [
     "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
     "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryBankProofDoc",
     "roleDeliveryVehiclePhotoDoc", "roleDeliveryRcDoc", "roleDeliveryLicenseDoc",
-    "roleDeliveryInsuranceDoc", "roleDeliveryAddressDoc"
+"roleDeliveryAddressDoc"
   ].forEach(function(id) {
     const input = $(id);
     if (input) input.required = isDelivery && deliveryRequired.has(id);
