@@ -554,7 +554,7 @@ img{max-width:100%}
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
-    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders केवल seller के शहर में AD Brand Market rider से आएँगे। Non-food checkout फिलहाल बंद है जब तक seller-paid courier booking, असली shipping/RTO खर्च का हिसाब और COD handling तैयार न हो जाए। ग्राहक को ₹20 प्रति non-food seller order की AD Brand Market platform fee अलग दिखेगी; seller का वास्तविक courier खर्च अलग रहेगा। अभी कोई non-food order नहीं बनेगा.</div>
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders local eligible zone में AD Brand Market rider से deliver होंगे। Non-food products अभी देख सकते हैं, लेकिन order/add-to-cart तब तक बंद रहेगा जब तक live courier quote, seller-paid booking, वास्तविक shipping/RTO खर्च और COD handling सुरक्षित रूप से जुड़ न जाएँ। प्रस्तावित ₹20 AD platform fee वास्तविक courier charge नहीं है और order enable होने से पहले checkout पर साफ़ दिखाई जाएगी।</div>
     <details class="section card ad-customer-filters">
       <summary>⚙️ Product filters (optional)</summary>
       <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
@@ -1792,8 +1792,11 @@ function liveRenderCatalog(){
   }
   if(variantSelect)variantSelect.addEventListener("change",updatePrice);updatePrice();
   var qty=liveEl("input","search-input");qty.type="number";qty.min="1";qty.max="99";qty.value="1";qty.style.marginTop="8px";qty.setAttribute("aria-label","Quantity");
-  var actions=liveEl("div","product-actions"),add=liveEl("button","btn primary","Add to Cart");
-  add.type="button";add.onclick=function(){
+  var actions=liveEl("div","product-actions"),isNonFood=String(p.seller_type||"").toLowerCase()!=="food",add=liveEl("button","btn primary",isNonFood?"Courier setup के बाद ऑर्डर":"Add to Cart");
+  add.type="button";
+  if(isNonFood){add.disabled=true;add.title="Non-food checkout तब खुलेगा जब live courier quote, booking और RTO settlement verify हो जाएँ।";}
+  add.onclick=function(){
+   if(isNonFood){toast("Non-food order अभी उपलब्ध नहीं है। Courier connection और seller shipping settlement तैयार होने पर खुलेगा।");return;}
    var v=liveSelectedProductVariant(p,variantSelect),q=Math.floor(Number(qty.value));
    if(!Number.isInteger(q)||q<1||q>99){toast("Quantity 1 से 99 के बीच चुनें।");return;}
    if(variants.length&&!v){toast("Available size/variant चुनें।");return;}
