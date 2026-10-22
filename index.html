@@ -996,7 +996,7 @@ img{max-width:100%}
       <div class="form-grid">
         <div class="field"><label for="roleApplicantCity">शहर</label><input id="roleApplicantCity" maxlength="80"></div>
         <div class="field"><label for="roleApplicantState">राज्य</label><input id="roleApplicantState" maxlength="80"></div>
-        <div class="field"><label for="roleApplicantPincode">PIN Code</label><input id="roleApplicantPincode" inputmode="numeric" maxlength="6"></div>
+        <div class="field"><label for="roleApplicantPincode">Service PIN Code / सेवा क्षेत्र का PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">अपना 6-digit PIN Code भरें। इसी से शुरुआती service area तय होगा।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
         <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="2008-10-22" required></div>
