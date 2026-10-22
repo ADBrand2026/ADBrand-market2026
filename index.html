@@ -1425,6 +1425,8 @@ function setAccountAccessMode(mode) {
   if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
   if (intent) intent.textContent = role === "delivery" ? "🛵 Delivery Partner आवेदन — पहले अपने Customer login से पहचान verify करें। वाहन और दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : role === "seller" ? "🏪 Seller आवेदन — दुकान और business के दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
   if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : "Customer Account बनाकर आवेदन जारी रखें";
+  const extras = $("adCustomerAuthExtras");
+  if (extras) extras.style.display = role === "customer" ? "flex" : "none";
   updateRoleApplicationFields();
 }
 
@@ -21765,6 +21767,6 @@ window.adFoodPayoutPreview=function(){
 };
 window.adFoodPayoutPreview();
 </script>
-<style id="ad-public-role-separation">#adbm9[hidden]{display:none!important}#accountRolePicker[hidden]{display:none!important}#accountFullNameField[hidden]{display:none!important}</style>
+<style id="ad-public-role-separation">#adbm9[hidden]{display:none!important}section[id^="adbm"]{display:none!important}#accountRolePicker[hidden]{display:none!important}#accountFullNameField[hidden]{display:none!important}</style>
 </body>
 </html>
