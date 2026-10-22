@@ -1719,7 +1719,7 @@ function updateRoleApplicationFields() {
     "roleDeliveryVehiclePhotoDoc", "roleDeliveryAddressDoc"
   ]);
   const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
-  const motorVehicle = !["bicycle", "cycle", "cycling", "electric_bicycle"].includes(motorType);
+  const motorVehicle = !["bicycle", "cycle", "cycling"].includes(motorType);
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
     deliveryRequired.add("roleDeliveryInsuranceDoc");
