@@ -418,6 +418,8 @@ img{max-width:100%}
 .ad-rider-submit-note{margin:14px 0;padding:12px;border-radius:12px;background:#eefaf4;color:#176347;font-size:.88rem;line-height:1.55}
 .ad-rider-submit{width:100%;min-height:48px;font-size:1rem}
 #roleVehicleNumberField[hidden],#roleDeliveryRcField[hidden],#roleDeliveryLicenseField[hidden]{display:none!important}
+.ad-delivery-otp-start{width:100%;min-height:48px;margin-top:12px;font-weight:800}
+.ad-delivery-otp-start[hidden]{display:none!important}
 @media(max-width:600px){#roleApplicationFields{padding:13px}.ad-rider-step-title{margin-top:14px}}
 </style>
 
@@ -1040,6 +1042,7 @@ img{max-width:100%}
       <button class="btn primary ad-rider-submit" type="button" onclick="submitRoleApplication()">📨 Delivery Partner आवेदन भेजें</button>
     </div>
 
+    <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
     <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="setAccountAccessMode('signup');continueAccountAccess('signup')">Create Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
@@ -1810,6 +1813,8 @@ function updateRoleApplicationFields() {
     if (input) input.required = isDelivery && deliveryRequired.has(id);
   });
 
+  const deliveryOtpButton = $("adDeliveryStartOtp");
+  if (deliveryOtpButton) deliveryOtpButton.hidden = !isDelivery || (window.__adBrandAuthRole === "customer" && !!window.__adBrandAuthUser);
   const title = $("roleApplicationTitle");
   if (title) title.textContent = isSeller ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
   const intent = $("accountIntentLabel");
@@ -2160,11 +2165,36 @@ window.adCustomerVerifyOtp=async function(){
   if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
   if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
   if(typeof window.toast==="function")window.toast("Mobile OTP से Customer login सफल हुआ।");
+  if(window.__adBrandPendingRoleApplication==="delivery"){
+   window.__adBrandPendingRoleApplication=null;
+   var roleSelect=$("accountRole");if(roleSelect)roleSelect.value="delivery";
+   if($("roleApplicantName")&&!$("roleApplicantName").value)$("roleApplicantName").value=name;
+   if($("roleApplicantMobile")&&!$("roleApplicantMobile").value)$("roleApplicantMobile").value=mobile;
+   if(typeof window.openAccountAccess==="function")window.openAccountAccess("delivery");
+   updateRoleApplicationFields();
+   if(typeof window.toast==="function")window.toast("मोबाइल OTP verify हो गया। अब Delivery Partner का वाहन, पता और private documents भरकर आवेदन भेजें।");
+  }
   window.__adBrandPendingCustomerOtpMobile=null;
  }catch(e){
   console.error("Customer OTP verification failed:",e);
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
+};
+window.adDeliveryStartOtpRegistration=function(){
+ var role=String($("accountRole")?.value||"");
+ if(role!=="delivery")return toast("पहले Delivery Partner registration चुनें।");
+ window.__adBrandPendingRoleApplication="delivery";
+ var applicantName=String($("roleApplicantName")?.value||$("accountFullName")?.value||"").trim();
+ var applicantMobile=String($("roleApplicantMobile")?.value||$("accountMobile")?.value||"").replace(/\D/g,"");
+ if($("adCustomerOtpName")&&applicantName)$("adCustomerOtpName").value=applicantName;
+ if($("adCustomerOtpMobile")&&applicantMobile)$("adCustomerOtpMobile").value=applicantMobile;
+ if(typeof closeModal==="function")closeModal("accountModal");
+ window.__adCustomerAuthPanelOpen=true;
+ if(typeof window.openPanel==="function")window.openPanel("customer");
+ if(typeof updateCustomerOtpVisibility==="function")updateCustomerOtpVisibility();
+ var panel=$("adCustomerOtpPanel");
+ if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
+ customerOtpMessage("Delivery Partner registration के लिए पहले अपने मोबाइल पर OTP भेजकर verify करें।",false);
 };
 /* OTP is sent only after the customer explicitly presses the Send OTP button. */
 var originalCustomerAccountAccess=window.openAccountAccess;
