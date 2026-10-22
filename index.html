@@ -964,7 +964,9 @@ img{max-width:100%}
   <div class="modal-card">
     <div class="modal-header"><h2 id="accountModalTitle">Secure Account Login</h2><button class="close-btn" onclick="closeModal('accountModal')" aria-label="Close">×</button></div>
     <div class="notice">ईमेल और पासवर्ड से सुरक्षित login होगा। Seller और Delivery access के लिए Admin approval जरूरी है।</div>
-    <div class="field"><label for="accountRole">Account Type</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
+    <div id="accountRolePicker" class="field" hidden><label for="accountRole">Internal account intent</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
+     <div id="accountIntentLabel" class="notice">Customer Login / Registration</div>
+     <div id="accountFullNameField" class="field" hidden><label for="accountFullName">Full name / पूरा नाम</label><input id="accountFullName" autocomplete="name" maxlength="120" placeholder="अपना पूरा नाम"></div>
     <div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
     <div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="कम से कम 8 characters"></div>
     <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
@@ -1008,7 +1010,7 @@ img{max-width:100%}
       <button class="btn primary" type="button" onclick="submitRoleApplication()">📨 आवेदन भेजें</button>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary" onclick="continueAccountAccess('login')">Login</button><button class="btn outline" onclick="continueAccountAccess('signup')">Create Customer Account</button></div>
+    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="setAccountAccessMode('signup');continueAccountAccess('signup')">Create Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
 </div>
@@ -1399,24 +1401,30 @@ function closeModal(id) {
 
 function openAccountAccess(role) {
   const allowed = ["customer", "seller", "delivery"];
-
-  if (!allowed.includes(role)) {
-    toast("Invalid account type.");
-    return;
-  }
-
+  if (!allowed.includes(role)) { toast("Invalid account type."); return; }
   currentAccountRole = role;
-
   const select = $("accountRole");
+  if (select) select.value = role;
   const modal = $("accountModal");
+  if (modal) modal.classList.add("show");
+  setAccountAccessMode("login");
+  updateRoleApplicationFields();
+}
 
-  if (select) {
-    select.value = role;
-  }
-
-  if (modal) {
-    modal.classList.add("show");
-  }
+function setAccountAccessMode(mode) {
+  const role = String($("accountRole")?.value || "customer");
+  const isSignup = mode === "signup";
+  const nameField = $("accountFullNameField");
+  const nameInput = $("accountFullName");
+  const intent = $("accountIntentLabel");
+  const title = $("accountModalTitle");
+  const signupButton = $("accountSignupButton");
+  if (nameField) nameField.hidden = !isSignup;
+  if (nameInput) nameInput.required = isSignup;
+  const roleLabel = role === "delivery" ? "Delivery Partner Registration" : role === "seller" ? "Seller Registration" : "Customer Account";
+  if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
+  if (intent) intent.textContent = role === "delivery" ? "🛵 Delivery Partner आवेदन — पहले अपने Customer login से पहचान verify करें। वाहन और दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : role === "seller" ? "🏪 Seller आवेदन — दुकान और business के दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
+  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : "Customer Account बनाकर आवेदन जारी रखें";
   updateRoleApplicationFields();
 }
 
@@ -1693,8 +1701,15 @@ function updateRoleApplicationFields() {
   const title = $("roleApplicationTitle");
   if (title) title.textContent = role === "seller" ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
 }
-$("accountRole")?.addEventListener("change", updateRoleApplicationFields);
+$("accountRole")?.addEventListener("change", function(){ setAccountAccessMode("login"); updateRoleApplicationFields(); });
 
+/* Public-role separation: account type is selected by the home entry point, never by an editable public dropdown. */
+(function(){
+  const rolePicker=document.getElementById("accountRolePicker");
+  if(rolePicker) rolePicker.hidden=true;
+  const legacyDemo=document.getElementById("adbm9");
+  if(legacyDemo) legacyDemo.setAttribute("hidden","hidden");
+})();
 /* Private Admin operations are hosted separately in a Supabase Edge Function. No Admin route or login button exists in this public storefront. */
 
 /* ADBM LIVE WORKFLOWS v1
@@ -21750,5 +21765,6 @@ window.adFoodPayoutPreview=function(){
 };
 window.adFoodPayoutPreview();
 </script>
+<style id="ad-public-role-separation">#adbm9[hidden]{display:none!important}#accountRolePicker[hidden]{display:none!important}#accountFullNameField[hidden]{display:none!important}</style>
 </body>
 </html>
