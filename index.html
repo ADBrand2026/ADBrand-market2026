@@ -1060,7 +1060,7 @@ img{max-width:100%}
     </div>
 
     <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
-    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="setAccountAccessMode('signup');continueAccountAccess('signup')">Create Account</button></div>
+    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
 </div>
@@ -1475,11 +1475,26 @@ function setAccountAccessMode(mode) {
   if (nameInput) nameInput.required = isSignup;
   const roleLabel = role === "delivery" ? "Delivery Partner Registration" : role === "seller" ? "Seller Registration" : "Customer Account";
   if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
-  if (intent) intent.textContent = role === "delivery" ? "🛵 Delivery Partner Login: अपने Delivery Partner account से login करें। नया आवेदन करने पर पहले Customer account से पहचान verify होगी; Admin approval से पहले Delivery dashboard नहीं खुलेगा।" : role === "seller" ? "🏪 Seller Login: अपने Seller account से login करें। नया आवेदन Customer account से शुरू होगा और Admin approval जरूरी है।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
-  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : role === "delivery" ? "Delivery Partner आवेदन शुरू करें" : "Seller आवेदन शुरू करें";
+  if (intent) intent.textContent = role === "delivery" ? (isSignup ? "🛵 चरण 1: मोबाइल OTP verify करें। OTP सफल होने के बाद ही Delivery दस्तावेज़ और आगे के आवेदन खुलेंगे।" : "🛵 पहले से approved Delivery Partner हैं तो अपने account से login करें। नया आवेदन करने के लिए Register चुनें और मोबाइल OTP verify करें।") : role === "seller" ? "🏪 Seller Login: अपने Seller account से login करें। नया आवेदन Customer account से शुरू होगा और Admin approval जरूरी है।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
+  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : role === "delivery" ? "📱 मोबाइल OTP से शुरू करें" : "Seller आवेदन शुरू करें";
+  if (signupButton) signupButton.hidden = role === "delivery" && isSignup && !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
   const extras = $("adCustomerAuthExtras");
   if (extras) extras.style.display = role === "customer" ? "flex" : "none";
   updateRoleApplicationFields();
+}
+
+function handleAccountSignup() {
+  const role = String($("accountRole")?.value || "customer");
+  if (role === "delivery") {
+    if (typeof window.adDeliveryStartOtpRegistration === "function") {
+      window.adDeliveryStartOtpRegistration();
+      return;
+    }
+    toast("मोबाइल OTP सेवा अभी उपलब्ध नहीं है। कृपया बाद में प्रयास करें।");
+    return;
+  }
+  setAccountAccessMode("signup");
+  continueAccountAccess("signup");
 }
 
 async function continueAccountAccess(mode) {
@@ -1767,6 +1782,7 @@ function updateRoleApplicationFields() {
   const isSeller = role === "seller";
   const isDelivery = role === "delivery";
   const isCustomer = role === "customer";
+  const customerSessionVerified = !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
   const fields = $("roleApplicationFields");
   const shop = $("roleShopFields");
   const vehicle = $("roleVehicleFields");
@@ -1783,7 +1799,8 @@ function updateRoleApplicationFields() {
     node.style.display = visible ? "block" : "none";
     node.setAttribute("aria-hidden", visible ? "false" : "true");
   }
-  setSection(fields, isSeller || isDelivery);
+  // Delivery identity documents must stay hidden until the applicant has verified their phone and signed in as Customer.
+  setSection(fields, (isSeller || isDelivery) && (isSeller ? customerSessionVerified : customerSessionVerified));
   setSection(shop, isSeller);
   setSection(vehicle, isDelivery);
   const pincodeField = $("roleApplicantPincodeField");
