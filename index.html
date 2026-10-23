@@ -1637,15 +1637,13 @@ async function submitRoleApplication() {
   const client = window.adBrandSupabase;
   const user = window.__adBrandAuthUser;
   const requestedRole = String($("accountRole")?.value || "");
-  // Require a real Supabase-verified phone for every Seller (Food/Non-food) and Delivery application.
-  // A mobile number typed into a form is not proof of ownership.
+  // ₹0 launch mode: allow a signed-in Customer to submit an application while SMS OTP is unavailable.
+  // If the account already has a verified phone, it must match the application phone.
+  // Seller/Delivery access remains locked until private Admin review and approval.
   const authPhone = String(user?.phone || "").replace(/\D/g, "");
   const applicantPhone = String($("roleApplicantMobile")?.value || "").replace(/\D/g, "");
-  if (!user?.phone_confirmed_at || !authPhone || authPhone.slice(-10) !== applicantPhone) {
-    toast("Seller (Food/Non-food) और Delivery आवेदन से पहले इसी मोबाइल पर असली SMS OTP verify करें। केवल नंबर लिखना पर्याप्त नहीं है।");
-    if (requestedRole === "seller" || requestedRole === "delivery") {
-      if (typeof window.adDeliveryStartOtpRegistration === "function") window.adDeliveryStartOtpRegistration();
-    }
+  if (user?.phone_confirmed_at && (!authPhone || authPhone.slice(-10) !== applicantPhone)) {
+    toast("आपके account का verified mobile और आवेदन का mobile अलग है। सही verified नंबर भरें।");
     return;
   }
   if (!client || !user || window.__adBrandAuthRole !== "customer") {
@@ -1840,9 +1838,10 @@ async function submitRoleApplication() {
     }
   }
   if ($("adRoleApplicationStatusLabel")) $("adRoleApplicationStatusLabel").textContent = "आवेदन प्राप्त — Admin Review Pending";
-  if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = requestedRole === "delivery"
+  if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = (requestedRole === "delivery"
     ? "आपका Delivery Partner आवेदन और private documents जमा हो गए हैं। Admin दस्तावेज़ों की जाँच करेगा; जरूरत पड़ने पर correction माँगा जा सकता है।"
-    : "आपका Seller आवेदन और private documents जमा हो गए हैं। Food Seller के FSSAI दस्तावेज़ सहित Admin दुकान की जानकारी जाँचेगा; जरूरत पड़ने पर correction माँगा जा सकता है।";
+    : "आपका Seller आवेदन और private documents जमा हो गए हैं। Food Seller के FSSAI दस्तावेज़ सहित Admin दुकान की जानकारी जाँचेगा; जरूरत पड़ने पर correction माँगा जा सकता है।") +
+    (user?.phone_confirmed_at ? "" : " मोबाइल OTP अभी ₹0 launch mode में pending है; असली SMS सेवा उपलब्ध होने और mobile verification पूरा होने तक account को Seller/Delivery access नहीं मिलेगा।");
   if ($("adRoleApplicationStatusId")) $("adRoleApplicationStatusId").textContent = application.id;
   const statusCard = $("adRoleApplicationStatus");
   if (statusCard) { statusCard.hidden = false; statusCard.style.display = "block"; statusCard.dataset.completed = "true"; statusCard.scrollIntoView({behavior:"smooth",block:"center"}); }
