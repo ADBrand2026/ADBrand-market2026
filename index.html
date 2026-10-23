@@ -1841,7 +1841,7 @@ function adRoleWizardSetStep(step) {
   const current = window.__adRoleWizardStep;
   const groups = {
     1: ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState","roleApplicantPincode","roleApplicantZone","roleShopName","roleSellerType","roleDeliveryDob","roleVehicleType"],
-    2: ["roleDeliveryIdType","roleDeliveryIdDoc","roleDeliveryPanDoc","roleDeliveryBankProofDoc","roleSellerRegistrationNumber","roleSellerGSTIN","roleSellerRegistrationDoc","roleFssaiLicenseNumber","roleSellerFoodLicenseDoc","roleSellerShopPhotoDoc"],
+    2: ["roleDeliveryIdType","roleDeliveryIdDoc","roleDeliveryPanDoc","roleDeliveryBankProofDoc","roleSellerRegistrationNumber","roleSellerGSTIN","roleSellerRegistrationDoc","roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"],
     3: ["roleVehicleNumber","roleDeliveryVehiclePhotoDoc","roleDeliveryRcDoc","roleDeliveryLicenseDoc","roleDeliveryAddressDoc","roleSellerAddressDoc","roleApplicationNotes","adDeliveryTruthConfirm"]
   };
   const activeIds = new Set(groups[current] || []);
