@@ -2346,7 +2346,7 @@ window.adCustomerOpenLoginRegister=function(){
  if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
 };
 window.adCustomerSendOtp=async function(){
- var c=client(),name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
+ var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
  if(name.length<2)return customerOtpMessage("पहली बार registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें। पुराने email/password account के लिए Existing account login चुनें।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
@@ -2375,7 +2375,7 @@ window.adCustomerSendOtp=async function(){
  }finally{window.__adBrandOtpSendInFlight=false;if(send)send.disabled=false;}
 };
 window.adCustomerVerifyOtp=async function(){
- var c=client(),mobile=String(window.__adBrandPendingCustomerOtpMobile||"").replace(/\D/g,""),token=String($("adCustomerOtpCode")?.value||"").replace(/\s/g,""),name=String($("adCustomerOtpName")?.value||"").trim();
+ var c=window.adBrandSupabase||null,mobile=String(window.__adBrandPendingCustomerOtpMobile||"").replace(/\D/g,""),token=String($("adCustomerOtpCode")?.value||"").replace(/\s/g,""),name=String($("adCustomerOtpName")?.value||"").trim();
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
  if(!/^\d{4,8}$/.test(token))return customerOtpMessage("SMS में आया valid OTP दर्ज करें।",true);
