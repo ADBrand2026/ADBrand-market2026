@@ -1072,8 +1072,8 @@ img{max-width:100%}
 
     <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
     <section id="adDeliveryInlineOtp" class="section card" hidden aria-live="polite" style="margin-top:12px;border:1px solid #b9e4d2;border-radius:14px;padding:14px">
-      <h3 style="margin-top:0">📱 Delivery Partner मोबाइल OTP</h3>
-      <p class="small muted">यहीं अपना मोबाइल verify करें। OTP verify होने के बाद Delivery आवेदन इसी window में खुलेगा। SMS OTP तभी आएगा जब Supabase Phone Auth और SMS provider enabled/configured हों।</p>
+      <h3 id="adRoleOtpHeading" style="margin-top:0">📱 मोबाइल OTP verification</h3>
+      <p class="small muted">Seller (Food/Non-food) और Delivery Partner के लिए इसी सुरक्षित flow से मोबाइल verify होगा। OTP verify होने के बाद चुने हुए role का आवेदन खुलेगा। असली SMS के लिए Supabase Phone Auth और SMS provider enabled/configured होना जरूरी है।</p>
       <div class="field"><label for="adDeliveryOtpName">पूरा नाम</label><input id="adDeliveryOtpName" autocomplete="name" maxlength="120" placeholder="आपका पूरा नाम"></div>
       <div class="field"><label for="adDeliveryOtpMobile">10-digit मोबाइल नंबर</label><input id="adDeliveryOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
       <div class="field" id="adDeliveryOtpCodeField" hidden><label for="adDeliveryOtpCode">SMS OTP</label><input id="adDeliveryOtpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="SMS में आया OTP"></div>
@@ -1508,11 +1508,13 @@ function setAccountAccessMode(mode) {
 
 function handleAccountSignup() {
   const role = String($("accountRole")?.value || "customer");
-  if (role === "delivery") {
+  if (role === "delivery" || role === "seller") {
     if (window.__adBrandAuthUser && window.__adBrandAuthRole === "customer") {
       updateRoleApplicationFields();
       $("roleApplicationFields")?.scrollIntoView({behavior:"smooth",block:"start"});
-      toast("मोबाइल verify है। अब Delivery Partner का आवेदन भरें और documents दें।");
+      toast(role === "seller"
+        ? "मोबाइल verify है। अब Food या Non-food Seller का आवेदन भरें।"
+        : "मोबाइल verify है। अब Delivery Partner का आवेदन भरें और documents दें।");
       return;
     }
     if (typeof window.adDeliveryStartOtpRegistration === "function") {
@@ -2038,7 +2040,12 @@ function updateRoleApplicationFields() {
   });
 
   const deliveryOtpButton = $("adDeliveryStartOtp");
-  if (deliveryOtpButton) deliveryOtpButton.hidden = !isDelivery || (window.__adBrandAuthRole === "customer" && !!window.__adBrandAuthUser);
+  if (deliveryOtpButton) {
+    deliveryOtpButton.hidden = !(isDelivery || isSeller) || (window.__adBrandAuthRole === "customer" && !!window.__adBrandAuthUser);
+    deliveryOtpButton.textContent = isSeller
+      ? "📱 मोबाइल OTP से Seller Registration शुरू करें"
+      : "📱 मोबाइल OTP से Delivery Registration शुरू करें";
+  }
   const title = $("roleApplicationTitle");
   if (title) title.textContent = isSeller ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
   const intent = $("accountIntentLabel");
@@ -2412,15 +2419,17 @@ function adDeliveryOtpMessage(message,isError){
 }
 window.adDeliveryStartOtpRegistration=function(){
  var role=String($("accountRole")?.value||"");
- if(role!=="delivery")return toast("पहले Delivery Partner registration चुनें।");
- window.__adBrandPendingRoleApplication="delivery";
+ if(role!=="delivery"&&role!=="seller")return toast("पहले Seller या Delivery Partner registration चुनें।");
+ window.__adBrandPendingRoleApplication=role;
  var name=String($("roleApplicantName")?.value||$("accountFullName")?.value||"").trim();
  var mobile=String($("roleApplicantMobile")?.value||$("accountMobile")?.value||"").replace(/\D/g,"");
  if($("adDeliveryOtpName")&&name)$("adDeliveryOtpName").value=name;
  if($("adDeliveryOtpMobile")&&mobile)$("adDeliveryOtpMobile").value=mobile;
+ var heading=$("adRoleOtpHeading");
+ if(heading)heading.textContent=role==="seller"?"📱 Seller मोबाइल OTP":"📱 Delivery Partner मोबाइल OTP";
  var box=$("adDeliveryInlineOtp");
  if(box){box.hidden=false;box.scrollIntoView({behavior:"smooth",block:"center"});}
- adDeliveryOtpMessage("अपना नाम और मोबाइल भरकर “OTP भेजें” दबाएँ। OTP verify होने के बाद आवेदन यहीं खुलेगा।",false);
+ adDeliveryOtpMessage("अपना नाम और मोबाइल भरकर “OTP भेजें” दबाएँ। OTP verify होने के बाद चुने हुए role का आवेदन यहीं खुलेगा।",false);
 };
 window.adDeliverySendOtp=async function(){
  var client=window.adBrandSupabase;
@@ -2473,14 +2482,18 @@ window.adDeliveryVerifyOtp=async function(){
      if(saved.error)throw saved.error;
    }
    window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
+   var requestedRole=window.__adBrandPendingRoleApplication==="seller"?"seller":"delivery";
+   window.__adBrandPendingRoleApplication=null;
    window.__adBrandPendingDeliveryOtpMobile=null;window.__adBrandPendingDeliveryOtpName=null;
    if($("roleApplicantName"))$("roleApplicantName").value=name;
    if($("roleApplicantMobile"))$("roleApplicantMobile").value=mobile;
    var box=$("adDeliveryInlineOtp");if(box)box.hidden=true;
    updateRoleApplicationFields();
-   if(typeof window.openAccountAccess==="function")window.openAccountAccess("delivery");
+   if(typeof window.openAccountAccess==="function")window.openAccountAccess(requestedRole);
    updateRoleApplicationFields();
-   toast("मोबाइल OTP verify हो गया। अब Delivery Partner आवेदन भरें।");
+   toast(requestedRole==="seller"
+     ?"मोबाइल OTP verify हो गया। अब Food या Non-food Seller आवेदन भरें।"
+     :"मोबाइल OTP verify हो गया। अब Delivery Partner आवेदन भरें।");
  }catch(e){
    console.error("Delivery OTP verification failed:",e);
    adDeliveryOtpMessage("OTP verify नहीं हुआ: "+(e.message||"OTP expire हो सकता है; नया OTP लेकर प्रयास करें।"),true);
