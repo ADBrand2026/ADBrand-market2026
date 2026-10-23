@@ -1828,6 +1828,117 @@ async function submitRoleApplication() {
   closeModal("accountModal");
   toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller tools unlock नहीं होंगे।");
 }
+
+/* Simple 3-step application wizard for Seller and Delivery Partner.
+   Customer shopping/login screens are intentionally untouched. */
+window.__adRoleWizardStep = window.__adRoleWizardStep || 1;
+function adRoleWizardSetStep(step) {
+  const root = $("roleApplicationFields");
+  if (!root) return;
+  const role = String($("accountRole")?.value || "customer");
+  if (!["seller","delivery"].includes(role)) return;
+  window.__adRoleWizardStep = Math.max(1, Math.min(3, Number(step) || 1));
+  const current = window.__adRoleWizardStep;
+  const groups = {
+    1: ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState","roleApplicantPincode","roleApplicantZone","roleShopName","roleSellerType","roleDeliveryDob","roleVehicleType"],
+    2: ["roleDeliveryIdType","roleDeliveryIdDoc","roleDeliveryPanDoc","roleDeliveryBankProofDoc","roleSellerRegistrationNumber","roleSellerGSTIN","roleSellerRegistrationDoc","roleFssaiLicenseNumber","roleSellerFoodLicenseDoc","roleSellerShopPhotoDoc"],
+    3: ["roleVehicleNumber","roleDeliveryVehiclePhotoDoc","roleDeliveryRcDoc","roleDeliveryLicenseDoc","roleDeliveryAddressDoc","roleSellerAddressDoc","roleApplicationNotes","adDeliveryTruthConfirm"]
+  };
+  const activeIds = new Set(groups[current] || []);
+  root.querySelectorAll(".field").forEach(function(field) {
+    const controls = Array.from(field.querySelectorAll("input,select,textarea"));
+    const ids = controls.map(el => el.id).filter(Boolean);
+    if (!ids.length) return;
+    const own = ids.find(id => Object.values(groups).some(list => list.includes(id)));
+    if (!own) return;
+    const visible = ids.some(id => activeIds.has(id));
+    field.hidden = !visible;
+    field.style.display = visible ? "" : "none";
+  });
+  const identity = $("roleDeliveryIdentityFields");
+  if (identity) { identity.hidden = role !== "delivery" || current !== 2; identity.style.display = role === "delivery" && current === 2 ? "block" : "none"; }
+  const food = $("roleFoodComplianceFields");
+  if (food) { const show = role === "seller" && $("roleSellerType")?.value === "food" && current === 2; food.hidden = !show; food.style.display = show ? "block" : "none"; }
+  const vehicle = $("roleVehicleFields");
+  if (vehicle) { const show = role === "delivery" && (current === 1 || current === 3); vehicle.hidden = !show; vehicle.style.display = show ? "block" : "none"; }
+  const shop = $("roleShopFields");
+  if (shop) { shop.hidden = role !== "seller"; shop.style.display = role === "seller" ? "block" : "none"; }
+  const title = $("adRoleWizardTitle");
+  const description = $("adRoleWizardDescription");
+  const stepNames = role === "delivery"
+    ? ["1/3 · आपकी जानकारी","2/3 · पहचान के दस्तावेज़","3/3 · वाहन और जमा करें"]
+    : ["1/3 · आपकी दुकान","2/3 · लाइसेंस और दस्तावेज़","3/3 · पता और जमा करें"];
+  if (title) title.textContent = stepNames[current - 1];
+  if (description) description.textContent = current === 1 ? "पहले केवल ज़रूरी बुनियादी जानकारी भरें।" : current === 2 ? "अब इस चरण के दस्तावेज़ चुनें। JPG/PNG/PDF, अधिकतम 10 MB प्रति फ़ाइल।" : "अंत में बाकी जानकारी जाँचें और आवेदन जमा करें।";
+  const back = $("adRoleWizardBack"), next = $("adRoleWizardNext"), submit = root.querySelector(".ad-rider-submit");
+  if (back) back.hidden = current === 1;
+  if (next) next.hidden = current === 3;
+  if (submit) submit.hidden = current !== 3;
+  const progress = $("adRoleWizardProgress");
+  if (progress) progress.textContent = "चरण " + current + " / 3";
+  const nav = $("adRoleWizardNav");
+  if (nav) nav.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function adRoleWizardValidateCurrentStep() {
+  const role = String($("accountRole")?.value || "customer");
+  const step = Number(window.__adRoleWizardStep || 1);
+  const requiredIds = step === 1
+    ? ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState",...(role === "seller" ? ["roleShopName","roleApplicantPincode"] : ["roleApplicantZone","roleDeliveryDob"])]
+    : step === 2
+      ? (role === "delivery" ? ["roleDeliveryIdDoc","roleDeliveryPanDoc"] : ( $("roleSellerType")?.value === "food" ? ["roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"] : ["roleSellerShopPhotoDoc"]))
+      : (role === "delivery" ? ["roleDeliveryVehiclePhotoDoc","roleDeliveryAddressDoc",...(!["bicycle","cycle","cycling","electric_bicycle","electric cycle","e-cycle"].includes(String($("roleVehicleType")?.value||"").toLowerCase()) ? ["roleDeliveryRcDoc","roleDeliveryLicenseDoc"] : [])] : ["roleSellerShopPhotoDoc","roleSellerAddressDoc"]);
+  for (const id of requiredIds) {
+    const el = $(id);
+    if (!el) continue;
+    const missing = el.type === "file" ? !el.files?.length : !String(el.value || "").trim();
+    if (missing) {
+      toast("इस चरण में सभी जरूरी जानकारी भरें।");
+      el.focus();
+      el.scrollIntoView({behavior:"smooth",block:"center"});
+      return false;
+    }
+  }
+  if (step === 1 && !validIndianMobile(String($("roleApplicantMobile")?.value || "").replace(/\\D/g,""))) {
+    toast("सही 10-digit मोबाइल नंबर भरें।"); $("roleApplicantMobile")?.focus(); return false;
+  }
+  if (step === 1 && role === "delivery") {
+    const dob = new Date(String($("roleDeliveryDob")?.value || "") + "T00:00:00");
+    const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear()-18);
+    if (Number.isNaN(dob.getTime()) || dob > cutoff) { toast("Delivery Partner की उम्र कम से कम 18 वर्ष होनी चाहिए।"); $("roleDeliveryDob")?.focus(); return false; }
+  }
+  if (step === 1 && role === "seller" && !validPincode(String($("roleApplicantPincode")?.value || ""))) {
+    toast("सही 6-digit PIN Code भरें।"); $("roleApplicantPincode")?.focus(); return false;
+  }
+  if (step === 2 && role === "seller" && $("roleSellerType")?.value === "food" && !/^\\d{14}$/.test(String($("roleFssaiLicenseNumber")?.value || "").replace(/\\D/g,""))) {
+    toast("Food Seller के लिए सही 14-digit FSSAI नंबर जरूरी है।"); $("roleFssaiLicenseNumber")?.focus(); return false;
+  }
+  if (step === 3 && role === "delivery" && !$("adDeliveryTruthConfirm")?.checked) {
+    toast("आगे बढ़ने से पहले सही जानकारी और एक व्यक्ति–एक account की पुष्टि करें।"); $("adDeliveryTruthConfirm")?.focus(); return false;
+  }
+  return true;
+}
+function adRoleWizardNextStep() {
+  if (!adRoleWizardValidateCurrentStep()) return;
+  adRoleWizardSetStep((window.__adRoleWizardStep || 1) + 1);
+}
+function adRoleWizardPreviousStep() {
+  adRoleWizardSetStep((window.__adRoleWizardStep || 1) - 1);
+}
+function adRoleWizardEnsureUi() {
+  const root = $("roleApplicationFields");
+  if (!root || $("adRoleWizardNav")) return;
+  const nav = document.createElement("section");
+  nav.id = "adRoleWizardNav";
+  nav.className = "section card";
+  nav.style.cssText = "margin:12px 0;padding:14px;border:1px solid var(--border);border-radius:12px";
+  nav.innerHTML = '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap"><strong id="adRoleWizardTitle">चरण 1/3</strong><span id="adRoleWizardProgress" class="small muted">चरण 1 / 3</span></div><p id="adRoleWizardDescription" class="small muted">पहले बुनियादी जानकारी भरें।</p><div style="height:6px;border-radius:9px;background:var(--border);overflow:hidden"><div id="adRoleWizardBar" style="height:100%;width:33.33%;background:var(--primary,#2563eb);transition:width .2s"></div></div><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><button id="adRoleWizardBack" class="btn outline" type="button" onclick="adRoleWizardPreviousStep()">← पीछे</button><button id="adRoleWizardNext" class="btn primary" type="button" onclick="adRoleWizardNextStep()">आगे →</button></div>';
+  const heading = $("roleApplicationTitle");
+  if (heading?.parentNode) heading.parentNode.insertBefore(nav, heading.nextSibling);
+  else root.insertBefore(nav, root.firstChild);
+  const originalSetStep = adRoleWizardSetStep;
+  adRoleWizardSetStep = function(step) { originalSetStep(step); const bar=$("adRoleWizardBar"); if(bar) bar.style.width=(Math.max(1,Math.min(3,Number(step)||1))*100/3)+"%"; };
+}
+
 function updateRoleApplicationFields() {
   const role = String($("accountRole")?.value || "customer");
   const isSeller = role === "seller";
@@ -1872,6 +1983,8 @@ function updateRoleApplicationFields() {
   if (truthDeclaration) { truthDeclaration.hidden = !isDelivery; truthDeclaration.style.display = isDelivery ? "block" : "none"; }
   const statusCard = $("adRoleApplicationStatus");
   if (statusCard && !statusCard.dataset.completed) { statusCard.hidden = true; statusCard.style.display = "none"; }
+  adRoleWizardEnsureUi();
+  if (isSeller || isDelivery) adRoleWizardSetStep(window.__adRoleWizardStep || 1);
 
   const fssai = $("roleFssaiLicenseNumber");
   const fssaiDoc = $("roleSellerFoodLicenseDoc");
