@@ -1066,7 +1066,7 @@ img{max-width:100%}
       <p><strong id="adRoleApplicationStatusLabel">आवेदन प्राप्त</strong></p>
       <p id="adRoleApplicationStatusText">आपका आवेदन Admin review में है।</p>
       <p class="small muted">Application ID: <code id="adRoleApplicationStatusId">—</code></p>
-      <ul><li>Admin आपके documents और पहचान की जाँच करेगा।</li><li>गलत/अधूरी जानकारी पर correction या rejection हो सकता है।</li><li>Approval और face/liveness verification पूरा होने से पहले Delivery orders नहीं मिलेंगे।</li></ul>
+      <ul><li>Admin आपके documents और जानकारी की जाँच करेगा।</li><li>गलत/अधूरी जानकारी पर correction या rejection हो सकता है।</li><li>Approval और जहाँ लागू हो जरूरी verification पूरा होने से पहले Seller/Delivery tools unlock नहीं होंगे।</li></ul>
       <button class="btn outline" type="button" onclick="closeModal('accountModal')">ठीक है</button>
     </section>
 
@@ -1814,19 +1814,16 @@ async function submitRoleApplication() {
       return;
     }
   }
-  if (requestedRole === "delivery") {
-    if ($("adRoleApplicationStatusLabel")) $("adRoleApplicationStatusLabel").textContent = "आवेदन प्राप्त — Admin Review Pending";
-    if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = "आपका आवेदन और उपलब्ध private documents जमा हो गए हैं। Admin दस्तावेज़ों की जाँच करेगा; जरूरत पड़ने पर correction माँगा जा सकता है।";
-    if ($("adRoleApplicationStatusId")) $("adRoleApplicationStatusId").textContent = application.id;
-    const statusCard = $("adRoleApplicationStatus");
-    if (statusCard) { statusCard.hidden = false; statusCard.style.display = "block"; statusCard.dataset.completed = "true"; statusCard.scrollIntoView({behavior:"smooth",block:"center"}); }
-    if ($("roleApplicationFields")) { $("roleApplicationFields").hidden = true; $("roleApplicationFields").style.display = "none"; }
-    if ($("accountAccessButtons")) $("accountAccessButtons").hidden = true;
-    toast("Delivery आवेदन जमा हो गया। अब status screen पर Application ID सुरक्षित रखें।");
-    return;
-  }
-  closeModal("accountModal");
-  toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller tools unlock नहीं होंगे।");
+  if ($("adRoleApplicationStatusLabel")) $("adRoleApplicationStatusLabel").textContent = "आवेदन प्राप्त — Admin Review Pending";
+  if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = requestedRole === "delivery"
+    ? "आपका Delivery Partner आवेदन और private documents जमा हो गए हैं। Admin दस्तावेज़ों की जाँच करेगा; जरूरत पड़ने पर correction माँगा जा सकता है।"
+    : "आपका Seller आवेदन और private documents जमा हो गए हैं। Food Seller के FSSAI दस्तावेज़ सहित Admin दुकान की जानकारी जाँचेगा; जरूरत पड़ने पर correction माँगा जा सकता है।";
+  if ($("adRoleApplicationStatusId")) $("adRoleApplicationStatusId").textContent = application.id;
+  const statusCard = $("adRoleApplicationStatus");
+  if (statusCard) { statusCard.hidden = false; statusCard.style.display = "block"; statusCard.dataset.completed = "true"; statusCard.scrollIntoView({behavior:"smooth",block:"center"}); }
+  if ($("roleApplicationFields")) { $("roleApplicationFields").hidden = true; $("roleApplicationFields").style.display = "none"; }
+  if ($("accountAccessButtons")) $("accountAccessButtons").hidden = true;
+  toast((requestedRole === "delivery" ? "Delivery Partner" : "Seller") + " आवेदन जमा हो गया। Application ID सुरक्षित रखें।");
 }
 
 /* Simple 3-step application wizard for Seller and Delivery Partner.
