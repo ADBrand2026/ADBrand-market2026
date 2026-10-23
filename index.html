@@ -593,7 +593,7 @@ img{max-width:100%}
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
-    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders local eligible zone में AD Brand Market rider से deliver होंगे। Non-food products अभी देख सकते हैं, लेकिन order/add-to-cart तब तक बंद रहेगा जब तक live courier quote, seller-paid booking, वास्तविक shipping/RTO खर्च और COD handling सुरक्षित रूप से जुड़ न जाएँ। प्रस्तावित ₹20 AD platform fee वास्तविक courier charge नहीं है और order enable होने से पहले checkout पर साफ़ दिखाई जाएगी।</div>
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Food orders local eligible zone में AD Brand Market rider से deliver होंगे। Non-food products देख सकते हैं और उसी seller city/state में Self Pickup से order कर सकते हैं। Non-food Home Delivery अभी बंद है, जब तक live courier quote, seller-paid booking, वास्तविक shipping/RTO खर्च और COD handling सुरक्षित रूप से जुड़ न जाएँ। प्रस्तावित ₹20 AD platform fee checkout पर अलग दिखाई जाएगी; यह courier charge नहीं है। Food orders हमेशा local AD rider delivery होंगे।</div>
     <details class="section card ad-customer-filters">
       <summary>⚙️ Product filters (optional)</summary>
       <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
@@ -686,7 +686,7 @@ img{max-width:100%}
           <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" selected>Home Delivery — courier आपके घर आएगा</option><option value="self_pickup">Self Pickup — दुकान से खुद लें</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders के लिए local AD rider delivery लागू है। Non-food Home Delivery courier API/booking और shipping/RTO settlement जुड़ने तक बंद है; उसी seller city/state में Self Pickup चुना जा सकता है। Non-food seller order पर ₹20 platform fee लागू हो सकती है; COD अभी उपलब्ध है, UPI gateway live नहीं है।</p>
+        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders हमेशा local AD rider से deliver होंगे। Self Pickup केवल Non-food सामान के लिए है और seller के उसी city/state में उपलब्ध है। Non-food Home Delivery courier API/booking, वास्तविक shipping charge और RTO settlement live होने तक बंद है। Non-food order पर ₹20 platform fee लागू हो सकती है; COD उपलब्ध है, UPI gateway अभी live नहीं है।</p>
         <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
