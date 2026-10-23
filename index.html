@@ -1039,7 +1039,7 @@ img{max-width:100%}
         <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">📍 Delivery Zone / जिस इलाके में डिलीवरी करनी है</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" placeholder="जैसे Gomti Nagar, Andheri, Rohini" aria-describedby="roleApplicantZoneHelp"><small id="roleApplicantZoneHelp" class="small muted">अपने चुने हुए शहर का वह इलाका लिखें जहाँ आप orders deliver करना चाहते हैं। यह PIN Code नहीं है। Zone की वास्तविक availability Admin approval में confirm होगी।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
-        <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="2008-10-22" required></div>
+        <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="" required></div>
         <div class="field"><label for="roleDeliveryIdType">पहचान प्रमाण — इनमें से एक</label><select id="roleDeliveryIdType" required><option value="aadhaar">Aadhaar Card</option><option value="voter_id">Voter ID</option></select></div>
         <div class="field"><label for="roleDeliveryIdDoc">Aadhaar / Voter ID की फोटो (private)</label><input id="roleDeliveryIdDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
         <div class="field"><label for="roleDeliveryPanDoc">PAN Card (private)</label><input id="roleDeliveryPanDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
@@ -1882,11 +1882,13 @@ function adRoleWizardSetStep(step) {
 function adRoleWizardValidateCurrentStep() {
   const role = String($("accountRole")?.value || "customer");
   const step = Number(window.__adRoleWizardStep || 1);
+  const vehicleType = String($("roleVehicleType")?.value || "").toLowerCase().replace(/[\s-]/g, "_");
+  const isCycle = ["bicycle","cycle","cycling","electric_bicycle","electric_cycle","e_cycle"].includes(vehicleType);
   const requiredIds = step === 1
     ? ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState",...(role === "seller" ? ["roleShopName","roleApplicantPincode"] : ["roleApplicantZone","roleDeliveryDob"])]
     : step === 2
-      ? (role === "delivery" ? ["roleDeliveryIdDoc","roleDeliveryPanDoc"] : ( $("roleSellerType")?.value === "food" ? ["roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"] : ["roleSellerShopPhotoDoc"]))
-      : (role === "delivery" ? ["roleDeliveryVehiclePhotoDoc","roleDeliveryAddressDoc",...(!["bicycle","cycle","cycling","electric_bicycle","electric cycle","e-cycle"].includes(String($("roleVehicleType")?.value||"").toLowerCase()) ? ["roleDeliveryRcDoc","roleDeliveryLicenseDoc"] : [])] : ["roleSellerShopPhotoDoc","roleSellerAddressDoc"]);
+      ? (role === "delivery" ? ["roleDeliveryIdDoc","roleDeliveryPanDoc"] : ($( "roleSellerType")?.value === "food" ? ["roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"] : []))
+      : (role === "delivery" ? ["roleDeliveryVehiclePhotoDoc","roleDeliveryAddressDoc",...(!isCycle ? ["roleDeliveryRcDoc","roleDeliveryLicenseDoc"] : [])] : ["roleSellerShopPhotoDoc","roleSellerAddressDoc"]);
   for (const id of requiredIds) {
     const el = $(id);
     if (!el) continue;
@@ -1898,7 +1900,7 @@ function adRoleWizardValidateCurrentStep() {
       return false;
     }
   }
-  if (step === 1 && !validIndianMobile(String($("roleApplicantMobile")?.value || "").replace(/\\D/g,""))) {
+  if (step === 1 && !validIndianMobile(String($("roleApplicantMobile")?.value || "").replace(/\D/g,""))) {
     toast("सही 10-digit मोबाइल नंबर भरें।"); $("roleApplicantMobile")?.focus(); return false;
   }
   if (step === 1 && role === "delivery") {
@@ -1909,7 +1911,7 @@ function adRoleWizardValidateCurrentStep() {
   if (step === 1 && role === "seller" && !validPincode(String($("roleApplicantPincode")?.value || ""))) {
     toast("सही 6-digit PIN Code भरें।"); $("roleApplicantPincode")?.focus(); return false;
   }
-  if (step === 2 && role === "seller" && $("roleSellerType")?.value === "food" && !/^\\d{14}$/.test(String($("roleFssaiLicenseNumber")?.value || "").replace(/\\D/g,""))) {
+  if (step === 2 && role === "seller" && $("roleSellerType")?.value === "food" && !/^\d{14}$/.test(String($("roleFssaiLicenseNumber")?.value || "").replace(/\D/g,""))) {
     toast("Food Seller के लिए सही 14-digit FSSAI नंबर जरूरी है।"); $("roleFssaiLicenseNumber")?.focus(); return false;
   }
   if (step === 3 && role === "delivery" && !$("adDeliveryTruthConfirm")?.checked) {
@@ -1939,6 +1941,15 @@ function adRoleWizardEnsureUi() {
   adRoleWizardSetStep = function(step) { originalSetStep(step); const bar=$("adRoleWizardBar"); if(bar) bar.style.width=(Math.max(1,Math.min(3,Number(step)||1))*100/3)+"%"; };
 }
 
+// Keep the date input's maximum DOB current so every eligible 18-year-old can apply.
+(function(){
+  const dobInput = $("roleDeliveryDob");
+  if (dobInput) {
+    const cutoff = new Date();
+    cutoff.setFullYear(cutoff.getFullYear() - 18);
+    dobInput.max = cutoff.getFullYear() + "-" + String(cutoff.getMonth()+1).padStart(2,"0") + "-" + String(cutoff.getDate()).padStart(2,"0");
+  }
+})();
 function updateRoleApplicationFields() {
   const role = String($("accountRole")?.value || "customer");
   const isSeller = role === "seller";
