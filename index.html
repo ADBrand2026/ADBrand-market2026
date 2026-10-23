@@ -2437,6 +2437,7 @@ window.startAccountOtpLogin=function(){
  var role=String($("accountRole")?.value||"");
  if(role!=="seller"&&role!=="delivery")return toast("पहले Seller या Delivery Partner चुनें।");
  window.__adBrandPendingRoleApplication=role;
+ if(typeof window.closeModal==="function")window.closeModal("accountModal");
  if(typeof window.adDeliveryStartOtpRegistration==="function")window.adDeliveryStartOtpRegistration();
 };
 window.adDeliveryStartOtpRegistration=function(){
