@@ -2380,11 +2380,13 @@ window.adCustomerVerifyOtp=async function(){
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
  if(!/^\d{4,8}$/.test(token))return customerOtpMessage("SMS में आया valid OTP दर्ज करें।",true);
  var verify=$("adCustomerOtpVerify");if(verify)verify.disabled=true;
+ var otpVerifiedSession=false;
  try{
   var auth=await c.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
   if(auth.error)throw auth.error;
   var user=auth.data?.user||auth.data?.session?.user;
   if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली। फिर प्रयास करें।");
+  otpVerifiedSession=true;
   var pr=await c.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
   if(pr.error)throw pr.error;
   if(!pr.data){await c.auth.signOut();throw new Error("Customer profile auto-create नहीं हुआ। Auth trigger और database setup जाँचना होगा।");}
@@ -2417,6 +2419,7 @@ window.adCustomerVerifyOtp=async function(){
   }
   window.__adBrandPendingCustomerOtpMobile=null;
  }catch(e){
+  if(otpVerifiedSession&&!(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer")){try{await c.auth.signOut();}catch(cleanupError){console.error("Customer OTP session cleanup failed:",cleanupError);}}
   console.error("Customer OTP verification failed:",e);
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
@@ -2478,11 +2481,13 @@ window.adDeliveryVerifyOtp=async function(){
  if(!/^[6-9]\d{9}$/.test(mobile))return adDeliveryOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
  if(!/^\d{4,8}$/.test(token))return adDeliveryOtpMessage("SMS में आया सही OTP दर्ज करें।",true);
  var verify=$("adDeliveryOtpVerify");if(verify)verify.disabled=true;
+ var otpVerifiedSession=false;
  try{
    var auth=await client.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
    if(auth.error)throw auth.error;
    var user=auth.data?.user||auth.data?.session?.user;
    if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली।");
+   otpVerifiedSession=true;
    var profile=await client.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
    if(profile.error)throw profile.error;
    if(!profile.data){await client.auth.signOut();throw new Error("Customer profile नहीं बना। Auth trigger/database setup जाँचना होगा।");}
@@ -2505,6 +2510,7 @@ window.adDeliveryVerifyOtp=async function(){
      ?"मोबाइल OTP verify हो गया। अब Food या Non-food Seller आवेदन भरें।"
      :"मोबाइल OTP verify हो गया। अब Delivery Partner आवेदन भरें।");
  }catch(e){
+   if(otpVerifiedSession&&!(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer")){try{await client.auth.signOut();}catch(cleanupError){console.error("Role OTP session cleanup failed:",cleanupError);}}
    console.error("Delivery OTP verification failed:",e);
    adDeliveryOtpMessage("OTP verify नहीं हुआ: "+(e.message||"OTP expire हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
