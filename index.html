@@ -1055,9 +1055,20 @@ img{max-width:100%}
         <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
       <details class="ad-rider-optional"><summary>अतिरिक्त जानकारी (वैकल्पिक)</summary><div class="field"><label for="roleApplicationNotes">कोई अतिरिक्त जानकारी</label><textarea id="roleApplicationNotes" maxlength="1000" placeholder="यहाँ वैकल्पिक जानकारी लिखें"></textarea></div></details>
-      <div class="ad-rider-submit-note">🔒 आपके दस्तावेज़ private storage में भेजे जाते हैं और Admin verification के लिए होते हैं।</div>
+      <div id="adDeliveryTruthDeclaration" class="field" hidden>
+        <label style="display:flex;gap:10px;align-items:flex-start;font-weight:600"><input id="adDeliveryTruthConfirm" type="checkbox" style="width:auto;min-width:18px;margin-top:4px"> मैं पुष्टि करता/करती हूँ कि मेरा नाम, मोबाइल, ID, PAN, पता और वाहन की जानकारी सही है; मैं किसी दूसरे व्यक्ति की ID से account नहीं बना रहा/रही हूँ। गलत जानकारी या duplicate/fraud account मिलने पर आवेदन reject और account suspend किया जा सकता है।</label>
+      </div>
+      <div class="ad-rider-submit-note">🔒 आपके दस्तावेज़ private storage में भेजे जाते हैं और Admin verification के लिए होते हैं। केवल OTP verify होने से आवेदन approve नहीं होता।</div>
       <button class="btn primary ad-rider-submit" type="button" onclick="submitRoleApplication()">📨 Delivery Partner आवेदन भेजें</button>
     </div>
+    <section id="adRoleApplicationStatus" class="section card" hidden aria-live="polite" style="margin-top:14px">
+      <h3>🛡️ आवेदन की स्थिति / Application Status</h3>
+      <p><strong id="adRoleApplicationStatusLabel">आवेदन प्राप्त</strong></p>
+      <p id="adRoleApplicationStatusText">आपका आवेदन Admin review में है।</p>
+      <p class="small muted">Application ID: <code id="adRoleApplicationStatusId">—</code></p>
+      <ul><li>Admin आपके documents और पहचान की जाँच करेगा।</li><li>गलत/अधूरी जानकारी पर correction या rejection हो सकता है।</li><li>Approval और face/liveness verification पूरा होने से पहले Delivery orders नहीं मिलेंगे।</li></ul>
+      <button class="btn outline" type="button" onclick="closeModal('accountModal')">ठीक है</button>
+    </section>
 
     <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
     <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
@@ -1648,6 +1659,11 @@ async function submitRoleApplication() {
     toast("अपना पसंदीदा Delivery Zone / इलाका भरें।");
     return;
   }
+  if (requestedRole === "delivery" && !$("adDeliveryTruthConfirm")?.checked) {
+    toast("आगे बढ़ने से पहले सही जानकारी और एक व्यक्ति–एक account की पुष्टि करें।");
+    $("adDeliveryTruthConfirm")?.focus();
+    return;
+  }
   if (requestedRole === "delivery" && state.length < 2) {
     // State is useful for disambiguating zones, but is not a postal-code substitute.
     toast("अपना राज्य भरें ताकि Delivery Zone सही शहर से जुड़ सके।");
@@ -1742,6 +1758,24 @@ async function submitRoleApplication() {
     status: "pending"
   };
   let application = null;
+  // Prevent duplicate pending applications for the same signed-in profile and role.
+  const pendingCheck = await client.from("role_applications").select("id,status")
+    .eq("profile_id",profile.data.id).eq("requested_role",requestedRole).eq("status","pending").maybeSingle();
+  if (pendingCheck.error) {
+    console.error("Pending application check failed:",pendingCheck.error);
+    toast("Duplicate application check पूरा नहीं हो पाया। सुरक्षा के लिए अभी आवेदन नहीं भेजा गया; बाद में फिर प्रयास करें।");
+    return;
+  }
+  if (pendingCheck.data) {
+    const statusCard = $("adRoleApplicationStatus");
+    if ($("adRoleApplicationStatusLabel")) $("adRoleApplicationStatusLabel").textContent = "पहले से आवेदन Pending है";
+    if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = "आपका एक आवेदन पहले से Admin review में है। दूसरा आवेदन बनाने के बजाय उसी आवेदन की जाँच का इंतज़ार करें।";
+    if ($("adRoleApplicationStatusId")) $("adRoleApplicationStatusId").textContent = pendingCheck.data.id;
+    if (statusCard) { statusCard.hidden = false; statusCard.style.display = "block"; statusCard.dataset.completed = "true"; }
+    if ($("roleApplicationFields")) { $("roleApplicationFields").hidden = true; $("roleApplicationFields").style.display = "none"; }
+    if ($("accountAccessButtons")) $("accountAccessButtons").hidden = true;
+    return;
+  }
   const result = await client.from("role_applications").insert(payload).select("id,status").single();
   if (!result.error) {
     application = result.data;
@@ -1780,8 +1814,19 @@ async function submitRoleApplication() {
       return;
     }
   }
+  if (requestedRole === "delivery") {
+    if ($("adRoleApplicationStatusLabel")) $("adRoleApplicationStatusLabel").textContent = "आवेदन प्राप्त — Admin Review Pending";
+    if ($("adRoleApplicationStatusText")) $("adRoleApplicationStatusText").textContent = "आपका आवेदन और उपलब्ध private documents जमा हो गए हैं। Admin दस्तावेज़ों की जाँच करेगा; जरूरत पड़ने पर correction माँगा जा सकता है।";
+    if ($("adRoleApplicationStatusId")) $("adRoleApplicationStatusId").textContent = application.id;
+    const statusCard = $("adRoleApplicationStatus");
+    if (statusCard) { statusCard.hidden = false; statusCard.style.display = "block"; statusCard.dataset.completed = "true"; statusCard.scrollIntoView({behavior:"smooth",block:"center"}); }
+    if ($("roleApplicationFields")) { $("roleApplicationFields").hidden = true; $("roleApplicationFields").style.display = "none"; }
+    if ($("accountAccessButtons")) $("accountAccessButtons").hidden = true;
+    toast("Delivery आवेदन जमा हो गया। अब status screen पर Application ID सुरक्षित रखें।");
+    return;
+  }
   closeModal("accountModal");
-  toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller/Delivery tools unlock नहीं होंगे।");
+  toast("आवेदन और private documents सुरक्षित रूप से Admin review में भेजे गए। Review/verification से पहले Seller tools unlock नहीं होंगे।");
 }
 function updateRoleApplicationFields() {
   const role = String($("accountRole")?.value || "customer");
@@ -1823,6 +1868,10 @@ function updateRoleApplicationFields() {
   if (stateInput) stateInput.required = isSeller || isDelivery;
   setSection(identity, isDelivery);
   setSection(foodCompliance, isFoodSeller);
+  const truthDeclaration = $("adDeliveryTruthDeclaration");
+  if (truthDeclaration) { truthDeclaration.hidden = !isDelivery; truthDeclaration.style.display = isDelivery ? "block" : "none"; }
+  const statusCard = $("adRoleApplicationStatus");
+  if (statusCard && !statusCard.dataset.completed) { statusCard.hidden = true; statusCard.style.display = "none"; }
 
   const fssai = $("roleFssaiLicenseNumber");
   const fssaiDoc = $("roleSellerFoodLicenseDoc");
