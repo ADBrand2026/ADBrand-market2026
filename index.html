@@ -1856,7 +1856,7 @@ function adRoleWizardSetStep(step) {
     field.style.display = visible ? "" : "none";
   });
   const identity = $("roleDeliveryIdentityFields");
-  if (identity) { identity.hidden = role !== "delivery" || current !== 2; identity.style.display = role === "delivery" && current === 2 ? "block" : "none"; }
+  if (identity) { const showIdentityGroup = role === "delivery" && (current === 1 || current === 2); identity.hidden = !showIdentityGroup; identity.style.display = showIdentityGroup ? "block" : "none"; }
   const food = $("roleFoodComplianceFields");
   if (food) { const show = role === "seller" && $("roleSellerType")?.value === "food" && current === 2; food.hidden = !show; food.style.display = show ? "block" : "none"; }
   const vehicle = $("roleVehicleFields");
