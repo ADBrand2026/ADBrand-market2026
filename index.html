@@ -402,6 +402,15 @@ img{max-width:100%}
 @media(max-width:620px){#adLiveCustomerMarket .ad-customer-filters{padding:10px 12px}}
 </style>
 
+<style id="ad-delivery-access-clarity">
+#adDeliveryAccessQuickActions{margin-top:18px;padding:16px;border:1px solid rgba(11,155,104,.25);border-radius:18px;background:linear-gradient(135deg,#f0fdf7,#f5f7ff)}
+#adDeliveryAccessQuickActions h3{margin:0 0 6px;color:#086b4b}
+#adDeliveryAccessQuickActions p{margin:0 0 12px;line-height:1.55;color:#46536a}
+#adDeliveryAccessQuickActions .ad-delivery-access-buttons{display:flex;gap:10px;flex-wrap:wrap}
+#adDeliveryAccessQuickActions .ad-delivery-access-buttons .btn{flex:1 1 220px;min-height:46px}
+@media(max-width:520px){#adDeliveryAccessQuickActions .ad-delivery-access-buttons{display:grid;grid-template-columns:1fr}}
+</style>
+
 <style id="ad-swiggy-inspired-rider-onboarding-v1">
 /* Delivery Partner onboarding: clean, staged, mobile-first. Inspired by common delivery-app flows; not a copy of Swiggy branding. */
 #roleApplicationFields{border:1px solid #e1e7f0;border-radius:20px;padding:clamp(14px,3vw,24px);background:linear-gradient(180deg,#fff,#f9fbff)}
@@ -474,6 +483,14 @@ img{max-width:100%}
           <span class="ad-role-entry-arrow">→</span>
         </button>
       </div>
+      <section id="adDeliveryAccessQuickActions" aria-label="Delivery Partner login and registration">
+        <h3>🛵 Delivery Partner के लिए</h3>
+        <p>पहले से Delivery Partner account है तो Login करें। नए हैं तो Customer account बनाकर आवेदन भेजें; Delivery काम Admin approval के बाद खुलेगा।</p>
+        <div class="ad-delivery-access-buttons">
+          <button class="btn green" type="button" onclick="openAccountAccess('delivery');setAccountAccessMode('login')">🔐 Delivery Partner Login</button>
+          <button class="btn outline" type="button" onclick="openAccountAccess('delivery');setAccountAccessMode('signup')">📝 नया आवेदन / Register</button>
+        </div>
+      </section>
     </div>
   </section>
 </main>
@@ -1452,12 +1469,14 @@ function setAccountAccessMode(mode) {
   const intent = $("accountIntentLabel");
   const title = $("accountModalTitle");
   const signupButton = $("accountSignupButton");
+  const loginButton = $("accountLoginButton");
+  if (loginButton) loginButton.textContent = role === "delivery" ? "Delivery Partner Login" : role === "seller" ? "Seller Login" : "Customer Login";
   if (nameField) nameField.hidden = !isSignup;
   if (nameInput) nameInput.required = isSignup;
   const roleLabel = role === "delivery" ? "Delivery Partner Registration" : role === "seller" ? "Seller Registration" : "Customer Account";
   if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
   if (intent) intent.textContent = role === "delivery" ? "🛵 Delivery Partner आवेदन — पहले अपने Customer login से पहचान verify करें। वाहन और दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : role === "seller" ? "🏪 Seller आवेदन — दुकान और business के दस्तावेज़ केवल इसी आवेदन में माँगे जाएँगे।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
-  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : "Customer Account बनाकर आवेदन जारी रखें";
+  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : role === "delivery" ? "Customer Account बनाकर Delivery आवेदन जारी रखें" : "Customer Account बनाकर Seller आवेदन जारी रखें";
   const extras = $("adCustomerAuthExtras");
   if (extras) extras.style.display = role === "customer" ? "flex" : "none";
   updateRoleApplicationFields();
