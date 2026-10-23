@@ -2492,7 +2492,20 @@ window.adDeliveryVerifyOtp=async function(){
    var profile=await client.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
    if(profile.error)throw profile.error;
    if(!profile.data){await client.auth.signOut();throw new Error("Customer profile नहीं बना। Auth trigger/database setup जाँचना होगा।");}
-   if(profile.data.role!=="customer"||profile.data.is_active!==true){await client.auth.signOut();throw new Error("यह active Customer account नहीं है। सहायता से संपर्क करें।");}
+   if(profile.data.is_active!==true){await client.auth.signOut();throw new Error("यह account inactive है।");}
+   if(profile.data.role==="seller"||profile.data.role==="delivery"){
+     window.__adBrandAuthUser=user;window.__adBrandAuthRole=profile.data.role;
+     currentAccountRole=profile.data.role;
+     window.__adBrandPendingRoleApplication=null;
+     window.__adBrandPendingDeliveryOtpMobile=null;window.__adBrandPendingDeliveryOtpName=null;
+     if($("accountRole"))$("accountRole").value=profile.data.role;
+     var activeRoleOtpBox=$("adDeliveryInlineOtp");if(activeRoleOtpBox)activeRoleOtpBox.hidden=true;
+     updateRoleApplicationFields();
+     if(typeof window.openPanel==="function")window.openPanel(profile.data.role);
+     toast(profile.data.role==="seller"?"Seller मोबाइल OTP login सफल हुआ।":"Delivery Partner मोबाइल OTP login सफल हुआ।");
+     return;
+   }
+   if(profile.data.role!=="customer"){await client.auth.signOut();throw new Error("इस account को public role से login की अनुमति नहीं है।");}
    if(!String(profile.data.full_name||"").trim()||!String(profile.data.mobile||"").trim()){
      var saved=await client.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});
      if(saved.error)throw saved.error;
