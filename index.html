@@ -1513,8 +1513,8 @@ function handleAccountSignup() {
       updateRoleApplicationFields();
       $("roleApplicationFields")?.scrollIntoView({behavior:"smooth",block:"start"});
       toast(role === "seller"
-        ? "मोबाइल verify है। अब Food या Non-food Seller का आवेदन भरें।"
-        : "मोबाइल verify है। अब Delivery Partner का आवेदन भरें और documents दें।");
+        ? "Customer login हो चुका है। ₹0 मोड में आवेदन भर सकते हैं; मोबाइल OTP verification अभी pending है।"
+        : "Customer login हो चुका है। ₹0 मोड में Delivery आवेदन भर सकते हैं; मोबाइल OTP verification अभी pending है।");
       return;
     }
     if (typeof window.adDeliveryStartOtpRegistration === "function") {
