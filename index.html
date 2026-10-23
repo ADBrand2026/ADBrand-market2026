@@ -1083,7 +1083,7 @@ img{max-width:100%}
       </div>
       <div id="adDeliveryOtpStatus" class="notice" role="status" aria-live="polite">पहले अपना नाम और मोबाइल नंबर भरें।</div>
     </section>
-    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
+    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountOtpLoginButton" class="btn outline" type="button" hidden onclick="startAccountOtpLogin()">📱 Mobile OTP Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
 </div>
@@ -1976,6 +1976,8 @@ function updateRoleApplicationFields() {
   const isSeller = role === "seller";
   const isDelivery = role === "delivery";
   const isCustomer = role === "customer";
+  const otpLoginButton = $("accountOtpLoginButton");
+  if (otpLoginButton) otpLoginButton.hidden = !(isSeller || isDelivery);
   const customerSessionVerified = !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
   const fields = $("roleApplicationFields");
   const shop = $("roleShopFields");
@@ -2431,6 +2433,12 @@ function adDeliveryOtpMessage(message,isError){
  box.style.borderColor=isError?"#dc2626":"";
  box.style.color=isError?"#b91c1c":"";
 }
+window.startAccountOtpLogin=function(){
+ var role=String($("accountRole")?.value||"");
+ if(role!=="seller"&&role!=="delivery")return toast("पहले Seller या Delivery Partner चुनें।");
+ window.__adBrandPendingRoleApplication=role;
+ if(typeof window.adDeliveryStartOtpRegistration==="function")window.adDeliveryStartOtpRegistration();
+};
 window.adDeliveryStartOtpRegistration=function(){
  var role=String($("accountRole")?.value||"");
  if(role!=="delivery"&&role!=="seller")return toast("पहले Seller या Delivery Partner registration चुनें।");
@@ -2443,7 +2451,7 @@ window.adDeliveryStartOtpRegistration=function(){
  if(heading)heading.textContent=role==="seller"?"📱 Seller मोबाइल OTP":"📱 Delivery Partner मोबाइल OTP";
  var box=$("adDeliveryInlineOtp");
  if(box){box.hidden=false;box.scrollIntoView({behavior:"smooth",block:"center"});}
- adDeliveryOtpMessage("अपना नाम और मोबाइल भरकर “OTP भेजें” दबाएँ। OTP verify होने के बाद चुने हुए role का आवेदन यहीं खुलेगा।",false);
+ adDeliveryOtpMessage("अपना नाम और मोबाइल भरकर “OTP भेजें” दबाएँ। Active Seller/Delivery account होने पर login होगा; Customer account होने पर चुने हुए role का आवेदन खुलेगा।",false);
 };
 window.adDeliverySendOtp=async function(){
  var client=window.adBrandSupabase;
