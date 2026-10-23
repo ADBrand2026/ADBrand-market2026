@@ -1639,8 +1639,8 @@ async function submitRoleApplication() {
   const requestedRole = String($("accountRole")?.value || "");
   // Require a real Supabase-verified phone for every Seller (Food/Non-food) and Delivery application.
   // A mobile number typed into a form is not proof of ownership.
-  const authPhone = String(user?.phone || "").replace(/\\D/g, "");
-  const applicantPhone = String($("roleApplicantMobile")?.value || "").replace(/\\D/g, "");
+  const authPhone = String(user?.phone || "").replace(/\D/g, "");
+  const applicantPhone = String($("roleApplicantMobile")?.value || "").replace(/\D/g, "");
   if (!user?.phone_confirmed_at || !authPhone || authPhone.slice(-10) !== applicantPhone) {
     toast("Seller (Food/Non-food) और Delivery आवेदन से पहले इसी मोबाइल पर असली SMS OTP verify करें। केवल नंबर लिखना पर्याप्त नहीं है।");
     if (requestedRole === "seller" || requestedRole === "delivery") {
