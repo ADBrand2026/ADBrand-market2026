@@ -1477,7 +1477,7 @@ function setAccountAccessMode(mode) {
   if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
   if (intent) intent.textContent = role === "delivery" ? (isSignup ? "🛵 चरण 1: मोबाइल OTP verify करें। OTP सफल होने के बाद ही Delivery दस्तावेज़ और आगे के आवेदन खुलेंगे।" : "🛵 पहले से approved Delivery Partner हैं तो अपने account से login करें। नया आवेदन करने के लिए Register चुनें और मोबाइल OTP verify करें।") : role === "seller" ? "🏪 Seller Login: अपने Seller account से login करें। नया आवेदन Customer account से शुरू होगा और Admin approval जरूरी है।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
   if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : role === "delivery" ? "📱 मोबाइल OTP से शुरू करें" : "Seller आवेदन शुरू करें";
-  if (signupButton) signupButton.hidden = role === "delivery" && isSignup && !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
+  if (signupButton) signupButton.hidden = role === "delivery" && !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
   const extras = $("adCustomerAuthExtras");
   if (extras) extras.style.display = role === "customer" ? "flex" : "none";
   updateRoleApplicationFields();
@@ -1486,6 +1486,12 @@ function setAccountAccessMode(mode) {
 function handleAccountSignup() {
   const role = String($("accountRole")?.value || "customer");
   if (role === "delivery") {
+    if (window.__adBrandAuthUser && window.__adBrandAuthRole === "customer") {
+      updateRoleApplicationFields();
+      $("roleApplicationFields")?.scrollIntoView({behavior:"smooth",block:"start"});
+      toast("मोबाइल verify है। अब Delivery Partner का आवेदन भरें और documents दें।");
+      return;
+    }
     if (typeof window.adDeliveryStartOtpRegistration === "function") {
       window.adDeliveryStartOtpRegistration();
       return;
