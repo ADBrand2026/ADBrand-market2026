@@ -1071,6 +1071,18 @@ img{max-width:100%}
     </section>
 
     <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
+    <section id="adDeliveryInlineOtp" class="section card" hidden aria-live="polite" style="margin-top:12px;border:1px solid #b9e4d2;border-radius:14px;padding:14px">
+      <h3 style="margin-top:0">📱 Delivery Partner मोबाइल OTP</h3>
+      <p class="small muted">यहीं अपना मोबाइल verify करें। OTP verify होने के बाद Delivery आवेदन इसी window में खुलेगा। SMS OTP तभी आएगा जब Supabase Phone Auth और SMS provider enabled/configured हों।</p>
+      <div class="field"><label for="adDeliveryOtpName">पूरा नाम</label><input id="adDeliveryOtpName" autocomplete="name" maxlength="120" placeholder="आपका पूरा नाम"></div>
+      <div class="field"><label for="adDeliveryOtpMobile">10-digit मोबाइल नंबर</label><input id="adDeliveryOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
+      <div class="field" id="adDeliveryOtpCodeField" hidden><label for="adDeliveryOtpCode">SMS OTP</label><input id="adDeliveryOtpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="SMS में आया OTP"></div>
+      <div class="product-actions">
+        <button id="adDeliveryOtpSend" class="btn primary" type="button" onclick="adDeliverySendOtp()">📨 OTP भेजें</button>
+        <button id="adDeliveryOtpVerify" class="btn green" type="button" hidden onclick="adDeliveryVerifyOtp()">✅ OTP verify करें</button>
+      </div>
+      <div id="adDeliveryOtpStatus" class="notice" role="status" aria-live="polite">पहले अपना नाम और मोबाइल नंबर भरें।</div>
+    </section>
     <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
     <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
   </div>
@@ -2392,21 +2404,87 @@ window.adCustomerVerifyOtp=async function(){
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
  }finally{if(verify)verify.disabled=false;}
 };
+function adDeliveryOtpMessage(message,isError){
+ var box=$("adDeliveryOtpStatus");if(!box)return;
+ box.textContent=String(message||"");
+ box.style.borderColor=isError?"#dc2626":"";
+ box.style.color=isError?"#b91c1c":"";
+}
 window.adDeliveryStartOtpRegistration=function(){
  var role=String($("accountRole")?.value||"");
  if(role!=="delivery")return toast("पहले Delivery Partner registration चुनें।");
  window.__adBrandPendingRoleApplication="delivery";
- var applicantName=String($("roleApplicantName")?.value||$("accountFullName")?.value||"").trim();
- var applicantMobile=String($("roleApplicantMobile")?.value||$("accountMobile")?.value||"").replace(/\D/g,"");
- if($("adCustomerOtpName")&&applicantName)$("adCustomerOtpName").value=applicantName;
- if($("adCustomerOtpMobile")&&applicantMobile)$("adCustomerOtpMobile").value=applicantMobile;
- if(typeof closeModal==="function")closeModal("accountModal");
- window.__adCustomerAuthPanelOpen=true;
- if(typeof window.openPanel==="function")window.openPanel("customer");
- if(typeof updateCustomerOtpVisibility==="function")updateCustomerOtpVisibility();
- var panel=$("adCustomerOtpPanel");
- if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
- customerOtpMessage("Delivery Partner registration के लिए पहले अपने मोबाइल पर OTP भेजकर verify करें।",false);
+ var name=String($("roleApplicantName")?.value||$("accountFullName")?.value||"").trim();
+ var mobile=String($("roleApplicantMobile")?.value||$("accountMobile")?.value||"").replace(/\D/g,"");
+ if($("adDeliveryOtpName")&&name)$("adDeliveryOtpName").value=name;
+ if($("adDeliveryOtpMobile")&&mobile)$("adDeliveryOtpMobile").value=mobile;
+ var box=$("adDeliveryInlineOtp");
+ if(box){box.hidden=false;box.scrollIntoView({behavior:"smooth",block:"center"});}
+ adDeliveryOtpMessage("अपना नाम और मोबाइल भरकर “OTP भेजें” दबाएँ। OTP verify होने के बाद आवेदन यहीं खुलेगा।",false);
+};
+window.adDeliverySendOtp=async function(){
+ var client=window.adBrandSupabase;
+ var name=String($("adDeliveryOtpName")?.value||"").trim();
+ var mobile=String($("adDeliveryOtpMobile")?.value||"").replace(/\D/g,"");
+ if(!client)return adDeliveryOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
+ if(name.length<2)return adDeliveryOtpMessage("अपना पूरा नाम भरें।",true);
+ if(!/^[6-9]\d{9}$/.test(mobile))return adDeliveryOtpMessage("सही 10-digit Indian mobile number भरें।",true);
+ var send=$("adDeliveryOtpSend"),verify=$("adDeliveryOtpVerify");
+ if(send)send.disabled=true;
+ try{
+   var result=await client.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name,mobile:mobile}}});
+   if(result.error)throw result.error;
+   window.__adBrandPendingDeliveryOtpMobile=mobile;
+   window.__adBrandPendingDeliveryOtpName=name;
+   var field=$("adDeliveryOtpCodeField");if(field)field.hidden=false;
+   if(verify)verify.hidden=false;
+   adDeliveryOtpMessage("OTP request भेज दी गई। अपने मोबाइल पर SMS देखें और code दर्ज करें।",false);
+   $("adDeliveryOtpCode")?.focus();
+ }catch(e){
+   console.error("Delivery OTP send failed:",e);
+   var message=String(e.message||"");
+   if(/phone.*(disabled|not enabled|not configured)|unsupported phone provider|sms.*(disabled|not configured)|provider.*disabled|phone signups are disabled/i.test(message)){
+     adDeliveryOtpMessage("SMS OTP अभी उपलब्ध नहीं है क्योंकि Supabase Phone Auth/SMS provider enabled या configured नहीं है। इसे enable/configure किए बिना असली SMS नहीं आ सकता।",true);
+   }else{
+     adDeliveryOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
+   }
+ }finally{if(send)send.disabled=false;}
+};
+window.adDeliveryVerifyOtp=async function(){
+ var client=window.adBrandSupabase;
+ var mobile=String(window.__adBrandPendingDeliveryOtpMobile||"").replace(/\D/g,"");
+ var token=String($("adDeliveryOtpCode")?.value||"").replace(/\s/g,"");
+ var name=String(window.__adBrandPendingDeliveryOtpName||$("adDeliveryOtpName")?.value||"").trim();
+ if(!client)return adDeliveryOtpMessage("Secure login service load नहीं हुई।",true);
+ if(!/^[6-9]\d{9}$/.test(mobile))return adDeliveryOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
+ if(!/^\d{4,8}$/.test(token))return adDeliveryOtpMessage("SMS में आया सही OTP दर्ज करें।",true);
+ var verify=$("adDeliveryOtpVerify");if(verify)verify.disabled=true;
+ try{
+   var auth=await client.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
+   if(auth.error)throw auth.error;
+   var user=auth.data?.user||auth.data?.session?.user;
+   if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली।");
+   var profile=await client.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
+   if(profile.error)throw profile.error;
+   if(!profile.data){await client.auth.signOut();throw new Error("Customer profile नहीं बना। Auth trigger/database setup जाँचना होगा।");}
+   if(profile.data.role!=="customer"||profile.data.is_active!==true){await client.auth.signOut();throw new Error("यह active Customer account नहीं है। सहायता से संपर्क करें।");}
+   if(!String(profile.data.full_name||"").trim()||!String(profile.data.mobile||"").trim()){
+     var saved=await client.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});
+     if(saved.error)throw saved.error;
+   }
+   window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
+   window.__adBrandPendingDeliveryOtpMobile=null;window.__adBrandPendingDeliveryOtpName=null;
+   if($("roleApplicantName"))$("roleApplicantName").value=name;
+   if($("roleApplicantMobile"))$("roleApplicantMobile").value=mobile;
+   var box=$("adDeliveryInlineOtp");if(box)box.hidden=true;
+   updateRoleApplicationFields();
+   if(typeof window.openAccountAccess==="function")window.openAccountAccess("delivery");
+   updateRoleApplicationFields();
+   toast("मोबाइल OTP verify हो गया। अब Delivery Partner आवेदन भरें।");
+ }catch(e){
+   console.error("Delivery OTP verification failed:",e);
+   adDeliveryOtpMessage("OTP verify नहीं हुआ: "+(e.message||"OTP expire हो सकता है; नया OTP लेकर प्रयास करें।"),true);
+ }finally{if(verify)verify.disabled=false;}
 };
 /* OTP is sent only after the customer explicitly presses the Send OTP button. */
 var originalCustomerAccountAccess=window.openAccountAccess;
