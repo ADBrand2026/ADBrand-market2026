@@ -1726,7 +1726,7 @@ async function submitRoleApplication() {
     ["pan_card","roleDeliveryPanDoc"],
     ["bank_proof","roleDeliveryBankProofDoc"],
     ["vehicle_photo","roleDeliveryVehiclePhotoDoc"],
-    ["vehicle_rc","roleDeliveryRcDoc"],
+    
     ["driving_license","roleDeliveryLicenseDoc"],
     ["address_proof","roleDeliveryAddressDoc"]
   ];
@@ -1738,7 +1738,7 @@ async function submitRoleApplication() {
   const motorVehicleDocumentsRequired = !["bicycle","cycle","cycling","electric_bicycle","electric cycle","e-cycle"].includes(selectedVehicleType);
   const deliveryDocsComplete = selectedTypes.has("identity_proof") && selectedTypes.has("pan_card")
     && selectedTypes.has("address_proof") && selectedTypes.has("vehicle_photo")
-    && (!motorVehicleDocumentsRequired || (selectedTypes.has("vehicle_rc") && selectedTypes.has("driving_license")));
+    && (!motorVehicleDocumentsRequired || selectedTypes.has("driving_license"));
   if (requestedRole === "seller" && !sellerDocsComplete) {
     toast(requestedSellerType === "food"
       ? "Food Seller application के लिए Shop Photo, Shop Address Proof और FSSAI certificate तीनों जरूरी हैं।"
@@ -1747,7 +1747,7 @@ async function submitRoleApplication() {
   }
   if (requestedRole === "delivery" && !deliveryDocsComplete) {
     toast(motorVehicleDocumentsRequired
-      ? "Motor delivery के लिए ID Proof, PAN, Address Proof, Vehicle Photo, RC, Driving Licence जरूरी हैं।"
+      ? "Motor delivery के लिए ID Proof, PAN, Address Proof, Vehicle Photo और Driving Licence जरूरी हैं।"
       : "Cycle delivery के लिए ID Proof, PAN, Address Proof और Vehicle Photo जरूरी हैं।");
     return;
   }
@@ -1909,7 +1909,7 @@ function adRoleWizardValidateCurrentStep() {
     ? ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState",...(role === "seller" ? ["roleShopName","roleApplicantPincode"] : ["roleApplicantZone","roleDeliveryDob"])]
     : step === 2
       ? (role === "delivery" ? ["roleDeliveryIdDoc","roleDeliveryPanDoc"] : ($( "roleSellerType")?.value === "food" ? ["roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"] : []))
-      : (role === "delivery" ? ["roleDeliveryVehiclePhotoDoc","roleDeliveryAddressDoc",...(!isCycle ? ["roleDeliveryRcDoc","roleDeliveryLicenseDoc"] : [])] : ["roleSellerShopPhotoDoc","roleSellerAddressDoc"]);
+      : (role === "delivery" ? ["roleDeliveryVehiclePhotoDoc","roleDeliveryAddressDoc",...(!isCycle ? ["roleDeliveryLicenseDoc"] : [])] : ["roleSellerShopPhotoDoc","roleSellerAddressDoc"]);
   for (const id of requiredIds) {
     const el = $(id);
     if (!el) continue;
@@ -2039,7 +2039,7 @@ function updateRoleApplicationFields() {
   });
   if (motorVehicle) {
     deliveryRequired.add("roleDeliveryLicenseDoc");
-    deliveryRequired.add("roleDeliveryRcDoc");
+    
   }
   [
     "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
