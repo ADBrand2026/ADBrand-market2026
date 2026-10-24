@@ -686,7 +686,7 @@ img{max-width:100%}
           <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" selected>Non-Food Home Delivery — Valmo / approved external courier (service connect होने पर)</option><option value="self_pickup">Self Pickup — दुकान से खुद लें</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders हमेशा local AD rider से deliver होंगे। Self Pickup केवल Non-food सामान के लिए है और seller के उसी city/state में उपलब्ध है। Non-food Home Delivery courier API/booking, वास्तविक shipping charge और RTO settlement live होने तक बंद है। Non-food order पर ₹20 platform fee लागू हो सकती है; COD उपलब्ध है, UPI gateway अभी live नहीं है।</p>
+        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders केवल हमारे local AD Food Delivery Boys deliver करेंगे। Non-Food Home Delivery Valmo या किसी approved third-party courier से होगी; हमारे AD Food Delivery Boys को Non-Food order कभी assign नहीं होगा। Valmo/दूसरे courier की वास्तविक booking, shipping charges और RTO/return settlement connect और test होने तक Non-Food Home Delivery बंद रहेगी। Self Pickup केवल Non-Food सामान के लिए seller के उसी city/state में है। COD उपलब्ध है; UPI gateway अभी live नहीं है।</p>
         <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
