@@ -1507,6 +1507,7 @@ function setAccountAccessMode(mode) {
 function adBrandOpenPublicPhoneAuth(mode) {
   const role = String($("accountRole")?.value || "customer");
   if (role === "customer") {
+    if (typeof window.closeModal === "function") window.closeModal("accountModal");
     if (typeof window.adCustomerOpenLoginRegister === "function") window.adCustomerOpenLoginRegister();
     else toast("Customer mobile login panel अभी load नहीं हुआ।");
     return;
