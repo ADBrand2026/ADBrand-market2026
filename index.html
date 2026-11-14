@@ -1629,7 +1629,7 @@ async function continueAccountAccess(mode) {
     }
   } catch (e) {
     console.error("Secure account access failed:",e);
-    alert(e?.message || "Login नहीं हो पाया। Email और password जाँचें।");
+    alert(e?.message || "Login नहीं हो पाया। मोबाइल नंबर और OTP service की स्थिति जाँचें।");
   } finally {
     if (buttons) buttons.forEach(b => b.disabled = false);
   }
@@ -2367,7 +2367,7 @@ window.adCustomerOpenLoginRegister=function(){
 window.adCustomerSendOtp=async function(){
  var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
- if(name.length<2)return customerOtpMessage("पहली बार registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें। पुराने email/password account के लिए Existing account login चुनें।",true);
+ if(name.length<2)return customerOtpMessage("पूरा नाम कम से कम 2 अक्षरों का लिखें। Login और Registration दोनों मोबाइल OTP से होंगे।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
  if(window.__adBrandOtpSendInFlight)return;
  window.__adBrandOtpSendInFlight=true;
@@ -2385,9 +2385,9 @@ window.adCustomerSendOtp=async function(){
   console.error("Customer OTP send failed:",e);
   var message=String(e.message||"");
   if(/phone.*(disabled|not enabled|not configured)|unsupported phone provider|sms.*(disabled|not configured)|provider.*disabled|phone signups are disabled/i.test(message)){
-   customerOtpMessage("इस समय SMS OTP सेवा enabled/configured नहीं है। अभी Existing account: email/password login इस्तेमाल करें। SMS provider configure होने के बाद ही mobile OTP चलेगा।",true);
+   customerOtpMessage("SMS OTP सेवा अभी configure नहीं हुई है। मोबाइल Login / Registration शुरू करने से पहले SMS provider जोड़ना बाकी है।",true);
   }else if(/not found|no user|user.*exist/i.test(message)){
-   customerOtpMessage("यह नंबर अभी phone-OTP account से जुड़ा नहीं है। Existing account के लिए email/password login चुनें। Duplicate account नहीं बनाया गया।",true);
+   customerOtpMessage("इस मोबाइल नंबर का OTP account नहीं मिला। SMS सेवा चालू होने पर Register विकल्प से नया account बनाया जा सकेगा। Duplicate account नहीं बनाया गया।",true);
   }else{
    customerOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
   }
@@ -2557,15 +2557,8 @@ window.adDeliveryVerifyOtp=async function(){
 /* OTP is sent only after the customer explicitly presses the Send OTP button. */
 var originalCustomerAccountAccess=window.openAccountAccess;
 window.adCustomerUseExistingLogin=function(){
- if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
-  if(typeof window.openPanel==="function")window.openPanel("customer");
-  document.getElementById("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
-  return;
- }
- window.__adCustomerAuthPanelOpen=true;
- updateCustomerOtpVisibility();
- if(typeof originalCustomerAccountAccess==="function")return originalCustomerAccountAccess("customer");
- customerOtpMessage("Existing login dialog अभी उपलब्ध नहीं है।",true);
+ if(typeof window.adCustomerOpenLoginRegister==="function")return window.adCustomerOpenLoginRegister();
+ customerOtpMessage("Customer mobile login panel अभी उपलब्ध नहीं है।",true);
 };
 if(typeof originalCustomerAccountAccess==="function"){
  window.openAccountAccess=function(role){
@@ -22178,7 +22171,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "label[for='adCustomerOtpCode']":"SMS OTP",
       "#adCustomerOtpSend":"📨 Send OTP",
       "#adCustomerOtpVerify":"✅ Verify OTP and log in",
-      "#adCustomerUseExistingLogin":"Existing account: email/password login",
+      "#adCustomerUseExistingLogin":"मोबाइल से Login / Register",
       "#adLiveCustomerMarket > .notice":"✅ Live catalogue — active and verified local sellers. Food orders are delivered by AD Brand Market riders only within the seller's service area. Non-food courier booking is not confirmed until the carrier booking is verified.",
       "#adLiveCustomerMarket .ad-customer-filters > summary":"⚙️ Product filters (optional)",
       "label[for='adLiveDeliveryCity']":"Your city / delivery city",
