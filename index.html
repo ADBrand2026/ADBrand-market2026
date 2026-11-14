@@ -578,7 +578,7 @@ img{max-width:100%}
   </div>
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
     <h3>📱 Customer Login / Register — Mobile OTP</h3>
-    <p class="small muted">पहली बार अपना पूरा नाम और 10-digit मोबाइल नंबर भरें, फिर “OTP भेजें” दबाएँ। OTP verify होने पर Customer login हो जाएगा और Login/Register बटन छिप जाएगा। पहले से email/password account है तो Existing account login चुनें। SMS OTP तभी आएगा जब Supabase Phone Auth और SMS provider configure और enabled हों। OTP/PIN किसी के साथ साझा न करें।</p>
+    <p class="small muted">Customer का नया Registration और पुराना Login — दोनों मोबाइल नंबर से होंगे। SMS OTP सेवा जोड़ने के बाद OTP भेजकर account verify होगा। OTP/PIN किसी के साथ साझा न करें।</p>
     <div class="form-grid">
       <div class="field"><label for="adCustomerOtpName">पूरा नाम *</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" required placeholder="आपका पूरा नाम"></div>
       <div class="field"><label for="adCustomerOtpMobile">10-digit मोबाइल नंबर</label><input id="adCustomerOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
@@ -587,7 +587,6 @@ img{max-width:100%}
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
       <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ OTP verify करके login करें</button>
-      <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Existing account: email/password login</button>
     </div>
     <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">OTP आपके अपने मोबाइल पर आएगा। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
@@ -1002,13 +1001,12 @@ img{max-width:100%}
 <div class="modal" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
   <div class="modal-card">
     <div class="modal-header"><h2 id="accountModalTitle">Secure Account Login</h2><button class="close-btn" onclick="closeModal('accountModal')" aria-label="Close">×</button></div>
-    <div class="notice">ईमेल और पासवर्ड से सुरक्षित login होगा। Seller और Delivery access के लिए Admin approval जरूरी है।</div>
+    <div class="notice">अब Customer, Seller और Delivery Partner के public Login / Registration में Email और Password नहीं होंगे। सभी का account मोबाइल नंबर और SMS OTP से बनेगा/खुलेगा। Seller और Delivery access Admin approval के बाद ही मिलेगा।</div>
     <div id="accountRolePicker" class="field" hidden><label for="accountRole">Internal account intent</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
      <div id="accountIntentLabel" class="notice">Customer Login / Registration</div>
      <div id="accountFullNameField" class="field" hidden><label for="accountFullName">Full name / पूरा नाम</label><input id="accountFullName" autocomplete="name" maxlength="120" placeholder="अपना पूरा नाम"></div>
-    <div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
-    <div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="कम से कम 8 characters"></div>
-    <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
+    <div class="field"><label for="accountMobile">10-digit मोबाइल नंबर</label><input id="accountMobile" type="tel" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="9876543210"></div>
+    <input id="accountEmail" type="hidden" value=""><input id="accountPassword" type="hidden" value="">
 
     <div id="roleApplicationFields" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px">
       <h3 id="roleApplicationTitle">Seller / Delivery आवेदन</h3>
@@ -1083,8 +1081,8 @@ img{max-width:100%}
       </div>
       <div id="adDeliveryOtpStatus" class="notice" role="status" aria-live="polite">पहले अपना नाम और मोबाइल नंबर भरें।</div>
     </section>
-    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountOtpLoginButton" class="btn outline" type="button" hidden onclick="startAccountOtpLogin()">📱 Mobile OTP Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
-    <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
+    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="adBrandOpenPublicPhoneAuth('login')">📱 मोबाइल से Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="adBrandOpenPublicPhoneAuth('register')">📝 नया Registration</button></div>
+    <p class="small muted">SMS OTP integration जुड़ने के बाद इसी मोबाइल नंबर पर OTP भेजकर Login / Registration पूरा होगा।</p>
   </div>
 </div>
 
@@ -1506,8 +1504,26 @@ function setAccountAccessMode(mode) {
   updateRoleApplicationFields();
 }
 
+function adBrandOpenPublicPhoneAuth(mode) {
+  const role = String($("accountRole")?.value || "customer");
+  if (role === "customer") {
+    if (typeof window.closeModal === "function") window.closeModal("accountModal");
+    if (typeof window.adCustomerOpenLoginRegister === "function") window.adCustomerOpenLoginRegister();
+    else toast("Customer mobile login panel अभी load नहीं हुआ।");
+    return;
+  }
+  if (role === "seller" || role === "delivery") {
+    if (mode === "login" && typeof window.startAccountOtpLogin === "function") window.startAccountOtpLogin();
+    else if (typeof window.adDeliveryStartOtpRegistration === "function") window.adDeliveryStartOtpRegistration();
+    else toast("Mobile OTP panel अभी load नहीं हुआ।");
+    return;
+  }
+  toast("Invalid account type.");
+}
+
 function handleAccountSignup() {
   const role = String($("accountRole")?.value || "customer");
+  if (role === "customer") { adBrandOpenPublicPhoneAuth("register"); return; }
   if (role === "delivery" || role === "seller") {
     if (window.__adBrandAuthUser && window.__adBrandAuthRole === "customer") {
       updateRoleApplicationFields();
@@ -1613,7 +1629,7 @@ async function continueAccountAccess(mode) {
     }
   } catch (e) {
     console.error("Secure account access failed:",e);
-    alert(e?.message || "Login नहीं हो पाया। Email और password जाँचें।");
+    alert(e?.message || "Login नहीं हो पाया। मोबाइल नंबर और OTP service की स्थिति जाँचें।");
   } finally {
     if (buttons) buttons.forEach(b => b.disabled = false);
   }
@@ -2351,7 +2367,7 @@ window.adCustomerOpenLoginRegister=function(){
 window.adCustomerSendOtp=async function(){
  var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
- if(name.length<2)return customerOtpMessage("पहली बार registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें। पुराने email/password account के लिए Existing account login चुनें।",true);
+ if(name.length<2)return customerOtpMessage("पूरा नाम कम से कम 2 अक्षरों का लिखें। Login और Registration दोनों मोबाइल OTP से होंगे।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
  if(window.__adBrandOtpSendInFlight)return;
  window.__adBrandOtpSendInFlight=true;
@@ -2369,9 +2385,9 @@ window.adCustomerSendOtp=async function(){
   console.error("Customer OTP send failed:",e);
   var message=String(e.message||"");
   if(/phone.*(disabled|not enabled|not configured)|unsupported phone provider|sms.*(disabled|not configured)|provider.*disabled|phone signups are disabled/i.test(message)){
-   customerOtpMessage("इस समय SMS OTP सेवा enabled/configured नहीं है। अभी Existing account: email/password login इस्तेमाल करें। SMS provider configure होने के बाद ही mobile OTP चलेगा।",true);
+   customerOtpMessage("SMS OTP सेवा अभी configure नहीं हुई है। मोबाइल Login / Registration शुरू करने से पहले SMS provider जोड़ना बाकी है।",true);
   }else if(/not found|no user|user.*exist/i.test(message)){
-   customerOtpMessage("यह नंबर अभी phone-OTP account से जुड़ा नहीं है। Existing account के लिए email/password login चुनें। Duplicate account नहीं बनाया गया।",true);
+   customerOtpMessage("इस मोबाइल नंबर का OTP account नहीं मिला। SMS सेवा चालू होने पर Register विकल्प से नया account बनाया जा सकेगा। Duplicate account नहीं बनाया गया।",true);
   }else{
    customerOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
   }
@@ -2541,15 +2557,8 @@ window.adDeliveryVerifyOtp=async function(){
 /* OTP is sent only after the customer explicitly presses the Send OTP button. */
 var originalCustomerAccountAccess=window.openAccountAccess;
 window.adCustomerUseExistingLogin=function(){
- if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
-  if(typeof window.openPanel==="function")window.openPanel("customer");
-  document.getElementById("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
-  return;
- }
- window.__adCustomerAuthPanelOpen=true;
- updateCustomerOtpVisibility();
- if(typeof originalCustomerAccountAccess==="function")return originalCustomerAccountAccess("customer");
- customerOtpMessage("Existing login dialog अभी उपलब्ध नहीं है।",true);
+ if(typeof window.adCustomerOpenLoginRegister==="function")return window.adCustomerOpenLoginRegister();
+ customerOtpMessage("Customer mobile login panel अभी उपलब्ध नहीं है।",true);
 };
 if(typeof originalCustomerAccountAccess==="function"){
  window.openAccountAccess=function(role){
@@ -22162,7 +22171,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "label[for='adCustomerOtpCode']":"SMS OTP",
       "#adCustomerOtpSend":"📨 Send OTP",
       "#adCustomerOtpVerify":"✅ Verify OTP and log in",
-      "#adCustomerUseExistingLogin":"Existing account: email/password login",
+      "#adCustomerUseExistingLogin":"मोबाइल से Login / Register",
       "#adLiveCustomerMarket > .notice":"✅ Live catalogue — active and verified local sellers. Food orders are delivered by AD Brand Market riders only within the seller's service area. Non-food courier booking is not confirmed until the carrier booking is verified.",
       "#adLiveCustomerMarket .ad-customer-filters > summary":"⚙️ Product filters (optional)",
       "label[for='adLiveDeliveryCity']":"Your city / delivery city",
