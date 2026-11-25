@@ -21177,7 +21177,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const modal=el("accountModal");
     const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
     if(login&&login.parentElement&&!el("adCustomerAuthExtras")){extras.id="adCustomerAuthExtras";login.parentElement.insertAdjacentElement("afterend",extras);}
-    }
   }
   function setAccountVisibility(data){
     const privateBox=el("adCustomerAccountPrivate"),guest=el("adCustomerGuestPrompt"),badge=el("adCustomerAccountStatus");
