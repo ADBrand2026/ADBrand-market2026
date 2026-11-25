@@ -1026,7 +1026,7 @@ img{max-width:100%}
         <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">📍 Delivery Zone / जिस इलाके में डिलीवरी करनी है</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" placeholder="जैसे Gomti Nagar, Andheri, Rohini" aria-describedby="roleApplicantZoneHelp"><small id="roleApplicantZoneHelp" class="small muted">अपने चुने हुए शहर का वह इलाका लिखें जहाँ आप orders deliver करना चाहते हैं। यह PIN Code नहीं है। Zone की वास्तविक availability Admin approval में confirm होगी।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
-        <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="" required></div>
+        <div class="field"><label for="roleDeliveryDob">जन्मतिथि (कम से कम 18 वर्ष)</label><input id="roleDeliveryDob" type="date" autocomplete="bday" max="" required><small class="small muted">यह जन्मतिथि 18+ जाँच और निजी Admin verification के लिए सुरक्षित रूप से रखी जाएगी।</small></div>
         <div class="field"><label for="roleDeliveryIdType">पहचान प्रमाण — इनमें से एक</label><select id="roleDeliveryIdType" required><option value="aadhaar">Aadhaar Card</option><option value="voter_id">Voter ID</option></select></div>
         <div class="field"><label for="roleDeliveryIdDoc">Aadhaar / Voter ID की फोटो (private)</label><input id="roleDeliveryIdDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
         <div class="field"><label for="roleDeliveryPanDoc">PAN Card (private)</label><input id="roleDeliveryPanDoc" type="file" accept="image/jpeg,image/png,application/pdf" required></div>
@@ -1641,6 +1641,7 @@ async function submitRoleApplication() {
     requested_role: requestedRole,
     applicant_name: name,
     mobile,
+    date_of_birth: requestedRole === "delivery" ? dob : null,
     shop_name: requestedRole === "seller" ? shop : null,
     seller_type: requestedRole === "seller" ? requestedSellerType : null,
     fssai_license_number: requestedRole === "seller" && requestedSellerType === "food" ? fssaiLicenseNumber : null,
