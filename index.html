@@ -21782,6 +21782,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
             window.__adBrandAuthUser=user;
             window.__adBrandAuthRole=profile.role;
             adUpdateAuthEntryVisibility();
+            if((event==="INITIAL_SESSION"||event==="SIGNED_IN")&&["customer","seller","delivery"].includes(profile.role)&&typeof window.openPanel==="function")window.openPanel(profile.role);
             if(profile.role==="customer"){
               if(el("adCheckoutName")&&!el("adCheckoutName").value)el("adCheckoutName").value=profile.full_name||"";
               if(el("adCheckoutMobile")&&!el("adCheckoutMobile").value)el("adCheckoutMobile").value=String(profile.mobile||"").replace(/\D/g,"").slice(-10);
