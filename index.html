@@ -558,8 +558,8 @@ img{max-width:100%}
     <p class="small muted" style="text-align:center;margin:8px 0 0">Account बनाकर address save करें, wishlist रखें और orders track करें।</p>
   </div>
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
-    <h3>🔐 Customer Account</h3>
-    <p class="small muted">नया account बनाएँ या पहले से बने account में login करें। मोबाइल OTP verify होने के बाद ही account खुलेगा।</p>
+    <h3>🔐 Account Register / Login</h3>
+    <p class="small muted">Customer, Seller और Delivery Boy—तीनों मोबाइल OTP से। Seller/Delivery आवेदन OTP verify होने के बाद Admin approval के लिए जाएगा।</p>
     <div class="field"><label for="adCustomerOtpRole">किसका अकाउंट?</label><select id="adCustomerOtpRole"><option value="customer">Customer — सामान खरीदें</option><option value="seller">Seller — सामान बेचें (Admin approval)</option><option value="delivery">Delivery Boy — ऑर्डर पहुँचाएँ (Admin approval)</option></select></div>
     <div class="ad-auth-tabs" role="tablist" aria-label="Customer account options">
       <button id="adCustomerRegisterTab" class="btn primary" type="button" role="tab" aria-selected="true" onclick="adCustomerSetOtpMode('register')">नया Register</button>
@@ -1930,6 +1930,8 @@ function updateRoleApplicationFields() {
   }
   const title = $("roleApplicationTitle");
   if (title) title.textContent = isSeller ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
+  const submitButton=fields?.querySelector(".ad-rider-submit");
+  if(submitButton)submitButton.textContent=isSeller?"📨 Seller आवेदन भेजें":"📨 Delivery Partner आवेदन भेजें";
   const intent = $("accountIntentLabel");
   if (intent) {
     intent.textContent = isDelivery
@@ -2251,7 +2253,8 @@ window.adCustomerSendOtp=async function(){
  }catch(err){
   console.error("Mobile OTP send failed:",err);
   var msg=String(err.message||"");
-  customerOtpMessage(/phone.*(disabled|not enabled)|provider.*disabled|sms.*disabled/i.test(msg)?"SMS OTP provider अभी उपलब्ध नहीं है। Supabase Phone Auth और SMS Hook configuration जाँचें।":"OTP नहीं भेजा जा सका: "+(msg||"थोड़ी देर बाद प्रयास करें।"),true);
+  if(/already registered|user already exists|already been registered/i.test(msg))customerOtpMessage("यह मोबाइल पहले से registered है। Login tab चुनें।",true);
+  else customerOtpMessage(/phone.*(disabled|not enabled)|provider.*disabled|sms.*disabled/i.test(msg)?"SMS OTP provider अभी उपलब्ध नहीं है। Supabase Phone Auth और SMS Hook configuration जाँचें।":"OTP नहीं भेजा जा सका: "+(msg||"थोड़ी देर बाद प्रयास करें।"),true);
  }finally{window.__adBrandOtpSendInFlight=false;if(send)send.disabled=false;}
 };
 window.adCustomerVerifyOtp=async function(){
