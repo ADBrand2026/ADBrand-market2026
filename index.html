@@ -22205,5 +22205,49 @@ section[id^="adbm"]{display:none!important}
   if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
 })();
 </script>
+
+<script id="ad-no-food-final-cleanup">
+(function(){
+  "use strict";
+  var blocked=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages","groceries"];
+  function clean(){
+    var meta=document.querySelector('meta[name="description"]');
+    if(meta)meta.content="AD Brand Market — Local Shopping, Product Marketplace and Home Delivery";
+    document.title="AD Brand Market | Shopping & Delivery";
+    var old=document.getElementById("productCategory");
+    if(old)Array.from(old.options).forEach(function(o){if(/खाना|veg|non.?veg|चाय|snack/i.test(o.textContent||""))o.remove();});
+    var claim=document.querySelector('button[onclick="adLiveClaimFoodOrder()"]');
+    if(claim)claim.remove();
+    var delivery=document.getElementById("adLiveDeliveryDashboard");
+    if(delivery){
+      delivery.querySelectorAll(".section").forEach(function(section){if(/Food Orders|Food Seller/i.test(section.textContent||""))section.remove();});
+      delivery.querySelectorAll("p").forEach(function(p){if(/food orders|Food Seller|खाना/i.test(p.textContent||""))p.textContent="अभी बाहरी courier booking चालू नहीं है। Courier integration उपलब्ध होने पर delivery assignments यहाँ दिखेंगे।";});
+    }
+    document.querySelectorAll("#customer .notice").forEach(function(n){
+      if(/Food orders|Food, चाय|Food और|Food Seller|Food marketplace/i.test(n.textContent||""))
+        n.textContent="Live catalogue में आपके इलाके के verified कपड़े, जूते, चप्पल और अन्य non-food products दिखेंगे। Home delivery courier connection चालू होने तक Self Pickup उपलब्ध है।";
+    });
+    var cart=window.__adBrandLiveCart;
+    if(Array.isArray(cart)){
+      window.__adBrandLiveCart=cart.filter(function(item){
+        var p=item.product||item;
+        return String(p.seller_type||item.seller_type||"").toLowerCase()!=="food"&&!blocked.includes(String(p.category_slug||item.category_slug||"").toLowerCase());
+      });
+      if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+    }
+  }
+  var checkout=window.adLiveCheckout;
+  if(typeof checkout==="function")window.adLiveCheckout=async function(){
+    var cart=window.__adBrandLiveCart||[];
+    if(cart.some(function(item){var p=item.product||item;return String(p.seller_type||item.seller_type||"").toLowerCase()==="food"||blocked.includes(String(p.category_slug||item.category_slug||"").toLowerCase());})){
+      alert("Food marketplace बंद है। Cart से पुराने food items हटाकर दोबारा प्रयास करें.");return;
+    }
+    return checkout.apply(this,arguments);
+  };
+  clean();
+  document.addEventListener("DOMContentLoaded",clean);
+})();
+</script>
+
 </body>
 </html>
