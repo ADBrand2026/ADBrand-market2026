@@ -2832,7 +2832,7 @@ async function adLiveAdminVerifyQueue(c){
  if(s.error&&d.error){box.textContent="Verification queue load नहीं हुई।";return;}
  var records=[];liveOptions(s.data).forEach(function(x){records.push({type:"seller",x:x});});liveOptions(d.data).forEach(function(x){records.push({type:"delivery",x:x});});
  if(!records.length){box.appendChild(liveEl("div","empty","Verification queue खाली है।"));return;}
- records.forEach(function(item){var x=item.x,card=liveEl("div","card");card.append(liveEl("strong","",(item.type==="seller"?"Seller":"Delivery")+" · "+(x.shop_name||x.full_name||x.seller_code||x.delivery_code)),liveEl("p","small","Verified: "+x.is_verified+" · Active: "+x.is_active));
+ records.forEach(function(item){var x=item.x,card=liveEl("div","card");card.append(liveEl("strong","",(item.type==="seller"?"Seller":"Delivery")+" · "+(x.shop_name||x.full_name||x.seller_code||x.delivery_code)),liveEl("p","small","Registered ID: "+(item.type==="seller"?(x.seller_code||"Pending"):(x.delivery_code||"Pending"))),liveEl("p","small","Profile ID: "+(x.profile_id||"—")+" · Verified: "+x.is_verified+" · Active: "+x.is_active));
   if(!x.is_verified||!x.is_active){var b=liveEl("button","btn primary","Verify + Activate (requires approved document)");b.onclick=async function(){try{var res=await c.rpc(item.type==="seller"?"admin_set_seller_verification":"admin_set_delivery_verification",item.type==="seller"?{p_seller_id:x.id,p_verified:true,p_active:true}:{p_delivery_id:x.id,p_verified:true,p_active:true});if(res.error)throw res.error;toast("Verification update हुआ।");await adLiveLoadAdminOperations();}catch(e){liveError("Verification नहीं हुई",e);}};card.appendChild(b);}
   box.appendChild(card);
  });
