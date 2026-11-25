@@ -1034,7 +1034,7 @@ img{max-width:100%}
       </div>
       <div id="roleVehicleFields" style="display:none">
         <div class="ad-rider-step-title"><span>02</span><div><strong>वाहन और डिलीवरी ज़ोन</strong><small>अपना वाहन चुनें; उसी के अनुसार ज़रूरी दस्तावेज़ दिखेंगे।</small></div></div>
-        <div class="field"><label for="roleVehicleType">आप किस वाहन से डिलीवरी करेंगे?</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
+        <div class="field"><label for="roleVehicleType">आप किस वाहन से डिलीवरी करेंगे?</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा। AD Brand Market पर RC की फोटो upload नहीं माँगी जाएगी। Motor vehicle के लिए valid Driving Licence upload जरूरी है और लागू कानूनी vehicle documents वैध होने चाहिए।</p></div>
         <div class="field" id="roleVehicleNumberField"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30" autocomplete="off" placeholder="जैसे UP32 AB 1234"></div>
         <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png" required></div>
         <div class="field" id="roleDeliveryLicenseField"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
@@ -1915,8 +1915,7 @@ function updateRoleApplicationFields() {
   [
     "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
     "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryBankProofDoc",
-    "roleDeliveryVehiclePhotoDoc",  "roleDeliveryLicenseDoc",
-"roleDeliveryAddressDoc"
+    "roleDeliveryVehiclePhotoDoc", "roleDeliveryLicenseDoc", "roleDeliveryAddressDoc"
   ].forEach(function(id) {
     const input = $(id);
     if (input) input.required = isDelivery && deliveryRequired.has(id);
