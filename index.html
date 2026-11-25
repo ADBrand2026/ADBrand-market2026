@@ -465,8 +465,8 @@ img{max-width:100%}
         <span class="chip">AD Brand Market</span>
         <span class="chip">Shopping • Food • Local Delivery</span>
       </div>
-      <h2>आप क्या करना चाहते हैं?</h2>
-      <p>पहले अपना विकल्प चुनें। Customer पर क्लिक करने के बाद ही Food और सामान खरीदने के विकल्प दिखाई देंगे।</p>
+      <h2>AD Brand Market में आपका स्वागत है</h2>
+      <p>शुरू करने के लिए Register या Login चुनें।</p>
       <div class="ad-home-auth-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:24px 0">
         <button class="btn primary" type="button" onclick="adOpenAuthEntry('register')" style="min-height:64px;font-size:1.15rem;font-weight:800">📝 Register</button>
         <button class="btn outline" type="button" onclick="adOpenAuthEntry('login')" style="min-height:64px;font-size:1.15rem;font-weight:800">🔐 Login</button>
@@ -988,7 +988,7 @@ img{max-width:100%}
 <div class="modal" id="accountModal" role="dialog" aria-modal="true" aria-labelledby="accountModalTitle">
   <div class="modal-card">
     <div class="modal-header"><h2 id="accountModalTitle">Secure Account Login</h2><button class="close-btn" onclick="closeModal('accountModal')" aria-label="Close">×</button></div>
-    <div class="notice">ईमेल और पासवर्ड से सुरक्षित login होगा। Seller और Delivery access के लिए Admin approval जरूरी है।</div>
+    <div class="notice">सभी account केवल मोबाइल OTP से Register/Login होंगे। Seller और Delivery का काम Admin approval के बाद ही खुलेगा।</div>
     <div id="accountRolePicker" class="field" hidden><label for="accountRole">Internal account intent</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
      <div id="accountIntentLabel" class="notice">Customer Login / Registration</div>
      <div id="accountFullNameField" class="field" hidden><label for="accountFullName">Full name / पूरा नाम</label><input id="accountFullName" autocomplete="name" maxlength="120" placeholder="अपना पूरा नाम"></div>
@@ -21578,7 +21578,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(String(window.location.hash||"").includes("type=recovery")){
       const modal=el("accountModal");if(modal)modal.classList.add("show");
       if(el("adCustomerRecoveryBox"))el("adCustomerRecoveryBox").hidden=false;
-      ["accountRole","accountEmail","accountPassword","accountMobile"].forEach(id=>{const n=el(id);if(n&&n.parentElement)n.parentElement.style.display="none";});
+      ["accountRole"].forEach(id=>{const n=el(id);if(n&&n.parentElement)n.parentElement.style.display="none";});
       const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
       const signup=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('signup')\"]");
       if(login&&login.parentElement)login.parentElement.style.display="none";
@@ -21917,7 +21917,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "label[for='adCustomerOtpCode']":"SMS OTP",
       "#adCustomerOtpSend":"📨 Send OTP",
       "#adCustomerOtpVerify":"✅ Verify OTP and log in",
-      "#adCustomerUseExistingLogin":"Existing account: email/password login",
+      
       "#adLiveCustomerMarket > .notice":"✅ Live catalogue — active and verified local sellers. Food orders are delivered by AD Brand Market riders only within the seller's service area. Non-food courier booking is not confirmed until the carrier booking is verified.",
       "#adLiveCustomerMarket .ad-customer-filters > summary":"⚙️ Product filters (optional)",
       "label[for='adLiveDeliveryCity']":"Your city / delivery city",
