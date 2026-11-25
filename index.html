@@ -672,7 +672,7 @@ img{max-width:100%}
           <div class="field"><label>Map pin (optional)</label><button class="btn outline" type="button" onclick="adLiveUseCustomerLocation()">📍 Use current location</button><small id="adCheckoutLocationStatus" class="muted">Optional map pin helps the rider find your gate. Full house, area and landmark address is still required.</small><input id="adCheckoutLatitude" type="hidden"><input id="adCheckoutLongitude" type="hidden"></div>
           <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
           <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
-          <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" selected>Non-Food Home Delivery — Valmo / approved external courier (service connect होने पर)</option><option value="self_pickup">Self Pickup — दुकान से खुद लें</option></select></div>
+          <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" disabled>Non-Food Home Delivery — courier onboarding pending</option><option value="self_pickup" selected>Self Pickup — दुकान से खुद लें</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
         <p id="adCourierHomeDeliveryNote" class="small muted">Food orders केवल उसी local area के verified AD Food Delivery Boy deliver करेंगे; Food को Self Pickup नहीं मिलेगा। कपड़े/जूते/चप्पल के लिए हमारा local AD Food Rider कभी assign नहीं होगा। Non-Food Home Delivery तभी खुलेगी जब courier booking, seller-paid shipping, tracking, COD settlement और RTO/return flow live test हो जाएँ; अभी केवल उसी seller city/state में Self Pickup उपलब्ध है। COD ही उपलब्ध है; UPI gateway अभी live नहीं है।</p>
@@ -19594,23 +19594,23 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(pinField.dataset.resolvedPin===pin)return;
     const previous=pinField.dataset.resolvedPin||"";
     if(previous&&previous!==pin){
+      delete pinField.dataset.resolvedPin;
       if(cityField.dataset.pinAutofilled==="1"){cityField.value="";delete cityField.dataset.pinAutofilled;}
       if(stateField.dataset.pinAutofilled==="1"){stateField.value="";delete stateField.dataset.pinAutofilled;}
     }
+    const requestId=String((Number(pinField.dataset.lookupRequest)||0)+1);
+    pinField.dataset.lookupRequest=requestId;
     if(status)status.textContent="PIN से शहर और राज्य खोज रहे हैं…";
     try{
-      const response=await fetch("https://api.pincodeapi.in/api/v1/pincode/"+encodeURIComponent(pin),{method:"GET",headers:{Accept:"application/json"}});
-      if(!response.ok)throw new Error("Postal lookup unavailable");
-      const payload=await response.json(),record=payload&&payload.success===true?payload.data:null;
-      if(!record||!Array.isArray(record.post_offices)||!record.post_offices.length)throw new Error("इस PIN का postal record नहीं मिला");
-      const offices=record.post_offices.filter(x=>x&&String(x.delivery_status||"").toLowerCase()==="delivery"),usable=offices.length?offices:record.post_offices;
-      const states=Array.from(new Set(usable.map(x=>String(x.state||"").trim()).filter(Boolean)));
-      const districts=Array.from(new Set(usable.map(x=>String(x.district||"").trim()).filter(Boolean)));
-      if(states.length!==1)throw new Error("इस PIN में कई राज्य/रिकॉर्ड मिले; शहर और राज्य manually confirm करें");
-      const state=states[0];
-      let city="";
-      if(/^delhi$/i.test(state))city="Delhi";
-      else if(districts.length===1)city=districts[0].replace(/\s+(City|Urban|Rural|Suburban)$/i,"").trim();
+      const client=window.adBrandSupabase;
+      if(!client||!client.functions)throw new Error("Secure PIN lookup service load नहीं हुई");
+      const lookup=await client.functions.invoke("lookup-indian-pincode",{body:{pincode:pin}});
+      if(pinField.dataset.lookupRequest!==requestId||String(pinField.value||"").replace(/\\D/g,"").slice(0,6)!==pin)return;
+      if(lookup.error)throw lookup.error;
+      const payload=lookup.data;
+      if(!payload||payload.ok!==true||!payload.state)throw new Error(payload?.error||"इस PIN का postal record नहीं मिला");
+      const state=String(payload.state||"").trim();
+      const city=String(payload.city||payload.district||"").trim();
       if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
       if(city&&(!cityField.value.trim()||cityField.dataset.pinAutofilled==="1")){cityField.value=city;cityField.dataset.pinAutofilled="1";}
       pinField.dataset.resolvedPin=pin;
@@ -19987,12 +19987,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       alert("Live UPI gateway अभी configure/verify नहीं है। सुरक्षित checkout के लिए COD चुनें; unverified UPI payment accepted नहीं मानी जाएगी.");
       return;
     }
+    const fulfillment=String($("adCheckoutFulfillment")?.value || "delivery");
     const nonFoodInCart=cart.some(item=>{
       const sellerType=String(item.seller_type || item.product?.seller_type || "").toLowerCase();
       return sellerType!=="food";
     });
-    if(nonFoodInCart){
-      const message="Non-food checkout अभी रुका है: AD की ₹20 platform fee दिखाई गई है, लेकिन seller-paid live courier booking और shipping/RTO settlement अभी connected नहीं हैं. आपका cart सुरक्षित रहेगा; इस cart से कोई order/payment नहीं बनेगा. Food order करना हो तो non-food items हटाकर checkout करें.";
+    if(nonFoodInCart&&fulfillment!=="self_pickup"){
+      const message="कपड़े/जूते/चप्पल की Home Delivery अभी बंद है क्योंकि असली courier booking, seller-paid shipping, tracking और RTO/return settlement live नहीं हैं. अभी केवल उसी शहर की दुकान से Self Pickup चुना जा सकता है. Food items के लिए अलग Food checkout करें.";
       const result=$("adLiveCheckoutResult");
       if(result)result.replaceChildren(liveNode("p","",message));
       liveStatus(message,false);
@@ -20006,7 +20007,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     try {
       const {data,error}=await client.rpc("checkout_marketplace_order_v2",{
         p_items:items,p_address:address,p_payment_method:payment,p_notes:notes || null,
-        p_nonfood_fulfillment:String($("adCheckoutFulfillment")?.value || "delivery")
+        p_nonfood_fulfillment:fulfillment
       });
       if(error) throw error;
       const orders=asList(data?.orders);
@@ -21781,6 +21782,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
             window.__adBrandAuthUser=user;
             window.__adBrandAuthRole=profile.role;
             adUpdateAuthEntryVisibility();
+            if((event==="INITIAL_SESSION"||event==="SIGNED_IN")&&["customer","seller","delivery"].includes(profile.role)&&typeof window.openPanel==="function")window.openPanel(profile.role);
             if(profile.role==="customer"){
               if(el("adCheckoutName")&&!el("adCheckoutName").value)el("adCheckoutName").value=profile.full_name||"";
               if(el("adCheckoutMobile")&&!el("adCheckoutMobile").value)el("adCheckoutMobile").value=String(profile.mobile||"").replace(/\D/g,"").slice(-10);
