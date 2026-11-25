@@ -22283,5 +22283,48 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
+<style id="ad-no-inhouse-rider-ui">
+#delivery,#adLiveDeliveryDashboard,#roleDeliveryIdentityFields,#roleVehicleFields{display:none!important}
+</style>
+<script id="ad-valmo-only-delivery-mode">
+(function(){
+  "use strict";
+  function cleanRiderUI(){
+    var panel=document.getElementById("delivery");if(panel)panel.remove();
+    var dash=document.getElementById("adLiveDeliveryDashboard");if(dash)dash.remove();
+    ["roleDeliveryIdentityFields","roleVehicleFields"].forEach(function(id){var n=document.getElementById(id);if(n)n.remove();});
+    var otp=document.getElementById("adCustomerOtpRole");
+    if(otp){
+      Array.from(otp.options).forEach(function(o){if(String(o.value).toLowerCase()==="delivery"||/delivery boy|डिलीवरी बॉय/i.test(o.textContent||""))o.remove();});
+      if(otp.value==="delivery")otp.value="customer";
+    }
+    document.querySelectorAll("select option").forEach(function(o){
+      if(String(o.value||"").toLowerCase()==="delivery"&&/customer|seller/i.test((o.parentElement&&o.parentElement.id)||""))o.remove();
+    });
+    document.querySelectorAll(".ad-role-entry,.p5-card,[data-p5-action='role']").forEach(function(n){
+      if(/delivery boy|delivery partner|डिलीवरी बॉय|ऑर्डर पहुँचाएँ|ऑर्डर पहुंचाएं/i.test(n.textContent||"")){
+        var card=n.closest(".p5-card")||n.closest(".ad-role-entry")||n;
+        card.remove();
+      }
+    });
+    var root=document.getElementById("adbm5-root");
+    if(root){
+      root.querySelectorAll(".p5-notice").forEach(function(n){
+        if(/Delivery Boy/i.test(n.textContent))n.textContent="Customer और Seller के अकाउंट अलग-अलग सुरक्षित रहेंगे।";
+      });
+    }
+    document.querySelectorAll("p,small,.notice").forEach(function(n){
+      if(/Customer, Seller और Delivery Boy|तीनों मोबाइल OTP|verified AD Food Delivery Boy|local AD Food Rider|AD rider को assign/i.test(n.textContent||"")){
+        n.textContent="Customer और Seller के अकाउंट मोबाइल OTP से सुरक्षित रहेंगे। Non-Food orders की delivery external courier partner (Valmo) से होगी; AD Brand Market अपना delivery-boy network नहीं चलाएगा।";
+      }
+    });
+    var courier=document.getElementById("adCourierHomeDeliveryNote");
+    if(courier)courier.textContent="Non-Food सामान की home delivery Valmo जैसे external courier partner से होगी। AD Brand Market का अपना Delivery Boy नहीं होगा। Courier booking, tracking, COD और returns का live integration चालू होने के बाद ही home delivery उपलब्ध होगी।";
+  }
+  cleanRiderUI();
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",cleanRiderUI,{once:true});
+})();
+</script>
+
 </body>
 </html>
