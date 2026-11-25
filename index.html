@@ -992,7 +992,7 @@ img{max-width:100%}
     <div id="accountRolePicker" class="field" hidden><label for="accountRole">Internal account intent</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
      <div id="accountIntentLabel" class="notice">Customer Login / Registration</div>
      <div id="accountFullNameField" class="field" hidden><label for="accountFullName">Full name / पूरा नाम</label><input id="accountFullName" autocomplete="name" maxlength="120" placeholder="अपना पूरा नाम"></div>
-    <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
+
 
     <div id="roleApplicationFields" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px">
       <h3 id="roleApplicationTitle">Seller / Delivery आवेदन</h3>
@@ -1054,8 +1054,7 @@ img{max-width:100%}
       <button class="btn outline" type="button" onclick="closeModal('accountModal')">ठीक है</button>
     </section>
 
-    <button id="adDeliveryStartOtp" class="btn primary ad-delivery-otp-start" type="button" hidden onclick="adDeliveryStartOtpRegistration()">📱 मोबाइल OTP से Delivery Registration शुरू करें</button>
-    <section id="adDeliveryInlineOtp" class="section card" hidden aria-live="polite" style="margin-top:12px;border:1px solid #b9e4d2;border-radius:14px;padding:14px">
+    <section id="adDeliveryInlineOtp" class="section card" hidden aria-live="polite" style="display:none;margin-top:12px;border:1px solid #b9e4d2;border-radius:14px;padding:14px">
       <h3 id="adRoleOtpHeading" style="margin-top:0">📱 मोबाइल OTP verification</h3>
       <p class="small muted">Seller (Food/Non-food) और Delivery Partner आवेदन के लिए पहले Customer login करें। SMS OTP configured हो तो mobile verify करें; ₹0 launch mode में OTP उपलब्ध न होने पर भी Customer login से आवेदन भेज सकते हैं। Seller/Delivery access Admin approval के बाद ही खुलेगा। असली SMS के लिए Supabase Phone Auth और SMS provider enabled/configured होना जरूरी है।</p>
       <div class="field"><label for="adDeliveryOtpName">पूरा नाम</label><input id="adDeliveryOtpName" autocomplete="name" maxlength="120" placeholder="आपका पूरा नाम"></div>
@@ -1067,8 +1066,7 @@ img{max-width:100%}
       </div>
       <div id="adDeliveryOtpStatus" class="notice" role="status" aria-live="polite">पहले अपना नाम और मोबाइल नंबर भरें।</div>
     </section>
-    <div id="accountAccessButtons" style="display:flex;gap:8px;flex-wrap:wrap"><button id="accountLoginButton" class="btn primary" type="button" onclick="setAccountAccessMode('login');continueAccountAccess('login')">Login</button><button id="accountOtpLoginButton" class="btn outline" type="button" hidden onclick="startAccountOtpLogin()">📱 Mobile OTP Login</button><button id="accountSignupButton" class="btn outline" type="button" onclick="handleAccountSignup()">Create Account</button></div>
-    <p class="small muted">पासवर्ड किसी के साथ साझा न करें।</p>
+    <p class="small muted">पहले मोबाइल OTP verify करें। Seller/Delivery आवेदन इसी verified Customer account से भेजे जाते हैं।</p>
   </div>
 </div>
 
@@ -17438,8 +17436,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
 <input id="a12-mobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 अंकों का नंबर" required>
 </div>
 <div>
-<label for="a12-email">ईमेल</label>
-<input id="a12-email" type="email" autocomplete="email">
+
 </div>
 <div>
 <label for="a12-state">राज्य *</label>
@@ -21294,19 +21291,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         "<div class='form-grid'>"+
           "<div class='field'><label for='adCustomerAccountName'>पूरा नाम</label><input id='adCustomerAccountName' maxlength='120' autocomplete='name'></div>"+
           "<div class='field'><label for='adCustomerAccountMobile'>मोबाइल नंबर</label><input id='adCustomerAccountMobile' inputmode='numeric' maxlength='10' autocomplete='tel'></div>"+
-          "<div class='field'><label for='adCustomerAccountEmail'>Current login email</label><input id='adCustomerAccountEmail' readonly></div>"+
-          "<div class='field'><label for='adCustomerNewEmail'>Change email (confirmation required)</label><input id='adCustomerNewEmail' type='email' autocomplete='email' placeholder='नया email'></div>"+
         "</div>"+
         "<div class='product-actions' style='display:flex;gap:8px;flex-wrap:wrap;margin:10px 0'>"+
           "<button id='adCustomerSaveProfile' class='btn primary' type='button'>💾 Profile save करें</button>"+
-          "<button id='adCustomerChangeEmail' class='btn outline' type='button'>📧 Email बदलें</button>"+
           "<button id='adCustomerSignOut' class='btn red' type='button'>Sign out</button>"+
         "</div>"+
         "<div class='form-grid'>"+
-          "<div class='field'><label for='adCustomerNewPassword'>नया password (कम से कम 8 characters)</label><input id='adCustomerNewPassword' type='password' minlength='8' autocomplete='new-password'></div>"+
-          "<div class='field'><label for='adCustomerConfirmPassword'>नया password दोबारा</label><input id='adCustomerConfirmPassword' type='password' minlength='8' autocomplete='new-password'></div>"+
         "</div>"+
-        "<button id='adCustomerChangePassword' class='btn outline' type='button'>🔑 Password बदलें</button>"+
         "<div id='adCustomerProfileMessage' class='small muted' role='status' style='margin-top:8px'></div>"+
         "<hr style='border:0;border-top:1px solid var(--border);margin:18px 0'>"+
         "<h3>📍 Saved Address Book</h3>"+
@@ -21325,16 +21316,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "</div>"+
     "</section>";
     if(header)header.insertAdjacentHTML("afterend",markup);
-    const emailField=el("accountEmail");
-    if(emailField&&!el("accountFullName")&&emailField.parentElement){
-      emailField.parentElement.insertAdjacentHTML("beforebegin","<div class='field'><label for='accountFullName'>Full name / पूरा नाम (registration के लिए)</label><input id='accountFullName' maxlength='120' autocomplete='name' placeholder='आपका पूरा नाम'></div>");
-    }
     const extras=node("div","product-actions");
     extras.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px";
-    extras.append(
-      btn("Forgot password?",window.adCustomerForgotPassword,"outline"),
-      btn("Resend confirmation email",window.adCustomerResendConfirmation,"outline")
-    );
+    extras.append(btn("मोबाइल OTP से Login करें",function(){adOpenAuthEntry("login","customer");},"outline"));
     const modal=el("accountModal");
     const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
     if(login&&login.parentElement&&!el("adCustomerAuthExtras")){extras.id="adCustomerAuthExtras";login.parentElement.insertAdjacentElement("afterend",extras);}
@@ -21342,7 +21326,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const box=node("section","card");
       box.id="adCustomerRecoveryBox";box.hidden=true;box.style.marginTop="12px";box.style.padding="14px";
       box.appendChild(node("h3","","Set a new password"));
-      box.appendChild(node("p","small muted","Email recovery link से वापस आने के बाद नया password सेट करें।"));
+      box.appendChild(node("p","small muted","अब account access केवल मोबाइल OTP से होता है।"));
       const a=node("div","field");a.appendChild(node("label","","New password"));const p1=node("input");p1.id="adCustomerRecoveryPassword";p1.type="password";p1.autocomplete="new-password";p1.minLength=8;a.appendChild(p1);
       const b=node("div","field");b.appendChild(node("label","","Confirm new password"));const p2=node("input");p2.id="adCustomerRecoveryPasswordConfirm";p2.type="password";p2.autocomplete="new-password";p2.minLength=8;b.appendChild(p2);
       box.append(a,b,btn("Update password",window.adCustomerCompletePasswordRecovery,"primary"));
@@ -21362,7 +21346,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(guest)guest.hidden=true;
     if(badge)badge.textContent="✅ Customer login active";
     const profile=(data&&data.profile)||{};
-    if(el("adCustomerAccountEmail")&&!el("adCustomerAccountEmail").value)el("adCustomerAccountEmail").value=window.__adBrandAuthUser.email||"";
     if(el("adCustomerAccountName")&&!el("adCustomerAccountName").value)el("adCustomerAccountName").value=profile.full_name||"";
     if(el("adCustomerAccountMobile")&&!el("adCustomerAccountMobile").value)el("adCustomerAccountMobile").value=profile.mobile||"";
   }
@@ -21424,9 +21407,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(window.__adBrandLiveCart)window.__adBrandLiveCart.splice(0,window.__adBrandLiveCart.length);
     window.__adBrandCustomerWishlistItems=[];window.__adBrandCustomerWishlistIds=new Set();
     try{localStorage.removeItem(cartKey);}catch(e){}
-    ["adCustomerAccountName","adCustomerAccountMobile","adCustomerAccountEmail","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>{if(el(id))el(id).value="";});
+    ["adCustomerAccountName","adCustomerAccountMobile"].forEach(id=>{if(el(id))el(id).value="";});
     setProfileMessage("Sign out हो गया।");
     if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
+    if(typeof window.adUpdateAuthEntryVisibility==="function")window.adUpdateAuthEntryVisibility();
     if(typeof window.openPanel==="function")window.openPanel("customer");
     toast("Customer account से sign out हो गया।");
   }
@@ -21924,7 +21908,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       window.__adBrandCustomerWishlistIds=new Set();
       if(window.__adBrandLiveCart)window.__adBrandLiveCart.splice(0,window.__adBrandLiveCart.length);
       try{localStorage.removeItem(cartKey);}catch(e){}
-      ["adCustomerAccountName","adCustomerAccountMobile","adCustomerAccountEmail","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>{if(el(id))el(id).value="";});
+      ["adCustomerAccountName","adCustomerAccountMobile"].forEach(id=>{if(el(id))el(id).value="";});
       if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
       if(el("adCustomerWishlist"))el("adCustomerWishlist").replaceChildren(node("div","empty","Wishlist के लिए Customer login करें।"));
       setAccountVisibility(null);
