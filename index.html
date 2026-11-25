@@ -22326,5 +22326,43 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
+
+
+<style id="ad-final-public-scope-2026">
+#delivery,#adLiveDeliveryDashboard,#roleDeliveryIdentityFields,#roleVehicleFields,#adLiveFoodHoursPanel,#adLiveFoodSellerTools,#adFoodPayoutTerms,#adFoodCategoryBar,#roleFoodComplianceFields{display:none!important}
+</style>
+<script id="ad-final-public-scope-2026">
+(function(){
+ "use strict";
+ function clean(){
+  ["delivery","adLiveDeliveryDashboard","roleDeliveryIdentityFields","roleVehicleFields","adLiveFoodHoursPanel","adLiveFoodSellerTools","adFoodPayoutTerms","adFoodCategoryBar","roleFoodComplianceFields"].forEach(function(id){var n=document.getElementById(id);if(n)n.remove();});
+  ["adCustomerOtpRole","accountRole","role","userRole"].forEach(function(id){
+   var sel=document.getElementById(id);if(!sel||!sel.options)return;
+   Array.from(sel.options).forEach(function(o){if(/^(delivery|delivery_boy|rider)$/i.test(String(o.value||""))||/delivery boy|delivery partner|डिलीवरी बॉय/i.test(o.textContent||""))o.remove();});
+   if(/^(delivery|delivery_boy|rider)$/i.test(sel.value))sel.value="customer";
+  });
+  document.querySelectorAll(".ad-role-entry,.p5-card,[data-p5-action='role'],button,a,label").forEach(function(n){
+   if(!n||!n.isConnected)return;
+   if(/delivery boy|delivery partner|डिलीवरी बॉय|ऑर्डर पहुँचाएँ|ऑर्डर पहुंचाएं/i.test(n.textContent||"")){
+    var card=n.closest(".p5-card,.ad-role-entry,[data-p5-action='role']")||n;
+    if(card.id!=="adCourierHomeDeliveryNote")card.remove();
+   }
+  });
+  document.querySelectorAll("select").forEach(function(sel){Array.from(sel.options||[]).forEach(function(o){if(/food|veg.?food|non.?veg|tea|snack|pizza|burger|beverage|grocery/i.test(String(o.value||"")+" "+String(o.textContent||"")))o.remove();});});
+  document.querySelectorAll(".ad-live-product").forEach(function(n){if(/food|veg.?food|non.?veg|pizza|burger|restaurant|grocery/i.test(n.textContent||"")||n.dataset.food==="true")n.remove();});
+  document.querySelectorAll("p,small,.notice").forEach(function(n){if(/Customer, Seller और Delivery Boy|तीनों मोबाइल OTP|Food orders केवल|Food, चाय और snacks केवल|Food Seller dashboard/i.test(n.textContent||""))n.textContent="केवल Customer और Seller अकाउंट उपलब्ध हैं। AD Brand Market पर अभी Non-Food सामान ही मिलेगा।";});
+  var note=document.getElementById("adCourierHomeDeliveryNote");
+  if(note)note.textContent="Non-Food सामान की home delivery external courier partner (Valmo जैसे provider) से होगी। Courier booking, tracking, COD settlement और return/RTO का live integration verify होने तक Home Delivery बंद है; फिलहाल Self Pickup उपलब्ध है।";
+  var search=document.getElementById("adLiveSearch");if(search)search.placeholder="कपड़े, साड़ी, जूते, चप्पल और रोज़मर्रा का सामान खोजें…";
+ }
+ var originalOpen=window.adOpenAuthEntry;
+ if(typeof originalOpen==="function")window.adOpenAuthEntry=function(mode,role){role=(role==="seller"||role==="customer")?role:"customer";return originalOpen.call(this,mode,role);};
+ var originalAccount=window.openAccountAccess;
+ if(typeof originalAccount==="function")window.openAccountAccess=function(role){role=(role==="seller"||role==="customer")?role:"customer";return originalAccount.call(this,role);};
+ clean();
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",clean,{once:true});
+})();
+</script>
+
 </body>
 </html>
