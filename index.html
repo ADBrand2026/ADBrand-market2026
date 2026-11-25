@@ -20031,6 +20031,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if($("adCheckoutCity")&&!$("adCheckoutCity").value)$("adCheckoutCity").value=address.city||"";
       if($("adCheckoutState")&&!$("adCheckoutState").value)$("adCheckoutState").value=address.state||"";
       if($("adCheckoutPincode")&&!$("adCheckoutPincode").value)$("adCheckoutPincode").value=address.pincode||"";
+      if($("adLiveDeliveryCity")&&!$("adLiveDeliveryCity").value)$("adLiveDeliveryCity").value=address.city||"";
+      if($("adLiveDeliveryState")&&!$("adLiveDeliveryState").value)$("adLiveDeliveryState").value=address.state||"";
+      if($("adLiveDeliveryPincode")&&!$("adLiveDeliveryPincode").value)$("adLiveDeliveryPincode").value=address.pincode||"";
+      if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
     }
     const orders=asList(data?.orders);
     if(!orders.length){liveEmpty(box,"अभी कोई live order नहीं है।");return;}
