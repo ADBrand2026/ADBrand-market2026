@@ -595,7 +595,7 @@ img{max-width:100%}
     </div>
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
-      <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ Verify करके Login करें</button>
+      <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="window.adCustomerVerifyOtp()" disabled aria-disabled="true">✅ OTP Verify करके Login करें</button>
       <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Email / Password Login</button>
     </div>
     <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">Register या Login चुनें, मोबाइल नंबर भरें और OTP भेजें। OTP/PIN किसी के साथ साझा न करें।</div>
@@ -2369,7 +2369,7 @@ window.adCustomerSetOtpMode=function(mode){
  if(loginTab){loginTab.classList.toggle("primary",!register);loginTab.classList.toggle("outline",register);loginTab.setAttribute("aria-selected",String(!register));}
  var codeField=$("adCustomerOtpCodeField"),verify=$("adCustomerOtpVerify");
  if(codeField)codeField.hidden=true;
- if(verify)verify.hidden=true;
+ if(verify){verify.disabled=true;verify.setAttribute("aria-disabled","true");}
  if($("adCustomerOtpCode"))$("adCustomerOtpCode").value="";
  customerOtpMessage(register?"नया Customer account बनाने के लिए नाम और मोबाइल भरें।":"पहले से बने Customer account में login के लिए अपना registered मोबाइल नंबर भरें।",false);
 };
@@ -2387,7 +2387,7 @@ window.adCustomerSendOtp=async function(){
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
   var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
-  if(verify)verify.hidden=false;
+  if(verify){verify.hidden=false;verify.disabled=false;verify.setAttribute("aria-disabled","false");}
   customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। नीचे 6 अंकों का OTP डालकर Verify करें।",false);
   if($("adCustomerOtpCode"))$("adCustomerOtpCode").focus();
  }catch(e){
@@ -2407,7 +2407,8 @@ window.adCustomerVerifyOtp=async function(){
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
  if(!/^\d{4,8}$/.test(token))return customerOtpMessage("SMS में आया valid OTP दर्ज करें।",true);
- var verify=$("adCustomerOtpVerify");if(verify)verify.disabled=true;
+ var verify=$("adCustomerOtpVerify");if(verify){verify.disabled=true;verify.setAttribute("aria-disabled","true");}
+ customerOtpMessage("OTP verify हो रहा है… Supabase से जवाब आने तक पेज बंद न करें।",false);
  var otpVerifiedSession=false,otpVerifiedUserId=null;
  try{
   var auth=await c.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
@@ -2450,7 +2451,7 @@ window.adCustomerVerifyOtp=async function(){
   if(otpVerifiedSession&&(!window.__adBrandAuthUser||window.__adBrandAuthUser.id!==otpVerifiedUserId||window.__adBrandAuthRole!=="customer")){try{await c.auth.signOut();}catch(cleanupError){console.error("Customer OTP session cleanup failed:",cleanupError);}}
   console.error("Customer OTP verification failed:",e);
   customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
- }finally{if(verify)verify.disabled=false;}
+ }finally{if(verify){verify.disabled=false;verify.setAttribute("aria-disabled","false");}}
 };
 function adDeliveryOtpMessage(message,isError){
  var box=$("adDeliveryOtpStatus");if(!box)return;
