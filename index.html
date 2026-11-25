@@ -1456,38 +1456,36 @@ function closeModal(id) {
   }
 }
 
+function adUpdateAuthEntryVisibility(){
+ const loggedIn=!!window.__adBrandAuthUser&&["customer","seller","delivery","admin"].includes(window.__adBrandAuthRole);
+ ["adHeaderRegister","adHeaderLogin"].forEach(function(id){var el=$(id);if(el)el.hidden=loggedIn;});
+ document.querySelectorAll(".ad-home-auth-actions").forEach(function(el){el.hidden=loggedIn;});
+}
+window.adOpenAuthEntry=function(mode,role){
+ mode=mode==="register"?"register":"login";
+ role=["customer","seller","delivery"].includes(role)?role:"customer";
+ if(typeof window.openPanel==="function")window.openPanel("customer");
+ var roleSelect=$("adCustomerOtpRole");if(roleSelect)roleSelect.value=role;
+ if(typeof window.adCustomerSetOtpMode==="function")window.adCustomerSetOtpMode(mode);
+ var panel=$("adCustomerOtpPanel");if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
+};
 function openAccountAccess(role) {
-  const allowed = ["customer", "seller", "delivery"];
-  if (!allowed.includes(role)) { toast("Invalid account type."); return; }
-  currentAccountRole = role;
-  const select = $("accountRole");
-  if (select) select.value = role;
-  const modal = $("accountModal");
-  if (modal) modal.classList.add("show");
-  setAccountAccessMode("login");
+ const allowed=["customer","seller","delivery"];
+ if(!allowed.includes(role)){toast("Invalid account type.");return;}
+ currentAccountRole=role;
+ const select=$("accountRole");if(select)select.value=role;
+ if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"&&(role==="seller"||role==="delivery")){
+  const modal=$("accountModal");if(modal)modal.classList.add("show");
   updateRoleApplicationFields();
+  return;
+ }
+ adOpenAuthEntry("login",role);
 }
 
 function setAccountAccessMode(mode) {
-  const role = String($("accountRole")?.value || "customer");
-  const isSignup = mode === "signup";
-  const nameField = $("accountFullNameField");
-  const nameInput = $("accountFullName");
-  const intent = $("accountIntentLabel");
-  const title = $("accountModalTitle");
-  const signupButton = $("accountSignupButton");
-  const loginButton = $("accountLoginButton");
-  if (loginButton) loginButton.textContent = role === "delivery" ? "Delivery Partner Login" : role === "seller" ? "Seller Login" : "Customer Login";
-  if (nameField) nameField.hidden = !isSignup;
-  if (nameInput) nameInput.required = isSignup;
-  const roleLabel = role === "delivery" ? "Delivery Partner Registration" : role === "seller" ? "Seller Registration" : "Customer Account";
-  if (title) title.textContent = isSignup ? (role === "customer" ? "Create Customer Account" : roleLabel + " — Account Setup") : "Secure " + (role === "customer" ? "Customer" : role === "delivery" ? "Delivery Partner" : "Seller") + " Login";
-  if (intent) intent.textContent = role === "delivery" ? (isSignup ? "🛵 पहले Customer login करें। SMS OTP उपलब्ध हो तो verify करें; ₹0 launch mode में Customer login से आवेदन भेज सकते हैं। Delivery काम Admin approval के बाद ही खुलेगा।" : "🛵 पहले से approved Delivery Partner हैं तो अपने account से login करें। नया आवेदन करने के लिए Register चुनकर Customer account से आवेदन शुरू करें। SMS OTP तभी चलेगा जब SMS provider enabled/configured हो।") : role === "seller" ? "🏪 Seller Login: अपने Seller account से login करें। नया आवेदन Customer account से शुरू होगा और Admin approval जरूरी है।" : "🛍️ Customer Login / Registration — खरीदारी के लिए।";
-  if (signupButton) signupButton.textContent = role === "customer" ? "Create Customer Account" : role === "delivery" ? "📱 मोबाइल OTP से शुरू करें" : "Seller आवेदन शुरू करें";
-  if (signupButton) signupButton.hidden = role === "delivery" && !!window.__adBrandAuthUser && window.__adBrandAuthRole === "customer";
-  const extras = $("adCustomerAuthExtras");
-  if (extras) extras.style.display = role === "customer" ? "flex" : "none";
-  updateRoleApplicationFields();
+ const role=String($("accountRole")?.value||"customer");
+ const otpRole=$("adCustomerOtpRole");if(otpRole)otpRole.value=role;
+ adOpenAuthEntry(mode==="signup"?"register":"login",role);
 }
 
 function handleAccountSignup() {
@@ -1613,6 +1611,7 @@ async function restoreAdBrandAuthSession() {
     if (pe || !profile || profile.is_active!==true) { await client.auth.signOut(); return; }
     window.__adBrandAuthUser=user;
     window.__adBrandAuthRole=profile.role;
+    adUpdateAuthEntryVisibility();
     if(profile.role==="customer"&&typeof updateCustomerOtpVisibility==="function")updateCustomerOtpVisibility();
   } catch(e) { console.warn("Could not restore saved auth session.",e); }
 }
