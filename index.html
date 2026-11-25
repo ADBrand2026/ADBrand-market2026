@@ -19594,23 +19594,23 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(pinField.dataset.resolvedPin===pin)return;
     const previous=pinField.dataset.resolvedPin||"";
     if(previous&&previous!==pin){
+      delete pinField.dataset.resolvedPin;
       if(cityField.dataset.pinAutofilled==="1"){cityField.value="";delete cityField.dataset.pinAutofilled;}
       if(stateField.dataset.pinAutofilled==="1"){stateField.value="";delete stateField.dataset.pinAutofilled;}
     }
+    const requestId=String((Number(pinField.dataset.lookupRequest)||0)+1);
+    pinField.dataset.lookupRequest=requestId;
     if(status)status.textContent="PIN से शहर और राज्य खोज रहे हैं…";
     try{
-      const response=await fetch("https://api.pincodeapi.in/api/v1/pincode/"+encodeURIComponent(pin),{method:"GET",headers:{Accept:"application/json"}});
-      if(!response.ok)throw new Error("Postal lookup unavailable");
-      const payload=await response.json(),record=payload&&payload.success===true?payload.data:null;
-      if(!record||!Array.isArray(record.post_offices)||!record.post_offices.length)throw new Error("इस PIN का postal record नहीं मिला");
-      const offices=record.post_offices.filter(x=>x&&String(x.delivery_status||"").toLowerCase()==="delivery"),usable=offices.length?offices:record.post_offices;
-      const states=Array.from(new Set(usable.map(x=>String(x.state||"").trim()).filter(Boolean)));
-      const districts=Array.from(new Set(usable.map(x=>String(x.district||"").trim()).filter(Boolean)));
-      if(states.length!==1)throw new Error("इस PIN में कई राज्य/रिकॉर्ड मिले; शहर और राज्य manually confirm करें");
-      const state=states[0];
-      let city="";
-      if(/^delhi$/i.test(state))city="Delhi";
-      else if(districts.length===1)city=districts[0].replace(/\s+(City|Urban|Rural|Suburban)$/i,"").trim();
+      const client=window.adBrandSupabase;
+      if(!client||!client.functions)throw new Error("Secure PIN lookup service load नहीं हुई");
+      const lookup=await client.functions.invoke("lookup-indian-pincode",{body:{pincode:pin}});
+      if(pinField.dataset.lookupRequest!==requestId||String(pinField.value||"").replace(/\\D/g,"").slice(0,6)!==pin)return;
+      if(lookup.error)throw lookup.error;
+      const payload=lookup.data;
+      if(!payload||payload.ok!==true||!payload.state)throw new Error(payload?.error||"इस PIN का postal record नहीं मिला");
+      const state=String(payload.state||"").trim();
+      const city=String(payload.city||payload.district||"").trim();
       if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
       if(city&&(!cityField.value.trim()||cityField.dataset.pinAutofilled==="1")){cityField.value=city;cityField.dataset.pinAutofilled="1";}
       pinField.dataset.resolvedPin=pin;
