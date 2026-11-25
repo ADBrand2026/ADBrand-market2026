@@ -20166,13 +20166,28 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
             ?"Courier ने delivered बताया है। Parcel हाथ में मिलने पर ही confirmation करें; न मिला हो तो नीचे issue report करें—इसे received mark न करें."
             :"AD Food rider के पहुँचने और package हाथ में मिलने के बाद ही confirmation दबाएँ.";
         card.appendChild(liveNode("p","small muted",deliveryPrompt));
-        card.appendChild(liveButton(o.fulfillment_mode==="self_pickup"?"✅ मैंने shop से सामान ले लिया":externalDeliveryPendingConfirmation?"✅ Courier parcel सच में मिल गया":"✅ मैंने Food order प्राप्त कर लिया",async()=>{
-          if(!confirm("क्या order सच में आपके हाथ में पहुँच गया है / shop से collect किया है?"))return;
-          const {data:res,error:err}=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});
-          if(err){alert("Confirmation save नहीं हुई: "+liveErr(err));return;}
-          toast(res?.message||"Receipt confirmation दर्ज हुई।");
-          await adLiveLoadCustomerOrders();
-        },"primary"));
+        if(o.fulfillment_mode==="inhouse_food"&&o.status==="out_for_delivery"){
+          const otpPanel=liveNode("div","card");otpPanel.hidden=true;
+          card.appendChild(liveButton("🔐 Show delivery OTP",async()=>{
+            const {data:otpData,error:otpError}=await client.rpc("customer_get_delivery_otp",{p_order_id:o.id});
+            otpPanel.hidden=false;
+            if(otpError){otpPanel.textContent="Delivery OTP load नहीं हुआ: "+liveErr(otpError);return;}
+            if(!otpData?.ok){otpPanel.textContent=otpData?.message||"Delivery OTP अभी उपलब्ध नहीं है।";return;}
+            otpPanel.replaceChildren(
+              liveNode("strong","", "आपका Food Delivery OTP: "+otpData.otp),
+              liveNode("p","small muted","यह code केवल तब rider को बताएँ जब खाना आपके हाथ में आ जाए। इसे किसी अनजान व्यक्ति से share न करें।")
+            );
+          },"primary"));
+          card.appendChild(otpPanel);
+        }else{
+          card.appendChild(liveButton(o.fulfillment_mode==="self_pickup"?"✅ मैंने shop से सामान ले लिया":"✅ Courier parcel सच में मिल गया",async()=>{
+            if(!confirm("क्या parcel सच में आपके हाथ में पहुँच गया है / shop से collect किया है?"))return;
+            const {data:res,error:err}=await client.rpc("customer_confirm_order_received",{p_order_id:o.id});
+            if(err){alert("Confirmation save नहीं हुई: "+liveErr(err));return;}
+            toast(res?.message||"Receipt confirmation दर्ज हुई।");
+            await adLiveLoadCustomerOrders();
+          },"primary"));
+        }
         if(externalDeliveryPendingConfirmation){
           card.appendChild(liveButton("📣 Courier says delivered, but I did not receive it",async()=>{
             const details=prompt("Package नहीं मिला तो क्या हुआ? Gate/guard/neighbor/call आदि के बारे में जानकारी लिखें ताकि Admin जाँच सके:","");
@@ -20785,7 +20800,18 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         },"primary"));
         card.appendChild(liveNode("p","small muted","पहले location पर पहुँचकर Arrival record करें। GPS deny होने पर भी arrival manual record हो सकता है; no-answer से order/customer अपने-आप penalize नहीं होंगे."));
       }else if(o.status==="out_for_delivery"&&arrived){
-        card.appendChild(liveNode("p","small muted","✅ Arrival recorded"+(o.arrival_recorded_at?" • "+new Date(o.arrival_recorded_at).toLocaleString():"")+". Customer-requested extra time does not auto-cancel this order."));
+        card.appendChild(liveNode("p","small muted","✅ Arrival recorded"+(o.arrival_recorded_at?" • "+new Date(o.arrival_recorded_at).toLocaleString():"")+". Customer delivery OTP is required before marking this food order delivered."));
+        const otpInput=liveNode("input","search-input");otpInput.type="text";otpInput.inputMode="numeric";otpInput.maxLength=6;otpInput.autocomplete="one-time-code";otpInput.placeholder="Customer का 6-digit delivery OTP";
+        actions.appendChild(otpInput);
+        actions.appendChild(liveButton("✅ Verify OTP & mark delivered",async()=>{
+          const code=String(otpInput.value||"").replace(/\\D/g,"");
+          if(!/^\\d{6}$/.test(code)){alert("Customer का सही 6-digit OTP भरें।");return;}
+          const {data:verifyData,error:verifyError}=await supa().rpc("rider_verify_delivery_otp",{p_order_id:o.order_id,p_otp:code});
+          if(verifyError){alert("Delivery OTP verify नहीं हुआ: "+liveErr(verifyError));return;}
+          if(!verifyData?.ok){alert(verifyData?.message||"OTP verify नहीं हुआ। Parcel delivered mark नहीं किया गया।");return;}
+          toast(verifyData.message||"OTP verified; order delivered.");
+          await adLiveLoadDeliveryWorkspace();
+        },"primary"));
       }
       if(o.status==="out_for_delivery"){
         const gpsActive=liveGpsOrderId===o.order_id&&liveGpsWatchId!==null;
