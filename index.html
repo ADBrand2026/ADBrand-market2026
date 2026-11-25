@@ -1022,7 +1022,7 @@ img{max-width:100%}
       <div class="form-grid">
         <div class="field"><label for="roleApplicantCity">शहर / Select your city</label><input id="roleApplicantCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow" required></div>
         <div class="field"><label for="roleApplicantState">राज्य / State</label><input id="roleApplicantState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
-        <div class="field" id="roleApplicantPincodeField"><label for="roleApplicantPincode">Shop Service PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">PIN डालते ही postal directory से District/State भरने की कोशिश होगी; सही जानकारी confirm करें।</small><small id="roleApplicantPincodeStatus" class="small muted" aria-live="polite"></small></div>
+        <div class="field" id="roleApplicantPincodeField"><label for="roleApplicantPincode">Shop / Home Base PIN Code (6 अंक)</label><input id="roleApplicantPincode" inputmode="numeric" autocomplete="postal-code" maxlength="6" minlength="6" pattern="[0-9]{6}" required aria-describedby="roleApplicantPincodeHelp"><small id="roleApplicantPincodeHelp" class="small muted">PIN डालते ही postal directory से District/State भरने की कोशिश होगी; सही जानकारी confirm करें।</small><small id="roleApplicantPincodeStatus" class="small muted" aria-live="polite"></small></div>
         <div class="field" id="roleApplicantZoneField" hidden><label for="roleApplicantZone">📍 Delivery Zone / जिस इलाके में डिलीवरी करनी है</label><input id="roleApplicantZone" maxlength="120" autocomplete="address-level3" placeholder="जैसे Gomti Nagar, Andheri, Rohini" aria-describedby="roleApplicantZoneHelp"><small id="roleApplicantZoneHelp" class="small muted">अपने चुने हुए शहर का वह इलाका लिखें जहाँ आप orders deliver करना चाहते हैं। यह PIN Code नहीं है। Zone की वास्तविक availability Admin approval में confirm होगी।</small></div>
       </div>
       <div id="roleDeliveryIdentityFields" hidden>
@@ -1546,8 +1546,8 @@ async function submitRoleApplication() {
     toast("Seller के लिए राज्य भरें।");
     return;
   }
-  if (requestedRole === "seller" && !validPincode(pincode)) {
-    toast("Seller service area के लिए सही 6-digit PIN Code जरूरी है।");
+  if (!validPincode(pincode)) {
+    toast("Shop / Delivery Partner के Home Base के लिए सही 6-digit PIN Code जरूरी है।");
     return;
   }
   if (requestedRole === "delivery" && preferredZone.length < 2) {
@@ -1647,7 +1647,7 @@ async function submitRoleApplication() {
     fssai_license_number: requestedRole === "seller" && requestedSellerType === "food" ? fssaiLicenseNumber : null,
     gstin: requestedRole === "seller" && gstin ? gstin : null,
     business_registration_number: requestedRole === "seller" && businessRegistrationNumber ? businessRegistrationNumber : null,
-    address, city: city || null, state: state || null, pincode: requestedRole === "seller" ? (pincode || null) : null,
+    address, city: city || null, state: state || null, pincode: pincode || null,
     vehicle_type: requestedRole === "delivery" ? $("roleVehicleType").value : null,
     vehicle_number: requestedRole === "delivery" ? (String($("roleVehicleNumber").value || "").trim() || null) : null,
     notes: [requestedRole === "delivery" ? "Preferred delivery zone: " + preferredZone : "", String($("roleApplicationNotes").value || "").trim()].filter(Boolean).join("\n") || null,
@@ -2709,7 +2709,32 @@ window.adLiveSaveShopHours=async function(){
  catch(e){liveError("Shop hours save नहीं हुए",e);}
 };
 window.adLiveToggleShop=async function(){var s=window.__adBrandSellerWorkspace?.seller;if(!s)return toast("पहले Seller workspace load करें।");try{var r=await liveClient().rpc("seller_set_shop_open",{p_is_open:!s.is_open});if(r.error)throw r.error;toast(!s.is_open?"Shop open हो गई।":"Shop close हो गई।");await adLiveLoadSellerWorkspace();await adLiveLoadCatalog();}catch(e){liveError("Shop status नहीं बदला",e);}};
-window.adLiveToggleOnline=async function(){var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");try{var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;toast(!d.is_online?"आप online हैं।":"आप offline हैं।");if(d.is_online)liveStopGpsWatch();await adLiveLoadDeliveryWorkspace();}catch(e){liveError("Online status नहीं बदला",e);}};
+window.adLiveRefreshRiderPresenceLocation=async function(){
+ var client=liveClient();
+ if(!client)return false;
+ var clearLocation=async function(){var cleared=await client.rpc("rider_update_presence_location",{p_latitude:null,p_longitude:null,p_accuracy:null});if(cleared.error)console.warn("Rider GPS clear failed",cleared.error);};
+ if(!navigator.geolocation){await clearLocation();toast("GPS उपलब्ध नहीं है; dispatch केवल आपके registered Home Base PIN से होगा।");return false;}
+ try{
+  var position=await new Promise(function(resolve,reject){navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,maximumAge:10000,timeout:15000});});
+  if(!position.coords||!Number.isFinite(position.coords.latitude)||!Number.isFinite(position.coords.longitude)||Number(position.coords.accuracy||0)>500)throw new Error("GPS accuracy 500 metres से बेहतर नहीं है");
+  var saved=await client.rpc("rider_update_presence_location",{p_latitude:position.coords.latitude,p_longitude:position.coords.longitude,p_accuracy:position.coords.accuracy});
+  if(saved.error)throw saved.error;
+  return true;
+ }catch(error){
+  await clearLocation();
+  toast("GPS नहीं मिला या accuracy कम है; dispatch केवल आपके registered Home Base PIN से होगा।");
+  console.warn("Rider presence GPS unavailable",error);
+  return false;
+ }
+};
+window.adLiveToggleOnline=async function(){
+ var d=window.__adBrandRiderWorkspace?.delivery;if(!d)return toast("पहले Delivery workspace load करें।");
+ try{
+  if(!d.is_online)await window.adLiveRefreshRiderPresenceLocation();
+  var r=await liveClient().rpc("rider_set_online",{p_online:!d.is_online});if(r.error)throw r.error;
+  toast(!d.is_online?"आप online हैं।":"आप offline हैं।");if(d.is_online)liveStopGpsWatch();await adLiveLoadDeliveryWorkspace();
+ }catch(e){liveError("Online status नहीं बदला",e);}
+};
 window.adLiveLoadDeliveryWorkspace=async function(){
  var client=liveClient(),status=$("adLiveDeliveryStatus"),prof=$("adLiveDeliveryProfile"),box=$("adLiveDeliveryOrders");if(!client||!box)return;
  if(window.__adBrandAuthRole!=="delivery"){if(status)status.textContent="Approved Delivery Partner से login करें।";return;}
@@ -2812,7 +2837,7 @@ async function adLiveRecordContact(orderId,channel,outcome,note,promised){
  try{var r=await liveClient().rpc("rider_record_contact_attempt",{p_order_id:orderId,p_channel:channel,p_outcome:outcome,p_note:String(note||"").slice(0,500)||null,p_customer_promised_until:promised});if(r.error)throw r.error;toast(r.data?.message||"Contact attempt save हुआ।");await adLiveLoadDeliveryWorkspace();}
  catch(e){liveError("Contact record save नहीं हुआ",e);}
 }
-window.adLiveClaimFoodOrder=async function(){if(window.__adBrandAuthRole!=="delivery"){toast("Delivery Partner login जरूरी है।");return;}try{var r=await liveClient().rpc("rider_claim_next_food_order");if(r.error)throw r.error;toast(r.data?.message||"Food order claim हुआ।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("अभी कोई order claim नहीं हुआ",e);}};
+window.adLiveClaimFoodOrder=async function(){if(window.__adBrandAuthRole!=="delivery"){toast("Delivery Partner login जरूरी है।");return;}try{await window.adLiveRefreshRiderPresenceLocation();var r=await liveClient().rpc("rider_claim_next_food_order");if(r.error)throw r.error;toast(r.data?.message||"Food order claim हुआ।");await adLiveLoadDeliveryWorkspace();}catch(e){liveError("अभी कोई order claim नहीं हुआ",e);}};
 window.adLiveLoadAdminOperations=async function(){
  if(window.__adBrandAdminAuthorized!==true)return;var c=liveClient();if(!c)return;
  await Promise.allSettled([adLiveAdminDocs(c),adLiveAdminVerifyQueue(c),adLiveAdminShipments(c),adLiveAdminIssues(c),adLiveAdminPenalties(c)]);
