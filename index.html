@@ -19614,12 +19614,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
       if(city&&(!cityField.value.trim()||cityField.dataset.pinAutofilled==="1")){cityField.value=city;cityField.dataset.pinAutofilled="1";}
       pinField.dataset.resolvedPin=pin;
-      if(status)status.textContent=city?"✅ PIN postal directory से District/City मिला: "+city+", "+state+". पूरा घर/area/landmark address अलग भरें।":"✅ State "+state+" मिला। सही city/locality manually confirm करें।";
       if(pinId==="adCheckoutPincode"){
         const zCity=document.getElementById("adLiveDeliveryCity"),zState=document.getElementById("adLiveDeliveryState"),zPin=document.getElementById("adLiveDeliveryPincode");
         if(zCity)zCity.value=cityField.value;if(zState)zState.value=stateField.value;if(zPin)zPin.value=pin;
-        if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode)window.adLiveLoadCatalog();
-      }else if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode&&cityField.value.trim()&&stateField.value.trim())window.adLiveLoadCatalog();
+      }
+      try{localStorage.setItem("adBrandCustomerDeliveryZone",JSON.stringify({
+        city:String(document.getElementById("adLiveDeliveryCity")?.value||cityField.value||"").trim(),
+        state:String(document.getElementById("adLiveDeliveryState")?.value||stateField.value||"").trim(),
+        pincode:pin
+      }));}catch(e){}
+      if(status)status.textContent=city?"✅ PIN postal directory से District/City मिला: "+city+", "+state+". पूरा घर/area/landmark address अलग भरें।":"✅ State "+state+" मिला। सही city/locality manually confirm करें।";
+      if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode&&cityField.value.trim()&&stateField.value.trim())window.adLiveLoadCatalog();
     }catch(error){
       if(status)status.textContent="PIN lookup अभी उपलब्ध नहीं है। City और State manually भरें; order PIN फिर भी validate होगा।";
       console.warn("PIN lookup:",error);
@@ -21933,6 +21938,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     }catch(e){}
     ["adLiveDeliveryCity","adLiveDeliveryState","adLiveDeliveryPincode"].forEach(function(id){
       var input=document.getElementById(id);if(!input||input.dataset.adZoneBound)return;input.dataset.adZoneBound="1";
+      if(id==="adLiveDeliveryPincode")input.addEventListener("input",function(){window.adResolveIndianPincode("adLiveDeliveryPincode","adLiveDeliveryCity","adLiveDeliveryState","adLiveZonePincodeStatus");});
       input.addEventListener("change",function(){
         try{localStorage.setItem(zoneKey,JSON.stringify({
           city:String(document.getElementById("adLiveDeliveryCity")?.value||"").trim(),
@@ -21950,7 +21956,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     var checkoutPin=document.getElementById("adCheckoutPincode");
     if(checkoutPin&&!checkoutPin.dataset.adPinLookupBound){
       checkoutPin.dataset.adPinLookupBound="1";
-      checkoutPin.addEventListener("change",function(){window.adResolveIndianPincode("adCheckoutPincode","adCheckoutCity","adCheckoutState","adCheckoutPincodeStatus");});
+      checkoutPin.addEventListener("input",function(){window.adResolveIndianPincode("adCheckoutPincode","adCheckoutCity","adCheckoutState","adCheckoutPincodeStatus");});
     }
   });
 })();
