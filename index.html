@@ -293,6 +293,11 @@ img{max-width:100%}
 /* Customer-only polish: no Seller, Delivery or Admin selectors are affected. */
 .adCustomerOtpPanel{border:1px solid rgba(16,185,129,.3);border-radius:18px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(99,102,241,.07));box-shadow:0 12px 30px rgba(15,23,42,.07)}
 .adCustomerOtpPanel[hidden]{display:none!important}
+.ad-auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.ad-auth-tabs .btn{min-height:48px}
+#adCustomerOtpCodeField{grid-column:1/-1}
+#adCustomerOtpCode{font-size:1.25rem;letter-spacing:.35em;font-weight:800;text-align:center}
+@media(max-width:480px){.ad-auth-tabs{grid-template-columns:1fr 1fr}}
 .adCustomerDiscoveryTools{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin:14px 0;padding:16px;border:1px solid rgba(99,102,241,.22);border-radius:18px;background:linear-gradient(135deg,rgba(99,102,241,.09),rgba(16,185,129,.07));box-shadow:0 12px 30px rgba(15,23,42,.07)}
 #adLiveCatalog .product-card{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;animation:adCustomerReveal .32s ease both}
 #adLiveCatalog .product-card:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(15,23,42,.12);border-color:rgba(99,102,241,.42)}
@@ -577,19 +582,23 @@ img{max-width:100%}
     <p class="small muted" style="text-align:center;margin:8px 0 0">Account बनाकर address save करें, wishlist रखें और orders track करें।</p>
   </div>
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
-    <h3>📱 Customer Login / Register — Mobile OTP</h3>
-    <p class="small muted">पहली बार अपना पूरा नाम और 10-digit मोबाइल नंबर भरें, फिर “OTP भेजें” दबाएँ। OTP verify होने पर Customer login हो जाएगा और Login/Register बटन छिप जाएगा। पहले से email/password account है तो Existing account login चुनें। SMS OTP तभी आएगा जब Supabase Phone Auth और SMS provider configure और enabled हों। OTP/PIN किसी के साथ साझा न करें।</p>
+    <h3>🔐 Customer Account</h3>
+    <p class="small muted">नया account बनाएँ या पहले से बने account में login करें। मोबाइल OTP verify होने के बाद ही account खुलेगा।</p>
+    <div class="ad-auth-tabs" role="tablist" aria-label="Customer account options">
+      <button id="adCustomerRegisterTab" class="btn primary" type="button" role="tab" aria-selected="true" onclick="adCustomerSetOtpMode('register')">नया Register</button>
+      <button id="adCustomerLoginTab" class="btn outline" type="button" role="tab" aria-selected="false" onclick="adCustomerSetOtpMode('login')">पहले से Login</button>
+    </div>
     <div class="form-grid">
-      <div class="field"><label for="adCustomerOtpName">पूरा नाम *</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" required placeholder="आपका पूरा नाम"></div>
+      <div class="field" id="adCustomerOtpNameField"><label for="adCustomerOtpName">पूरा नाम *</label><input id="adCustomerOtpName" autocomplete="name" maxlength="120" required placeholder="आपका पूरा नाम"></div>
       <div class="field"><label for="adCustomerOtpMobile">10-digit मोबाइल नंबर</label><input id="adCustomerOtpMobile" type="tel" inputmode="numeric" autocomplete="tel-national" maxlength="10" placeholder="9876543210"></div>
-      <div class="field" id="adCustomerOtpCodeField" hidden><label for="adCustomerOtpCode">SMS OTP</label><input id="adCustomerOtpCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="OTP दर्ज करें"></div>
+      <div class="field" id="adCustomerOtpCodeField" hidden><label for="adCustomerOtpCode">6 अंकों का OTP</label><input id="adCustomerOtpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="SMS में आया OTP यहाँ डालें"></div>
     </div>
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
-      <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ OTP verify करके login करें</button>
-      <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Existing account: email/password login</button>
+      <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="adCustomerVerifyOtp()" hidden>✅ Verify करके Login करें</button>
+      <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Email / Password Login</button>
     </div>
-    <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">OTP आपके अपने मोबाइल पर आएगा। OTP/PIN किसी के साथ साझा न करें।</div>
+    <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">Register या Login चुनें, मोबाइल नंबर भरें और OTP भेजें। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
@@ -2348,22 +2357,38 @@ window.adCustomerOpenLoginRegister=function(){
  var panel=$("adCustomerOtpPanel");
  if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
 };
+window.__adCustomerOtpMode="register";
+window.adCustomerSetOtpMode=function(mode){
+ mode=mode==="login"?"login":"register";
+ window.__adCustomerOtpMode=mode;
+ var register=mode==="register",nameField=$("adCustomerOtpNameField"),nameInput=$("adCustomerOtpName");
+ if(nameField)nameField.hidden=!register;
+ if(nameInput)nameInput.required=register;
+ var registerTab=$("adCustomerRegisterTab"),loginTab=$("adCustomerLoginTab");
+ if(registerTab){registerTab.classList.toggle("primary",register);registerTab.classList.toggle("outline",!register);registerTab.setAttribute("aria-selected",String(register));}
+ if(loginTab){loginTab.classList.toggle("primary",!register);loginTab.classList.toggle("outline",register);loginTab.setAttribute("aria-selected",String(!register));}
+ var codeField=$("adCustomerOtpCodeField"),verify=$("adCustomerOtpVerify");
+ if(codeField)codeField.hidden=true;
+ if(verify)verify.hidden=true;
+ if($("adCustomerOtpCode"))$("adCustomerOtpCode").value="";
+ customerOtpMessage(register?"नया Customer account बनाने के लिए नाम और मोबाइल भरें।":"पहले से बने Customer account में login के लिए अपना registered मोबाइल नंबर भरें।",false);
+};
 window.adCustomerSendOtp=async function(){
- var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,"");
+ var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,""),mode=window.__adCustomerOtpMode||"register";
  if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
- if(name.length<2)return customerOtpMessage("पहली बार registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें। पुराने email/password account के लिए Existing account login चुनें।",true);
+ if(mode==="register"&&name.length<2)return customerOtpMessage("Registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
  if(window.__adBrandOtpSendInFlight)return;
  window.__adBrandOtpSendInFlight=true;
  var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
  if(send)send.disabled=true;
  try{
-  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:true,data:{full_name:name||"",mobile:mobile}}});
+  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:mode==="register",data:mode==="register"?{full_name:name,mobile:mobile}:{}}});
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
   var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
   if(verify)verify.hidden=false;
-  customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। SMS में आया code दर्ज करें। अगर SMS नहीं आया, कुछ देर बाद फिर प्रयास करें।",false);
+  customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। नीचे 6 अंकों का OTP डालकर Verify करें।",false);
   if($("adCustomerOtpCode"))$("adCustomerOtpCode").focus();
  }catch(e){
   console.error("Customer OTP send failed:",e);
