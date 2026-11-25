@@ -19616,7 +19616,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       pinField.dataset.resolvedPin=pin;
       if(pinId==="adCheckoutPincode"){
         const zCity=document.getElementById("adLiveDeliveryCity"),zState=document.getElementById("adLiveDeliveryState"),zPin=document.getElementById("adLiveDeliveryPincode");
-        if(zCity)zCity.value=cityField.value;if(zState)zState.value=stateField.value;if(zPin)zPin.value=pin;
+        if(zCity){zCity.value=cityField.value;if(cityField.dataset.pinAutofilled==="1")zCity.dataset.pinAutofilled="1";}
+        if(zState){zState.value=stateField.value;if(stateField.dataset.pinAutofilled==="1")zState.dataset.pinAutofilled="1";}
+        if(zPin){zPin.value=pin;zPin.dataset.resolvedPin=pin;}
       }
       try{localStorage.setItem("adBrandCustomerDeliveryZone",JSON.stringify({
         city:String(document.getElementById("adLiveDeliveryCity")?.value||cityField.value||"").trim(),
