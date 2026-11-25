@@ -2333,99 +2333,81 @@ window.adCustomerOpenLoginRegister=function(){
 };
 window.__adCustomerOtpMode="register";
 window.adCustomerSetOtpMode=function(mode){
- mode=mode==="login"?"login":"register";
- window.__adCustomerOtpMode=mode;
- var register=mode==="register",nameField=$("adCustomerOtpNameField"),nameInput=$("adCustomerOtpName");
- if(nameField)nameField.hidden=!register;
- if(nameInput)nameInput.required=register;
- var registerTab=$("adCustomerRegisterTab"),loginTab=$("adCustomerLoginTab");
- if(registerTab){registerTab.classList.toggle("primary",register);registerTab.classList.toggle("outline",!register);registerTab.setAttribute("aria-selected",String(register));}
- if(loginTab){loginTab.classList.toggle("primary",!register);loginTab.classList.toggle("outline",register);loginTab.setAttribute("aria-selected",String(!register));}
- var codeField=$("adCustomerOtpCodeField"),verify=$("adCustomerOtpVerify");
- if(codeField)codeField.hidden=true;
- if(verify){verify.disabled=true;verify.setAttribute("aria-disabled","true");}
+ mode=mode==="login"?"login":"register";window.__adCustomerOtpMode=mode;
+ var reg=mode==="register",nf=$("adCustomerOtpNameField"),ni=$("adCustomerOtpName");
+ if(nf)nf.hidden=!reg;if(ni)ni.required=reg;
+ var rt=$("adCustomerRegisterTab"),lt=$("adCustomerLoginTab");
+ if(rt){rt.classList.toggle("primary",reg);rt.classList.toggle("outline",!reg);rt.setAttribute("aria-selected",String(reg));}
+ if(lt){lt.classList.toggle("primary",!reg);lt.classList.toggle("outline",reg);lt.setAttribute("aria-selected",String(!reg));}
+ var cf=$("adCustomerOtpCodeField"),vb=$("adCustomerOtpVerify");if(cf)cf.hidden=true;
+ if(vb){vb.hidden=true;vb.disabled=true;vb.setAttribute("aria-disabled","true");}
  if($("adCustomerOtpCode"))$("adCustomerOtpCode").value="";
- customerOtpMessage(register?"नया Customer account बनाने के लिए नाम और मोबाइल भरें।":"पहले से बने Customer account में login के लिए अपना registered मोबाइल नंबर भरें।",false);
+ customerOtpMessage(reg?"नया account बनाने के लिए role, नाम और मोबाइल भरें।":"अपने registered account में login के लिए role और मोबाइल नंबर भरें।",false);
 };
 window.adCustomerSendOtp=async function(){
- var c=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,""),mode=window.__adCustomerOtpMode||"register";
- if(!c)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
+ var client=window.adBrandSupabase||null,name=String($("adCustomerOtpName")?.value||"").trim(),mobile=String($("adCustomerOtpMobile")?.value||"").replace(/\D/g,""),mode=window.__adCustomerOtpMode||"register",role=String($("adCustomerOtpRole")?.value||"customer");
+ if(!client)return customerOtpMessage("Secure login service load नहीं हुई। Page refresh करें।",true);
+ if(!["customer","seller","delivery"].includes(role))return customerOtpMessage("अकाउंट का सही प्रकार चुनें।",true);
  if(mode==="register"&&name.length<2)return customerOtpMessage("Registration के लिए पूरा नाम कम से कम 2 अक्षरों का लिखें।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("सही 10-digit Indian mobile number भरें।",true);
  if(window.__adBrandOtpSendInFlight)return;
- window.__adBrandOtpSendInFlight=true;
- var send=$("adCustomerOtpSend"),verify=$("adCustomerOtpVerify");
- if(send)send.disabled=true;
+ window.__adBrandOtpSendInFlight=true;var send=$("adCustomerOtpSend");if(send)send.disabled=true;
  try{
-  var result=await c.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:mode==="register",data:mode==="register"?{full_name:name,mobile:mobile}:{}}});
+  window.__adBrandOtpRequestedAt=Date.now();window.__adBrandPendingRole=role;
+  var result=await client.auth.signInWithOtp({phone:"+91"+mobile,options:{channel:"sms",shouldCreateUser:mode==="register",data:mode==="register"?{full_name:name,mobile:mobile}:{}}});
   if(result.error)throw result.error;
   window.__adBrandPendingCustomerOtpMobile=mobile;
-  var field=$("adCustomerOtpCodeField");if(field)field.hidden=false;
+  var field=$("adCustomerOtpCodeField"),verify=$("adCustomerOtpVerify");if(field)field.hidden=false;
   if(verify){verify.hidden=false;verify.disabled=false;verify.setAttribute("aria-disabled","false");}
-  customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। नीचे 6 अंकों का OTP डालकर Verify करें।",false);
-  if($("adCustomerOtpCode"))$("adCustomerOtpCode").focus();
- }catch(e){
-  console.error("Customer OTP send failed:",e);
-  var message=String(e.message||"");
-  if(/phone.*(disabled|not enabled|not configured)|unsupported phone provider|sms.*(disabled|not configured)|provider.*disabled|phone signups are disabled/i.test(message)){
-   customerOtpMessage("इस समय SMS OTP सेवा enabled/configured नहीं है। अभी Existing account: email/password login इस्तेमाल करें। SMS provider configure होने के बाद ही mobile OTP चलेगा।",true);
-  }else if(/not found|no user|user.*exist/i.test(message)){
-   customerOtpMessage("यह नंबर अभी phone-OTP account से जुड़ा नहीं है। Existing account के लिए email/password login चुनें। Duplicate account नहीं बनाया गया।",true);
-  }else{
-   customerOtpMessage("OTP नहीं भेजा जा सका: "+(message||"Phone Auth/SMS provider की configuration जाँचें।"),true);
-  }
+  customerOtpMessage("OTP भेजने का अनुरोध सफल हुआ। SMS में आया 6 अंकों का OTP डालकर Verify करें।",false);
+  $("adCustomerOtpCode")?.focus();
+ }catch(err){
+  console.error("Mobile OTP send failed:",err);
+  var msg=String(err.message||"");
+  customerOtpMessage(/phone.*(disabled|not enabled)|provider.*disabled|sms.*disabled/i.test(msg)?"SMS OTP provider अभी उपलब्ध नहीं है। Supabase Phone Auth और SMS Hook configuration जाँचें।":"OTP नहीं भेजा जा सका: "+(msg||"थोड़ी देर बाद प्रयास करें।"),true);
  }finally{window.__adBrandOtpSendInFlight=false;if(send)send.disabled=false;}
 };
 window.adCustomerVerifyOtp=async function(){
- var c=window.adBrandSupabase||null,mobile=String(window.__adBrandPendingCustomerOtpMobile||"").replace(/\D/g,""),token=String($("adCustomerOtpCode")?.value||"").replace(/\s/g,""),name=String($("adCustomerOtpName")?.value||"").trim();
- if(!c)return customerOtpMessage("Secure login service load नहीं हुई।",true);
+ var client=window.adBrandSupabase||null,mobile=String(window.__adBrandPendingCustomerOtpMobile||"").replace(/\D/g,""),token=String($("adCustomerOtpCode")?.value||"").replace(/\s/g,""),name=String($("adCustomerOtpName")?.value||"").trim(),mode=window.__adCustomerOtpMode||"register",desiredRole=String(window.__adBrandPendingRole||$("adCustomerOtpRole")?.value||"customer");
+ if(!client)return customerOtpMessage("Secure login service load नहीं हुई।",true);
  if(!/^[6-9]\d{9}$/.test(mobile))return customerOtpMessage("पहले OTP भेजें और मोबाइल नंबर जाँचें।",true);
  if(!/^\d{4,8}$/.test(token))return customerOtpMessage("SMS में आया valid OTP दर्ज करें।",true);
  var verify=$("adCustomerOtpVerify");if(verify){verify.disabled=true;verify.setAttribute("aria-disabled","true");}
- customerOtpMessage("OTP verify हो रहा है… Supabase से जवाब आने तक पेज बंद न करें।",false);
- var otpVerifiedSession=false,otpVerifiedUserId=null;
+ customerOtpMessage("OTP verify हो रहा है…",false);
  try{
-  var auth=await c.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});
-  if(auth.error)throw auth.error;
-  var user=auth.data?.user||auth.data?.session?.user;
-  if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली। फिर प्रयास करें।");
-  otpVerifiedSession=true;otpVerifiedUserId=user.id;
-  var pr=await c.from("profiles").select("user_id,role,full_name,mobile,is_active").eq("user_id",user.id).maybeSingle();
-  if(pr.error)throw pr.error;
-  if(!pr.data){await c.auth.signOut();throw new Error("Customer profile auto-create नहीं हुआ। Auth trigger और database setup जाँचना होगा।");}
-  if(pr.data.role!=="customer"||pr.data.is_active!==true){await c.auth.signOut();throw new Error("यह active Customer account नहीं है। सहायता से संपर्क करें।");}
-  if(!String(pr.data.full_name||"").trim()||!String(pr.data.mobile||"").trim()){
-   var saved=await c.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});
-   if(saved.error)throw saved.error;
+  var auth=await client.auth.verifyOtp({phone:"+91"+mobile,token:token,type:"sms"});if(auth.error)throw auth.error;
+  var user=auth.data?.user||auth.data?.session?.user;if(!user)throw new Error("OTP verify हुआ, लेकिन secure session नहीं मिली।");
+  var pr=await client.from("profiles").select("user_id,role,full_name,mobile,is_active,created_at").eq("user_id",user.id).maybeSingle();
+  if(pr.error)throw pr.error;if(!pr.data){await client.auth.signOut();throw new Error("Account profile auto-create नहीं हुआ। Database signup trigger जाँचना होगा।");}
+  var actualRole=String(pr.data.role||"");if(pr.data.is_active!==true){await client.auth.signOut();throw new Error("यह account inactive है। Admin से संपर्क करें।");}
+  if(mode==="register"){
+   var created=Date.parse(user.created_at||pr.data.created_at||0);
+   if(created&&window.__adBrandOtpRequestedAt&&created<window.__adBrandOtpRequestedAt-10000){await client.auth.signOut();throw new Error("इस मोबाइल पर account पहले से registered है। अब Login tab चुनें।");}
+   if(actualRole!=="customer"){await client.auth.signOut();throw new Error("इस मोबाइल पर पहले से account है। Login में उसका सही role चुनें।");}
+   if(desiredRole!=="customer"){
+    window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";adUpdateAuthEntryVisibility();
+    var ar=$("accountRole");if(ar)ar.value=desiredRole;
+    if($("roleApplicantName"))$("roleApplicantName").value=pr.data.full_name||name;
+    if($("roleApplicantMobile"))$("roleApplicantMobile").value=String(pr.data.mobile||mobile).replace(/\D/g,"").slice(-10);
+    openAccountAccess(desiredRole);window.__adBrandPendingCustomerOtpMobile=null;
+    customerOtpMessage("मोबाइल verify हो गया। अब Seller/Delivery आवेदन पूरा करें; Admin approval के बाद ही काम खुलेगा।",false);
+    toast("OTP verify हो गया। अब आवेदन पूरा करें।");return;
+   }
+  }else if(actualRole!==desiredRole){
+   await client.auth.signOut();
+   throw new Error(actualRole==="customer"?"यह Customer account है। Login में Customer चुनें; Seller/Delivery आवेदन के लिए Register चुनें।":"यह मोबाइल चुने गए role से मेल नहीं खाता। सही role चुनें।");
   }
-  window.__adBrandAuthUser=user;window.__adBrandAuthRole="customer";
-  window.__adBrandCustomerMarketMode=null;
-  if($("adCheckoutName")&&!$("adCheckoutName").value)$("adCheckoutName").value=pr.data.full_name||name;
-  if($("adCheckoutMobile")&&!$("adCheckoutMobile").value)$("adCheckoutMobile").value=String(pr.data.mobile||mobile).replace(/\D/g,"").slice(-10);
-  window.__adCustomerAuthPanelOpen=false;
-  updateCustomerOtpVisibility();
-  if(typeof window.openPanel==="function")window.openPanel("customer");
-  updateCustomerOtpVisibility();
-  customerOtpMessage("Customer login सफल हुआ।",false);
-  if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();
-  if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();
-  if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();
-  if(typeof window.toast==="function")window.toast("Mobile OTP से Customer login सफल हुआ।");
-  if(window.__adBrandPendingRoleApplication==="delivery"){
-   window.__adBrandPendingRoleApplication=null;
-   var roleSelect=$("accountRole");if(roleSelect)roleSelect.value="delivery";
-   if($("roleApplicantName")&&!$("roleApplicantName").value)$("roleApplicantName").value=name;
-   if($("roleApplicantMobile")&&!$("roleApplicantMobile").value)$("roleApplicantMobile").value=mobile;
-   if(typeof window.openAccountAccess==="function")window.openAccountAccess("delivery");
-   updateRoleApplicationFields();
-   if(typeof window.toast==="function")window.toast("मोबाइल OTP verify हो गया। अब Delivery Partner का वाहन, पता और private documents भरकर आवेदन भेजें।");
+  if(!["customer","seller","delivery"].includes(actualRole)){await client.auth.signOut();throw new Error("इस account का role मान्य नहीं है।");}
+  window.__adBrandAuthUser=user;window.__adBrandAuthRole=actualRole;window.__adBrandCustomerMarketMode=null;adUpdateAuthEntryVisibility();
+  if(actualRole==="customer"&&(!String(pr.data.full_name||"").trim()||!String(pr.data.mobile||"").trim())){
+   var saved=await client.rpc("customer_update_profile",{p_full_name:name||pr.data.full_name||"Customer",p_mobile:mobile});if(saved.error)throw saved.error;
   }
-  window.__adBrandPendingCustomerOtpMobile=null;
- }catch(e){
-  if(otpVerifiedSession&&(!window.__adBrandAuthUser||window.__adBrandAuthUser.id!==otpVerifiedUserId||window.__adBrandAuthRole!=="customer")){try{await c.auth.signOut();}catch(cleanupError){console.error("Customer OTP session cleanup failed:",cleanupError);}}
-  console.error("Customer OTP verification failed:",e);
-  customerOtpMessage("OTP verify/login नहीं हुआ: "+(e.message||"OTP expired हो सकता है; नया OTP लेकर प्रयास करें।"),true);
- }finally{if(verify){verify.disabled=false;verify.setAttribute("aria-disabled","false");}}
+  window.__adCustomerAuthPanelOpen=false;updateCustomerOtpVisibility();window.openPanel(actualRole);
+  if(actualRole==="customer"){if(typeof window.adLiveRenderCart==="function")window.adLiveRenderCart();if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();if(typeof window.adLiveLoadCatalog==="function")await window.adLiveLoadCatalog();}
+  window.__adBrandPendingCustomerOtpMobile=null;window.__adBrandPendingRole=null;
+  customerOtpMessage(actualRole+" login सफल हुआ।",false);toast("Mobile OTP से "+actualRole+" login सफल हुआ।");
+ }catch(err){console.error("OTP verification failed:",err);customerOtpMessage("OTP verify/login नहीं हुआ: "+(err.message||"OTP expired हो सकता है।"),true);}
+ finally{if(verify){verify.disabled=false;verify.setAttribute("aria-disabled","false");}}
 };
 function adDeliveryOtpMessage(message,isError){
  var box=$("adDeliveryOtpStatus");if(!box)return;
