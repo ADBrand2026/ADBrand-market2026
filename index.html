@@ -1486,118 +1486,7 @@ function setAccountAccessMode(mode) {
  adOpenAuthEntry(mode==="signup"?"register":"login",role);
 }
 
-function handleAccountSignup() {
-  const role = String($("accountRole")?.value || "customer");
-  if (role === "delivery" || role === "seller") {
-    if (window.__adBrandAuthUser && window.__adBrandAuthRole === "customer") {
-      updateRoleApplicationFields();
-      $("roleApplicationFields")?.scrollIntoView({behavior:"smooth",block:"start"});
-      toast(role === "seller"
-        ? "Customer login हो चुका है। ₹0 मोड में आवेदन भर सकते हैं; मोबाइल OTP verification अभी pending है।"
-        : "Customer login हो चुका है। ₹0 मोड में Delivery आवेदन भर सकते हैं; मोबाइल OTP verification अभी pending है।");
-      return;
-    }
-    if (typeof window.adDeliveryStartOtpRegistration === "function") {
-      window.adDeliveryStartOtpRegistration();
-      return;
-    }
-    toast("मोबाइल OTP सेवा अभी उपलब्ध नहीं है। कृपया बाद में प्रयास करें।");
-    return;
-  }
-  setAccountAccessMode("signup");
-  continueAccountAccess("signup");
-}
 
-async function continueAccountAccess(mode) {
-  const requestedRole = String($("accountRole")?.value || "customer");
-  const email = String($("accountEmail")?.value || "").trim().toLowerCase();
-  const password = String($("accountPassword")?.value || "");
-  const mobile = String($("accountMobile")?.value || "").trim().replace(/\D/g, "");
-  const signupFullName = String($("accountFullName")?.value || "").trim();
-  const client = window.adBrandSupabase;
-  if (!client) return toast("Secure login service load नहीं हुई। Page refresh करें।");
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("सही email address डालें।");
-  if (password.length < 8) return alert("Password कम से कम 8 characters का होना चाहिए।");
-  if (mobile && !validIndianMobile(mobile)) return alert("Mobile खाली छोड़ें या सही 10-digit number डालें।");
-  if (mode === "signup" && signupFullName.length < 2) return alert("Registration के लिए पूरा नाम लिखें।");
-  if (mode === "signup" && !validIndianMobile(mobile)) return alert("Customer registration के लिए सही 10-digit Indian mobile number जरूरी है।");
-  if (!["customer","seller","delivery"].includes(requestedRole)) return alert("सही account type चुनें।");
-
-  const buttons = $("accountModal")?.querySelectorAll("button");
-  if (buttons) buttons.forEach(b => b.disabled = true);
-  try {
-    // Seller/Delivery applicants always authenticate as customers until Admin approval.
-    const result = mode === "signup"
-      ? await client.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname,data:{full_name:signupFullName,mobile:mobile}}})
-      : await client.auth.signInWithPassword({email,password});
-    if (result.error) throw result.error;
-    const user = result.data?.user || result.data?.session?.user;
-    if (!user) { toast("Account request हुई। जरूरत हो तो email confirmation करें।"); return; }
-    if (mode === "signup" && !result.data?.session) {
-      toast("Account बन गया। Email confirmation करें, फिर Customer के रूप में login करके आवेदन भेजें।");
-      return;
-    }
-    const pr = await client.from("profiles").select("user_id,role,is_active,full_name,mobile")
-      .eq("user_id",user.id).maybeSingle();
-    if (pr.error) throw pr.error;
-    if (!pr.data) {
-      await client.auth.signOut();
-      throw new Error("Account profile नहीं बना। Database signup trigger/status verify करना होगा।");
-    }
-    if (pr.data.is_active !== true) {
-      await client.auth.signOut();
-      throw new Error("यह account inactive है।");
-    }
-    const actualRole = pr.data.role;
-    if (actualRole === "admin") {
-      await client.auth.signOut();
-      throw new Error("Admin के लिए private Admin portal इस्तेमाल करें।");
-    }
-    if (!["customer","seller","delivery"].includes(actualRole)) {
-      await client.auth.signOut();
-      throw new Error("इस account का role website access के लिए मान्य नहीं है।");
-    }
-    if (mode === "signup" && actualRole !== "customer") {
-      await client.auth.signOut();
-      throw new Error("नया account पहले Customer के रूप में बनना चाहिए।");
-    }
-
-    window.__adBrandAuthUser = user;
-    window.__adBrandAuthRole = actualRole;
-    if (actualRole === "customer") window.__adBrandCustomerMarketMode = null;
-    if (actualRole === "customer" && typeof updateCustomerOtpVisibility === "function") updateCustomerOtpVisibility();
-    currentAccountRole = actualRole;
-
-    if (actualRole === "customer" && (requestedRole === "seller" || requestedRole === "delivery")) {
-      // Critical path: do NOT reject/sign out a customer who is applying for a new role.
-      $("accountRole").value = requestedRole;
-      updateRoleApplicationFields();
-      if ($("roleApplicantName") && !$("roleApplicantName").value) $("roleApplicantName").value = pr.data.full_name || "";
-      if ($("roleApplicantMobile") && !$("roleApplicantMobile").value) $("roleApplicantMobile").value = mobile || pr.data.mobile || "";
-      toast("Customer login सुरक्षित है। अब नीचे Seller/Delivery आवेदन भरकर भेजें; approval से पहले dashboard access नहीं मिलेगा।");
-      return;
-    }
-
-    if (actualRole !== requestedRole && requestedRole !== "customer") {
-      $("accountRole").value = actualRole;
-    }
-    closeModal("accountModal");
-    if (actualRole === "customer") {
-      openPanel("customer");
-      if (mobile && $("adCheckoutMobile") && !$("adCheckoutMobile").value) $("adCheckoutMobile").value = mobile;
-      if ($("adCheckoutName") && !$("adCheckoutName").value) $("adCheckoutName").value = pr.data.full_name || "";
-    } else if (actualRole === "seller") {
-      openPanel("seller");
-    } else if (actualRole === "delivery") {
-      openPanel("delivery");
-    }
-  } catch (e) {
-    console.error("Secure account access failed:",e);
-    alert(e?.message || "Login नहीं हो पाया। Email और password जाँचें।");
-  } finally {
-    if (buttons) buttons.forEach(b => b.disabled = false);
-  }
-}
 async function restoreAdBrandAuthSession() {
   const client=window.adBrandSupabase;
   if (!client) return;
@@ -21296,8 +21185,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
           "<button id='adCustomerSaveProfile' class='btn primary' type='button'>💾 Profile save करें</button>"+
           "<button id='adCustomerSignOut' class='btn red' type='button'>Sign out</button>"+
         "</div>"+
-        "<div class='form-grid'>"+
-        "</div>"+
         "<div id='adCustomerProfileMessage' class='small muted' role='status' style='margin-top:8px'></div>"+
         "<hr style='border:0;border-top:1px solid var(--border);margin:18px 0'>"+
         "<h3>📍 Saved Address Book</h3>"+
@@ -21322,16 +21209,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const modal=el("accountModal");
     const login=modal&&modal.querySelector("button[onclick=\"continueAccountAccess('login')\"]");
     if(login&&login.parentElement&&!el("adCustomerAuthExtras")){extras.id="adCustomerAuthExtras";login.parentElement.insertAdjacentElement("afterend",extras);}
-    if(modal&&!el("adCustomerRecoveryBox")){
-      const box=node("section","card");
-      box.id="adCustomerRecoveryBox";box.hidden=true;box.style.marginTop="12px";box.style.padding="14px";
-      box.appendChild(node("h3","","Set a new password"));
-      box.appendChild(node("p","small muted","अब account access केवल मोबाइल OTP से होता है।"));
-      const a=node("div","field");a.appendChild(node("label","","New password"));const p1=node("input");p1.id="adCustomerRecoveryPassword";p1.type="password";p1.autocomplete="new-password";p1.minLength=8;a.appendChild(p1);
-      const b=node("div","field");b.appendChild(node("label","","Confirm new password"));const p2=node("input");p2.id="adCustomerRecoveryPasswordConfirm";p2.type="password";p2.autocomplete="new-password";p2.minLength=8;b.appendChild(p2);
-      box.append(a,b,btn("Update password",window.adCustomerCompletePasswordRecovery,"primary"));
-      const card=modal.querySelector(".modal-card");
-      if(card)card.appendChild(box);
     }
   }
   function setAccountVisibility(data){
@@ -21350,55 +21227,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(el("adCustomerAccountMobile")&&!el("adCustomerAccountMobile").value)el("adCustomerAccountMobile").value=profile.mobile||"";
   }
   function setProfileMessage(msg){status("adCustomerProfileMessage",msg);}
-  window.adCustomerForgotPassword=async function(){
-    const c=client(),email=String(el("accountEmail")?.value||"").trim().toLowerCase();
-    if(!c)return alert("Secure login service load नहीं हुई।");
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("पहले login box में अपना registered email लिखें।");
-    try{
-      const {error}=await c.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
-      if(error)throw error;
-      toast("Password reset link भेजने का अनुरोध सफल हुआ। Email inbox/spam देखें।");
-    }catch(e){console.error(e);alert("Reset email नहीं भेजा जा सका: "+(e.message||"कृपया फिर कोशिश करें।")+" यदि redirect URL allow-list में नहीं है तो Supabase Auth URL Configuration में इस website का URL जोड़ना होगा।");}
-  };
-  window.adCustomerResendConfirmation=async function(){
-    const c=client(),email=String(el("accountEmail")?.value||"").trim().toLowerCase();
-    if(!c)return alert("Secure login service load नहीं हुई।");
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("पहले registered email लिखें।");
-    try{const {error}=await c.auth.resend({type:"signup",email,options:{emailRedirectTo:window.location.origin+window.location.pathname}});if(error)throw error;toast("Confirmation email का अनुरोध भेजा गया। Inbox/spam देखें।");}
-    catch(e){console.error(e);alert("Confirmation email नहीं भेजा जा सका: "+(e.message||"कृपया दोबारा प्रयास करें।"));}
-  };
-  window.adCustomerCompletePasswordRecovery=async function(){
-    const c=client(),p1=String(el("adCustomerRecoveryPassword")?.value||""),p2=String(el("adCustomerRecoveryPasswordConfirm")?.value||"");
-    if(!c)return alert("Secure login service load नहीं हुई।");
-    if(p1.length<8)return alert("Password कम से कम 8 characters का रखें।");
-    if(p1!==p2)return alert("दोनों password एक जैसे नहीं हैं।");
-    try{
-      const {error}=await c.auth.updateUser({password:p1});if(error)throw error;
-      el("adCustomerRecoveryBox").hidden=true;
-      toast("Password बदल गया। अब Customer के रूप में login कर सकते हैं।");
-      if(window.location.hash)history.replaceState(null,"",window.location.pathname+window.location.search);
-    }catch(e){console.error(e);alert("Password update नहीं हुआ: "+(e.message||"Reset link expired हो सकता है।"));}
-  };
   async function saveCustomerProfile(){
     if(!isCustomer())return alert("पहले Customer login करें।");
     const c=client(),name=String(el("adCustomerAccountName")?.value||"").trim(),mobile=String(el("adCustomerAccountMobile")?.value||"").replace(/\D/g,"");
     try{const {data,error}=await c.rpc("customer_update_profile",{p_full_name:name,p_mobile:mobile});if(error)throw error;setProfileMessage("✅ Profile Supabase में save हो गया।");toast("Customer profile save हो गया।");if(typeof window.adLiveLoadCustomerOrders==="function")await window.adLiveLoadCustomerOrders();}
     catch(e){console.error(e);setProfileMessage("Profile save नहीं हुआ: "+(e.message||"कृपया विवरण जाँचें।"));}
-  }
-  async function changeCustomerEmail(){
-    if(!isCustomer())return alert("पहले Customer login करें।");
-    const c=client(),email=String(el("adCustomerNewEmail")?.value||"").trim().toLowerCase();
-    if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return alert("नया valid email लिखें।");
-    try{const {error}=await c.auth.updateUser({email:email});if(error)throw error;setProfileMessage("Email change request भेजी गई। नया email confirm करें; confirmation से पहले login email न बदल भी सकता है।");toast("Email confirmation भेजने का अनुरोध हुआ।");}
-    catch(e){console.error(e);setProfileMessage("Email update नहीं हुआ: "+(e.message||"कृपया फिर कोशिश करें।"));}
-  }
-  async function changeCustomerPassword(){
-    if(!isCustomer())return alert("पहले Customer login करें।");
-    const c=client(),p1=String(el("adCustomerNewPassword")?.value||""),p2=String(el("adCustomerConfirmPassword")?.value||"");
-    if(p1.length<8)return alert("Password कम से कम 8 characters का रखें।");
-    if(p1!==p2)return alert("दोनों password एक जैसे नहीं हैं।");
-    try{const {error}=await c.auth.updateUser({password:p1});if(error)throw error;el("adCustomerNewPassword").value="";el("adCustomerConfirmPassword").value="";setProfileMessage("✅ Password बदल गया।");toast("Password सफलतापूर्वक बदल गया।");}
-    catch(e){console.error(e);setProfileMessage("Password change नहीं हुआ: "+(e.message||"फिर कोशिश करें।"));}
   }
   async function customerSignOut(){
     const c=client();if(c)await c.auth.signOut();
@@ -21764,14 +21597,12 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   }
   function wireButtons(){
     el("adCustomerSaveProfile")?.addEventListener("click",saveCustomerProfile);
-    el("adCustomerChangeEmail")?.addEventListener("click",changeCustomerEmail);
-    el("adCustomerChangePassword")?.addEventListener("click",changeCustomerPassword);
-    el("adCustomerSignOut")?.addEventListener("click",customerSignOut);
+        el("adCustomerSignOut")?.addEventListener("click",customerSignOut);
     el("adCustomerSaveNewAddress")?.addEventListener("click",()=>saveAddress(null,!!el("adCustomerMakeAddressDefault")?.checked,"New address saved."));
     el("adCustomerUpdateAddress")?.addEventListener("click",updateSelectedAddress);
     el("adCustomerSetDefaultAddress")?.addEventListener("click",setSelectedAddressDefault);
     el("adCustomerDeleteAddress")?.addEventListener("click",deleteSelectedAddress);
-    ["adCustomerAccountName","adCustomerAccountMobile","adCustomerNewEmail","adCustomerNewPassword","adCustomerConfirmPassword"].forEach(id=>el(id)?.addEventListener("input",()=>{window.__adCustomerAccountDirty=true;}));
+    ["adCustomerAccountName","adCustomerAccountMobile"].forEach(id=>el(id)?.addEventListener("input",()=>{window.__adCustomerAccountDirty=true;}));
   }
   function wireAuthModal(){
     if(String(window.location.hash||"").includes("type=recovery")){
