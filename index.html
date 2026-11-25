@@ -19605,7 +19605,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const client=window.adBrandSupabase;
       if(!client||!client.functions)throw new Error("Secure PIN lookup service load नहीं हुई");
       const lookup=await client.functions.invoke("lookup-indian-pincode",{body:{pincode:pin}});
-      if(pinField.dataset.lookupRequest!==requestId||String(pinField.value||"").replace(/\\D/g,"").slice(0,6)!==pin)return;
+      if(pinField.dataset.lookupRequest!==requestId||String(pinField.value||"").replace(/\D/g,"").slice(0,6)!==pin)return;
       if(lookup.error)throw lookup.error;
       const payload=lookup.data;
       if(!payload||payload.ok!==true||!payload.state)throw new Error(payload?.error||"इस PIN का postal record नहीं मिला");
@@ -19974,7 +19974,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       latitude:String($("adCheckoutLatitude")?.value || "").trim()?Number($("adCheckoutLatitude").value):null,
       longitude:String($("adCheckoutLongitude")?.value || "").trim()?Number($("adCheckoutLongitude").value):null
     };
-    const verifiedLoginMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\\D/g,"").slice(-10);
+    const verifiedLoginMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\D/g,"").slice(-10);
     if(!verifiedLoginMobile || address.mobile!==verifiedLoginMobile){
       return alert("Order उसी verified mobile number से करना होगा जिससे आपने login किया है। कृपया उसी नंबर से login करें।");
     }
@@ -20059,11 +20059,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(error){ console.error("Customer workspace error:",error); liveEmpty(box,"Customer orders load नहीं हुए: "+liveErr(error)); return; }
     const profile=data?.profile || {};
     if($("adCheckoutName")&&!$("adCheckoutName").value) $("adCheckoutName").value=profile.full_name||"";
-    const authMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\\D/g,"").slice(-10);
+    const authMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\D/g,"").slice(-10);
     const checkoutMobile=$("adCheckoutMobile");
     if(checkoutMobile){
       checkoutMobile.readOnly=!!authMobile;
-      checkoutMobile.value=authMobile||String(profile.mobile||"").replace(/\\D/g,"").slice(-10);
+      checkoutMobile.value=authMobile||String(profile.mobile||"").replace(/\D/g,"").slice(-10);
       checkoutMobile.title=authMobile?"यह आपके verified login mobile से जुड़ा है और बदला नहीं जा सकता।":"Verified phone login के बिना checkout नहीं होगा।";
     }
     const addresses=asList(data?.addresses);
