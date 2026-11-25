@@ -22253,7 +22253,7 @@ section[id^="adbm"]{display:none!important}
 /* First launch: keep the non-food marketplace focused on everyday, affordable goods. */
 (function(){
   "use strict";
-  var costlyTerms=/\\b(laptop|notebook pc|macbook|smartphone|mobile phone|iphone|ipad|tablet|smart tv|led tv|television)\\b|लैपटॉप|मोबाइल फोन|स्मार्टफोन|आईफोन|टैबलेट|स्मार्ट टीवी|टीवी/i;
+  var costlyTerms=/\b(laptop|notebook pc|macbook|smartphone|mobile phone|iphone|ipad|tablet|smart tv|led tv|television)\b|लैपटॉप|मोबाइल फोन|स्मार्टफोन|आईफोन|टैबलेट|स्मार्ट टीवी|टीवी/i;
   function removeHighValueOptions(select){
     if(!select)return;
     Array.from(select.options||[]).forEach(function(o){
