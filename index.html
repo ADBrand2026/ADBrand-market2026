@@ -641,7 +641,7 @@ img{max-width:100%}
       <div class="field"><label for="adLiveDeliveryPincode">6-digit PIN Code</label><input id="adLiveDeliveryPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="जैसे 226001"></div>
       <div class="field"><label for="adLiveZoneApply">आपके इलाके के sellers</label><button id="adLiveUseCheckoutZone" type="button" class="btn outline" onclick="adLiveUseCheckoutZone()">Checkout address इस्तेमाल करें</button><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">मेरे इलाके के सामान दिखाएँ</button></div>
     </div>
-    <p class="small muted">AD Brand Market पहले आपके चुने हुए शहर और राज्य के sellers दिखाएगा। Food, चाय और snacks तभी दिखेंगे जब seller की active delivery zone में आपका 6-digit PIN भी शामिल हो। दूसरे शहर के sellers अपने-आप local sellers की जगह नहीं दिखेंगे। अपना zone यहाँ भरें या checkout address से लाएँ।</p>
+    <p class="small muted">पहले अपना City, State और 6-digit PIN Code भरें। AD Brand Market दूसरे शहर के sellers नहीं दिखाएगा। Food, चाय और snacks केवल उन्हीं local Food Sellers से दिखेंगे जिनकी active delivery PIN zone में आपका PIN शामिल है। कपड़े और बाकी सामान आपके local city/state के verified sellers से दिखेंगे।</p>
     <div id="adFoodCategoryBar" class="ad-food-category-bar" hidden aria-label="Food categories">
       <button type="button" class="ad-food-category active" data-food-category="" onclick="adCustomerSetFoodCategory('')">🍽️ सभी Food</button>
       <button type="button" class="ad-food-category" data-food-category="food" onclick="adCustomerSetFoodCategory('food')">🍛 Other Food</button>
@@ -675,7 +675,7 @@ img{max-width:100%}
           <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" selected>Non-Food Home Delivery — Valmo / approved external courier (service connect होने पर)</option><option value="self_pickup">Self Pickup — दुकान से खुद लें</option></select></div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, landmark, food notes…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders केवल हमारे local AD Food Delivery Boys deliver करेंगे। Non-Food Home Delivery Valmo या किसी approved third-party courier से होगी; हमारे AD Food Delivery Boys को Non-Food order कभी assign नहीं होगा। Valmo/दूसरे courier की वास्तविक booking, shipping charges और RTO/return settlement connect और test होने तक Non-Food Home Delivery बंद रहेगी। Self Pickup केवल Non-Food सामान के लिए seller के उसी city/state में है। COD उपलब्ध है; UPI gateway अभी live नहीं है।</p>
+        <p id="adCourierHomeDeliveryNote" class="small muted">Food orders केवल उसी local area के verified AD Food Delivery Boy deliver करेंगे; Food को Self Pickup नहीं मिलेगा। कपड़े/जूते/चप्पल के लिए हमारा local AD Food Rider कभी assign नहीं होगा। Non-Food Home Delivery तभी खुलेगी जब courier booking, seller-paid shipping, tracking, COD settlement और RTO/return flow live test हो जाएँ; अभी केवल उसी seller city/state में Self Pickup उपलब्ध है। COD ही उपलब्ध है; UPI gateway अभी live नहीं है।</p>
         <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
@@ -2082,12 +2082,16 @@ window.adLiveLoadCatalog=async function(){
 function adLiveSyncFulfillmentOption(){
  var select=$("adCheckoutFulfillment");
  if(!select)return;
- // Platform policy: every customer order is delivered to the saved home address.
- // Remove any stale self-pickup option even if older cached markup is loaded.
- Array.from(select.options).forEach(function(option){
-  if(option.value!=="delivery")option.remove();
- });
- select.value="delivery";
+ var cart=window.__adBrandLiveCart||[];
+ var hasFood=cart.some(function(item){return String(item.seller_type||item.product?.seller_type||"").toLowerCase()==="food";});
+ var hasNonFood=cart.some(function(item){return String(item.seller_type||item.product?.seller_type||"").toLowerCase()!=="food";});
+ var delivery=Array.from(select.options).find(function(o){return o.value==="delivery";});
+ var pickup=Array.from(select.options).find(function(o){return o.value==="self_pickup";});
+ if(delivery){delivery.disabled=hasNonFood;delivery.textContent=hasNonFood?"Home Delivery — courier service अभी चालू नहीं है":"Home Delivery — AD local Food Rider";}
+ if(pickup){pickup.disabled=hasFood;pickup.hidden=hasFood;}
+ if(hasFood){select.value="delivery";}
+ else if(hasNonFood){select.value="self_pickup";}
+ else {select.value="delivery";}
 }
 window.adLiveRenderCart=function(){
  var box=$("adLiveCart");if(!box)return;box.replaceChildren();
@@ -19616,8 +19620,11 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const pincode = String($("adLiveDeliveryPincode")?.value || $("adCheckoutPincode")?.value || "").replace(/\D/g,"").slice(0,6);
     const zoneReady = city.length >= 2 && state.length >= 2 && /^[1-9][0-9]{5}$/.test(pincode);
     const request = ++catalogRequest;
-    if (marketMode === "food" && !zoneReady) {
-      box.replaceChildren(liveNode("div","empty","🍽️ Food delivery देखने के लिए पहले अपना City, State और 6-digit PIN Code भरें। दिल्ली के sellers तभी दिखेंगे जब delivery address उनकी active local service zone में हो।"));
+    if (!zoneReady) {
+      box.replaceChildren(liveNode("div","empty",marketMode === "food"
+        ? "🍽️ Food order के लिए पहले अपना City, State और 6-digit PIN Code भरें। केवल आपके इलाके के active Food Sellers दिखेंगे।"
+        : "🛍️ अपने इलाके के कपड़े, जूते और बाकी सामान देखने के लिए पहले City, State और 6-digit PIN Code भरें। दूसरे शहर के sellers नहीं दिखेंगे."));
+      window.__adBrandLiveProducts = [];
       return;
     }
     box.replaceChildren(liveNode("div","empty",marketMode === "food" ? "आपके इलाके के food sellers खोज रहे हैं…" : "Live products load हो रहे हैं…"));
@@ -19694,7 +19701,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const zoneReady=city.length>=2&&state.length>=2&&/^[1-9][0-9]{5}$/.test(pincode);
       liveEmpty(box,zoneReady
         ?"इस City/State/PIN में अभी कोई matching active product नहीं मिला। Seller की दुकान verified/open हो और service zone आपके PIN से match होना चाहिए।"
-        :"Food/Pizza/Tea/Snacks देखने के लिए अपना City, State और 6-digit PIN भरें या checkout address से zone लाएँ। Non-food courier items location के बिना दिख सकते हैं।");
+        :"पहले City, State और सही 6-digit PIN Code भरें। AD Brand Market आपके local area के verified sellers ही दिखाएगा।");
       return;
     }
     box.replaceChildren();
