@@ -19584,6 +19584,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if($("adLiveDeliveryCity"))$("adLiveDeliveryCity").value=String(a.city||"");
     if($("adLiveDeliveryState"))$("adLiveDeliveryState").value=String(a.state||"");
     if($("adLiveDeliveryPincode"))$("adLiveDeliveryPincode").value=String(a.pincode||"");
+    if(typeof window.adResolveIndianPincode==="function")window.adResolveIndianPincode("adCheckoutPincode","adCheckoutCity","adCheckoutState","adCheckoutPincodeStatus");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
   };
   window.adResolveIndianPincode = async function(pinId,cityId,stateId,statusId){
@@ -19592,6 +19593,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const pin=String(pinField.value||"").replace(/\D/g,"").slice(0,6),status=document.getElementById(statusId);
     if(!/^[1-9][0-9]{5}$/.test(pin)){if(status)status.textContent="6 अंकों का सही PIN डालें।";return;}
     if(pinField.dataset.resolvedPin===pin)return;
+    if(pinField.dataset.lastAttemptedPin!==pin){delete pinField.dataset.postalInvalid;pinField.dataset.lastAttemptedPin=pin;}
     const previous=pinField.dataset.resolvedPin||"";
     if(previous&&previous!==pin){
       delete pinField.dataset.resolvedPin;
@@ -19608,7 +19610,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(pinField.dataset.lookupRequest!==requestId||String(pinField.value||"").replace(/\\D/g,"").slice(0,6)!==pin)return;
       if(lookup.error)throw lookup.error;
       const payload=lookup.data;
+      if(payload&&payload.ok===false&&["PIN_NOT_FOUND","PIN_NOT_DELIVERABLE","PIN_AMBIGUOUS"].includes(payload.code)){
+        delete pinField.dataset.resolvedPin;pinField.dataset.postalInvalid="1";
+        if(status)status.textContent=payload.error||"यह PIN delivery के लिए valid नहीं है।";
+        return;
+      }
       if(!payload||payload.ok!==true||!payload.state)throw new Error(payload?.error||"इस PIN का postal record नहीं मिला");
+      delete pinField.dataset.postalInvalid;
       const state=String(payload.state||"").trim();
       const city=String(payload.city||payload.district||"").trim();
       if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
@@ -19630,7 +19638,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(status)status.textContent=city?"✅ PIN postal directory से District/City मिला: "+city+", "+state+". पूरा घर/area/landmark address अलग भरें।":"✅ State "+state+" मिला। सही city/locality manually confirm करें।";
       if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode&&cityField.value.trim()&&stateField.value.trim())window.adLiveLoadCatalog();
     }catch(error){
-      if(status)status.textContent="PIN lookup अभी उपलब्ध नहीं है। City और State manually भरें; order PIN फिर भी validate होगा।";
+      if(status)status.textContent="PIN verification service अभी उपलब्ध नहीं है। थोड़ी देर बाद फिर प्रयास करें; Food order के लिए PIN verification जरूरी है।";
       console.warn("PIN lookup:",error);
     }
   };
@@ -19992,6 +20000,14 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const sellerType=String(item.seller_type || item.product?.seller_type || "").toLowerCase();
       return sellerType!=="food";
     });
+    if(!nonFoodInCart){
+      const pinField=$("adCheckoutPincode");
+      if(!pinField||pinField.dataset.resolvedPin!==String(address.pincode||"")||pinField.dataset.postalInvalid==="1"){
+        const message="Food delivery के लिए पहले ऐसा 6-digit PIN डालें जिसकी postal delivery verification सफल हो। PIN field में पूरा PIN दोबारा डालें।";
+        const result=$("adLiveCheckoutResult");if(result)result.replaceChildren(liveNode("p","",message));
+        liveStatus(message,false);return;
+      }
+    }
     if(nonFoodInCart&&fulfillment!=="self_pickup"){
       const message="कपड़े/जूते/चप्पल की Home Delivery अभी बंद है क्योंकि असली courier booking, seller-paid shipping, tracking और RTO/return settlement live नहीं हैं. अभी केवल उसी शहर की दुकान से Self Pickup चुना जा सकता है. Food items के लिए अलग Food checkout करें.";
       const result=$("adLiveCheckoutResult");
@@ -22005,6 +22021,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       checkoutPin.dataset.adPinLookupBound="1";
       checkoutPin.addEventListener("input",function(){window.adResolveIndianPincode("adCheckoutPincode","adCheckoutCity","adCheckoutState","adCheckoutPincodeStatus");});
     }
+    var savedZonePin=document.getElementById("adLiveDeliveryPincode");
+    if(savedZonePin&&savedZonePin.value)window.adResolveIndianPincode("adLiveDeliveryPincode","adLiveDeliveryCity","adLiveDeliveryState","adLiveZonePincodeStatus");
   });
 })();
 </script>
