@@ -451,8 +451,9 @@ img{max-width:100%}
     </div>
     <div class="header-actions">
       <button class="btn outline" onclick="goHome()">🏠 Home</button>
+      <button id="adHeaderRegister" class="btn outline" type="button" onclick="adOpenAuthEntry('register')">Register</button>
+      <button id="adHeaderLogin" class="btn outline" type="button" onclick="adOpenAuthEntry('login')">Login</button>
       <button class="btn outline" onclick="openCartModal()">🛒 Cart <span id="cartCount">0</span></button>
-      
     </div>
   </div>
 </header>
@@ -466,38 +467,11 @@ img{max-width:100%}
       </div>
       <h2>आप क्या करना चाहते हैं?</h2>
       <p>पहले अपना विकल्प चुनें। Customer पर क्लिक करने के बाद ही Food और सामान खरीदने के विकल्प दिखाई देंगे।</p>
-      <div class="ad-role-entry-grid">
-        <button class="ad-role-entry" type="button" onclick="openPanel('customer')">
-          <span class="ad-role-entry-icon">🛍️</span>
-          <span class="ad-role-entry-copy"><strong>Customer</strong><small>खाना या सामान खरीदें</small></span>
-          <span class="ad-role-entry-arrow">→</span>
-        </button>
-        <button class="ad-role-entry" type="button" onclick="openPanel('delivery')">
-          <span class="ad-role-entry-icon">🛵</span>
-          <span class="ad-role-entry-copy"><strong>Delivery Partner</strong><small>केवल Food orders deliver करें — Non-Food courier orders नहीं</small></span>
-          <span class="ad-role-entry-arrow">→</span>
-        </button>
-        <button class="ad-role-entry" type="button" onclick="adChooseSellerType('food')">
-          <span class="ad-role-entry-icon">🍲</span>
-          <span class="ad-role-entry-copy"><strong>Food Seller</strong><small>Restaurant, ढाबा, चाय और snacks</small></span>
-          <span class="ad-role-entry-arrow">→</span>
-        </button>
-        <button class="ad-role-entry" type="button" onclick="adChooseSellerType('products')">
-          <span class="ad-role-entry-icon">👕</span>
-          <span class="ad-role-entry-copy"><strong>Clothes / Shoes / Products Seller</strong><small>कपड़े, जूते, चप्पल और अन्य सामान बेचें</small></span>
-          <span class="ad-role-entry-arrow">→</span>
-        </button>
+      <div class="ad-home-auth-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:24px 0">
+        <button class="btn primary" type="button" onclick="adOpenAuthEntry('register')" style="min-height:64px;font-size:1.15rem;font-weight:800">📝 Register</button>
+        <button class="btn outline" type="button" onclick="adOpenAuthEntry('login')" style="min-height:64px;font-size:1.15rem;font-weight:800">🔐 Login</button>
       </div>
-      <section id="adDeliveryAccessQuickActions" aria-label="Delivery Partner login and registration">
-        <h3>🛵 Delivery Partner के लिए</h3>
-        <p>पहले से Delivery Partner account है तो Login करें। नए हैं तो Customer account बनाकर आवेदन भेजें; Delivery काम Admin approval के बाद खुलेगा।</p>
-        <div class="ad-delivery-access-buttons">
-          <button class="btn green" type="button" onclick="openAccountAccess('delivery')">🔐 Delivery Partner Login</button>
-          <button class="btn outline" type="button" onclick="openAccountAccess('delivery');setAccountAccessMode('signup')">📝 Delivery Partner के लिए नया आवेदन</button>
-        </div>
-      </section>
-    </div>
-  </section>
+      <p class="small muted">Register या Login चुनने के बाद Customer, Seller और Delivery Boy के विकल्प मिलेंगे। सफल Login के बाद ये विकल्प अपने-आप छिप जाएँगे।
 </main>
 
 <style id="ad-customer-auth-and-policy-ui">
@@ -584,6 +558,7 @@ img{max-width:100%}
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
     <h3>🔐 Customer Account</h3>
     <p class="small muted">नया account बनाएँ या पहले से बने account में login करें। मोबाइल OTP verify होने के बाद ही account खुलेगा।</p>
+    <div class="field"><label for="adCustomerOtpRole">किसका अकाउंट?</label><select id="adCustomerOtpRole"><option value="customer">Customer — सामान खरीदें</option><option value="seller">Seller — सामान बेचें (Admin approval)</option><option value="delivery">Delivery Boy — ऑर्डर पहुँचाएँ (Admin approval)</option></select></div>
     <div class="ad-auth-tabs" role="tablist" aria-label="Customer account options">
       <button id="adCustomerRegisterTab" class="btn primary" type="button" role="tab" aria-selected="true" onclick="adCustomerSetOtpMode('register')">नया Register</button>
       <button id="adCustomerLoginTab" class="btn outline" type="button" role="tab" aria-selected="false" onclick="adCustomerSetOtpMode('login')">पहले से Login</button>
@@ -596,7 +571,7 @@ img{max-width:100%}
     <div class="product-actions">
       <button id="adCustomerOtpSend" class="btn primary" type="button" onclick="adCustomerSendOtp()">📨 OTP भेजें</button>
       <button id="adCustomerOtpVerify" class="btn green" type="button" onclick="window.adCustomerVerifyOtp()" disabled aria-disabled="true">✅ OTP Verify करके Login करें</button>
-      <button id="adCustomerUseExistingLogin" class="btn outline" type="button" onclick="adCustomerUseExistingLogin()">Email / Password Login</button>
+      
     </div>
     <div id="adCustomerOtpStatus" class="notice" role="status" aria-live="polite">Register या Login चुनें, मोबाइल नंबर भरें और OTP भेजें। OTP/PIN किसी के साथ साझा न करें।</div>
   </div>
@@ -1015,8 +990,6 @@ img{max-width:100%}
     <div id="accountRolePicker" class="field" hidden><label for="accountRole">Internal account intent</label><select id="accountRole"><option value="customer">Customer</option><option value="seller">Seller (approval required)</option><option value="delivery">Delivery Partner (approval required)</option></select></div>
      <div id="accountIntentLabel" class="notice">Customer Login / Registration</div>
      <div id="accountFullNameField" class="field" hidden><label for="accountFullName">Full name / पूरा नाम</label><input id="accountFullName" autocomplete="name" maxlength="120" placeholder="अपना पूरा नाम"></div>
-    <div class="field"><label for="accountEmail">Email</label><input id="accountEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
-    <div class="field"><label for="accountPassword">Password</label><input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required placeholder="कम से कम 8 characters"></div>
     <div class="field"><label for="accountMobile">Mobile (optional)</label><input id="accountMobile" inputmode="numeric" maxlength="10" autocomplete="tel"></div>
 
     <div id="roleApplicationFields" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:12px">
@@ -9352,12 +9325,6 @@ body {
             autocomplete="name" placeholder="जैसे Ramesh Kumar">
         </div>
 
-        <div class="p5-field">
-          <label for="p5-display-email">ईमेल (सार्वजनिक रूप से नहीं दिखेगा)</label>
-          <input id="p5-display-email" type="email" maxlength="254"
-            autocomplete="email" placeholder="you@example.com">
-        </div>
-
         <div class="p5-actions">
           <button class="p5-btn p5-neutral" type="button"
             data-p5-action="save-profile">
@@ -16216,12 +16183,6 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
 
     <label for="a9Pin">PIN code</label>
     <input id="a9Pin" inputmode="numeric" maxlength="6" placeholder="6 अंकों का PIN code">
-
-    <label for="a9Email">ईमेल (यदि उपलब्ध हो)</label>
-    <input id="a9Email" type="email" maxlength="160" autocomplete="email" placeholder="name@example.com">
-
-    <label for="a9Password">पासवर्ड</label>
-    <input id="a9Password" type="password" minlength="8" maxlength="128" autocomplete="new-password" placeholder="कम-से-कम 8 अक्षर">
 
     <label for="a9Consent">सहमति</label>
     <select id="a9Consent">
