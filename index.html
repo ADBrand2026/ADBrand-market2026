@@ -19589,7 +19589,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
   window.adResolveIndianPincode = async function(pinId,cityId,stateId,statusId){
     const pinField=document.getElementById(pinId),cityField=document.getElementById(cityId),stateField=document.getElementById(stateId);
     if(!pinField||!cityField||!stateField)return;
-    const pin=String(pinField.value||"").replace(/\\D/g,"").slice(0,6),status=document.getElementById(statusId);
+    const pin=String(pinField.value||"").replace(/\D/g,"").slice(0,6),status=document.getElementById(statusId);
     if(!/^[1-9][0-9]{5}$/.test(pin)){if(status)status.textContent="6 अंकों का सही PIN डालें।";return;}
     if(pinField.dataset.resolvedPin===pin)return;
     const previous=pinField.dataset.resolvedPin||"";
@@ -19610,7 +19610,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       const state=states[0];
       let city="";
       if(/^delhi$/i.test(state))city="Delhi";
-      else if(districts.length===1)city=districts[0].replace(/\\s+(City|Urban|Rural|Suburban)$/i,"").trim();
+      else if(districts.length===1)city=districts[0].replace(/\s+(City|Urban|Rural|Suburban)$/i,"").trim();
       if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
       if(city&&(!cityField.value.trim()||cityField.dataset.pinAutofilled==="1")){cityField.value=city;cityField.dataset.pinAutofilled="1";}
       pinField.dataset.resolvedPin=pin;
@@ -20804,8 +20804,8 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         const otpInput=liveNode("input","search-input");otpInput.type="text";otpInput.inputMode="numeric";otpInput.maxLength=6;otpInput.autocomplete="one-time-code";otpInput.placeholder="Customer का 6-digit delivery OTP";
         actions.appendChild(otpInput);
         actions.appendChild(liveButton("✅ Verify OTP & mark delivered",async()=>{
-          const code=String(otpInput.value||"").replace(/\\D/g,"");
-          if(!/^\\d{6}$/.test(code)){alert("Customer का सही 6-digit OTP भरें।");return;}
+          const code=String(otpInput.value||"").replace(/\D/g,"");
+          if(!/^\d{6}$/.test(code)){alert("Customer का सही 6-digit OTP भरें।");return;}
           const {data:verifyData,error:verifyError}=await supa().rpc("rider_verify_delivery_otp",{p_order_id:o.order_id,p_otp:code});
           if(verifyError){alert("Delivery OTP verify नहीं हुआ: "+liveErr(verifyError));return;}
           if(!verifyData?.ok){alert(verifyData?.message||"OTP verify नहीं हुआ। Parcel delivered mark नहीं किया गया।");return;}
@@ -21969,7 +21969,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         try{localStorage.setItem(zoneKey,JSON.stringify({
           city:String(document.getElementById("adLiveDeliveryCity")?.value||"").trim(),
           state:String(document.getElementById("adLiveDeliveryState")?.value||"").trim(),
-          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\\D/g,"").slice(0,6)
+          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\D/g,"").slice(0,6)
         }));}catch(e){}
         if(id==="adLiveDeliveryPincode")window.adResolveIndianPincode("adLiveDeliveryPincode","adLiveDeliveryCity","adLiveDeliveryState","adLiveZonePincodeStatus");
         else if(window.__adBrandCustomerMarketMode&&document.getElementById("adLiveDeliveryCity")?.value.trim()&&document.getElementById("adLiveDeliveryState")?.value.trim())window.adLiveLoadCatalog();
