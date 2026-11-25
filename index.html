@@ -431,7 +431,7 @@ img{max-width:100%}
 .ad-rider-optional summary{font-weight:750;cursor:pointer}.ad-rider-optional[open] summary{margin-bottom:8px}
 .ad-rider-submit-note{margin:14px 0;padding:12px;border-radius:12px;background:#eefaf4;color:#176347;font-size:.88rem;line-height:1.55}
 .ad-rider-submit{width:100%;min-height:48px;font-size:1rem}
-#roleVehicleNumberField[hidden],#roleDeliveryRcField[hidden],#roleDeliveryLicenseField[hidden]{display:none!important}
+#roleVehicleNumberField[hidden],#roleDeliveryLicenseField[hidden]{display:none!important}
 .ad-delivery-otp-start{width:100%;min-height:48px;margin-top:12px;font-weight:800}
 .ad-delivery-otp-start[hidden]{display:none!important}
 @media(max-width:600px){#roleApplicationFields{padding:13px}.ad-rider-step-title{margin-top:14px}}
@@ -553,8 +553,11 @@ img{max-width:100%}
     </button>
   </section>
 
-  <div id="adCustomerLoginEntry" class="section" style="margin:14px 0">
-    <button id="adCustomerOpenLoginRegister" class="btn primary" type="button" onclick="adCustomerOpenLoginRegister()" style="width:100%;min-height:58px;font-size:1.12rem;font-weight:800;border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.16)">🔐 Login / Register करें</button>
+  <div id="adCustomerLoginEntry" class="section ad-home-auth-actions" style="margin:14px 0">
+    <div class="product-actions" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+      <button id="adCustomerOpenRegister" class="btn primary" type="button" onclick="adCustomerOpenLoginRegister('register')" style="width:100%;min-height:58px;font-size:1.05rem;font-weight:800;border-radius:16px">📝 Register</button>
+      <button id="adCustomerOpenLogin" class="btn outline" type="button" onclick="adCustomerOpenLoginRegister('login')" style="width:100%;min-height:58px;font-size:1.05rem;font-weight:800;border-radius:16px">🔐 Login</button>
+    </div>
     <p class="small muted" style="text-align:center;margin:8px 0 0">Account बनाकर address save करें, wishlist रखें और orders track करें।</p>
   </div>
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
@@ -1034,7 +1037,6 @@ img{max-width:100%}
         <div class="field"><label for="roleVehicleType">आप किस वाहन से डिलीवरी करेंगे?</label><select id="roleVehicleType"><option value="Bicycle">साधारण Cycle — लगभग 3 km food zone</option><option value="electric_bicycle">Electric Cycle / E-cycle — लगभग 3 km food zone</option><option value="electric_scooter">Electric Scooter — लगभग 5 km food zone</option><option value="Bike">Bike / Motorcycle — लगभग 8 km food zone</option><option value="Scooter">Petrol Scooter — लगभग 8 km food zone</option></select><p class="small muted">Zone दूरी rider के vehicle के हिसाब से server पर सीमित होगी। दूरी तभी सही लागू होगी जब rider और customer दोनों के GPS coordinates उपलब्ध हों; बिना GPS के केवल उसी PIN code का order मिलेगा।</p></div>
         <div class="field" id="roleVehicleNumberField"><label for="roleVehicleNumber">वाहन नंबर (यदि लागू हो)</label><input id="roleVehicleNumber" maxlength="30" autocomplete="off" placeholder="जैसे UP32 AB 1234"></div>
         <div class="field"><label for="roleDeliveryVehiclePhotoDoc">Vehicle photo (private)</label><input id="roleDeliveryVehiclePhotoDoc" type="file" accept="image/jpeg,image/png" required></div>
-        <div class="field" id="roleDeliveryRcField"><label for="roleDeliveryRcDoc">Vehicle Registration Certificate / RC (motor vehicle only; private)</label><input id="roleDeliveryRcDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field" id="roleDeliveryLicenseField"><label for="roleDeliveryLicenseDoc">Driving licence (JPG/PNG/PDF; private)</label><input id="roleDeliveryLicenseDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
         <div class="field"><label for="roleDeliveryAddressDoc">Address proof (JPG/PNG/PDF; private)</label><input id="roleDeliveryAddressDoc" type="file" accept="image/jpeg,image/png,application/pdf"></div>
       </div>
@@ -1733,7 +1735,7 @@ function adRoleWizardSetStep(step) {
   const groups = {
     1: ["roleApplicantName","roleApplicantMobile","roleApplicantAddress","roleApplicantCity","roleApplicantState","roleApplicantPincode","roleApplicantZone","roleShopName","roleSellerType","roleDeliveryDob","roleVehicleType"],
     2: ["roleDeliveryIdType","roleDeliveryIdDoc","roleDeliveryPanDoc","roleDeliveryBankProofDoc","roleSellerRegistrationNumber","roleSellerGSTIN","roleSellerRegistrationDoc","roleFssaiLicenseNumber","roleSellerFoodLicenseDoc"],
-    3: ["roleVehicleNumber","roleDeliveryVehiclePhotoDoc","roleDeliveryRcDoc","roleDeliveryLicenseDoc","roleDeliveryAddressDoc","roleSellerAddressDoc","roleApplicationNotes","adDeliveryTruthConfirm"]
+    3: ["roleVehicleNumber","roleDeliveryVehiclePhotoDoc","roleDeliveryLicenseDoc","roleDeliveryAddressDoc","roleSellerAddressDoc","roleApplicationNotes","adDeliveryTruthConfirm"]
   };
   const activeIds = new Set(groups[current] || []);
   root.querySelectorAll(".field").forEach(function(field) {
@@ -1902,9 +1904,8 @@ function updateRoleApplicationFields() {
   const motorType = String($("roleVehicleType")?.value || "").toLowerCase();
   const motorVehicle = !["bicycle", "cycle", "cycling", "electric_bicycle", "electric cycle", "e-cycle"].includes(motorType);
   const vehicleNumberField = $("roleVehicleNumberField");
-  const rcField = $("roleDeliveryRcField");
   const licenseField = $("roleDeliveryLicenseField");
-  [[vehicleNumberField,motorVehicle],[rcField,motorVehicle],[licenseField,motorVehicle]].forEach(function(pair){
+  [[vehicleNumberField,motorVehicle],[licenseField,motorVehicle]].forEach(function(pair){
     if(pair[0]){pair[0].hidden=!isDelivery||!pair[1];pair[0].style.display=isDelivery&&pair[1]?"block":"none";}
   });
   if (motorVehicle) {
@@ -1914,7 +1915,7 @@ function updateRoleApplicationFields() {
   [
     "roleSellerRegistrationDoc", "roleSellerShopPhotoDoc", "roleSellerAddressDoc",
     "roleDeliveryIdDoc", "roleDeliveryPanDoc", "roleDeliveryBankProofDoc",
-    "roleDeliveryVehiclePhotoDoc", "roleDeliveryRcDoc", "roleDeliveryLicenseDoc",
+    "roleDeliveryVehiclePhotoDoc",  "roleDeliveryLicenseDoc",
 "roleDeliveryAddressDoc"
   ].forEach(function(id) {
     const input = $(id);
@@ -2208,7 +2209,7 @@ function customerOtpMessage(message,isError){
  box.textContent=String(message||"");
  box.style.borderColor=isError?"#dc2626":"";
 }
-window.adCustomerOpenLoginRegister=function(){
+window.adCustomerOpenLoginRegister=function(mode){
  if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"){
   if(typeof window.openPanel==="function")window.openPanel("customer");
   $("adCustomerAccountCenter")?.scrollIntoView({behavior:"smooth",block:"start"});
@@ -2216,6 +2217,7 @@ window.adCustomerOpenLoginRegister=function(){
  }
  window.__adCustomerAuthPanelOpen=true;
  if(typeof window.openPanel==="function")window.openPanel("customer");
+ if(typeof window.adCustomerSetOtpMode==="function")window.adCustomerSetOtpMode(mode==="login"?"login":"register");
  updateCustomerOtpVisibility();
  var panel=$("adCustomerOtpPanel");
  if(panel){panel.hidden=false;panel.scrollIntoView({behavior:"smooth",block:"center"});}
