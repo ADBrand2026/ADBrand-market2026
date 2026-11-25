@@ -19972,6 +19972,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       latitude:String($("adCheckoutLatitude")?.value || "").trim()?Number($("adCheckoutLatitude").value):null,
       longitude:String($("adCheckoutLongitude")?.value || "").trim()?Number($("adCheckoutLongitude").value):null
     };
+    const verifiedLoginMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\\D/g,"").slice(-10);
+    if(!verifiedLoginMobile || address.mobile!==verifiedLoginMobile){
+      return alert("Order उसी verified mobile number से करना होगा जिससे आपने login किया है। कृपया उसी नंबर से login करें।");
+    }
     if(address.full_name.length<2 || !/^[6-9]\d{9}$/.test(address.mobile) || address.address_line.length<5 ||
        address.city.length<2 || address.state.length<2 || !/^[1-9]\d{5}$/.test(address.pincode)) {
       return alert("नाम, सही 10-digit मोबाइल, पूरा पता, शहर और 6-digit PIN भरें।");
@@ -20052,7 +20056,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if(error){ console.error("Customer workspace error:",error); liveEmpty(box,"Customer orders load नहीं हुए: "+liveErr(error)); return; }
     const profile=data?.profile || {};
     if($("adCheckoutName")&&!$("adCheckoutName").value) $("adCheckoutName").value=profile.full_name||"";
-    if($("adCheckoutMobile")&&!$("adCheckoutMobile").value) $("adCheckoutMobile").value=profile.mobile||"";
+    const authMobile=String(window.__adBrandAuthUser?.phone||"").replace(/\\D/g,"").slice(-10);
+    const checkoutMobile=$("adCheckoutMobile");
+    if(checkoutMobile){
+      checkoutMobile.readOnly=!!authMobile;
+      checkoutMobile.value=authMobile||String(profile.mobile||"").replace(/\\D/g,"").slice(-10);
+      checkoutMobile.title=authMobile?"यह आपके verified login mobile से जुड़ा है और बदला नहीं जा सकता।":"Verified phone login के बिना checkout नहीं होगा।";
+    }
     const addresses=asList(data?.addresses);
     window.__adBrandSavedAddresses = addresses;
     const addressSelect=$("adCheckoutSavedAddress");
