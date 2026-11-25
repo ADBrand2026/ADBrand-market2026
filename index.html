@@ -9450,8 +9450,7 @@ body {
     try {
       localStorage.setItem(KEY, JSON.stringify({
         role: state.role,
-        name: state.name,
-        email: state.email
+        name: state.name
       }));
       render();
       showMessage("डेमो प्रोफाइल इसी ब्राउज़र में सेव हो गई। यह वास्तविक login नहीं है।");
@@ -9462,7 +9461,6 @@ body {
 
   function clearDemoProfile() {
     state.name = "";
-    state.email = "";
 
     try {
       localStorage.removeItem(KEY);
