@@ -638,7 +638,7 @@ img{max-width:100%}
     <div class="form-grid" id="adLiveFoodZoneFilter">
       <div class="field"><label for="adLiveDeliveryCity">आपका शहर / Delivery city</label><input id="adLiveDeliveryCity" maxlength="80" autocomplete="address-level2" placeholder="जैसे Lucknow"></div>
       <div class="field"><label for="adLiveDeliveryState">राज्य / State</label><input id="adLiveDeliveryState" maxlength="80" autocomplete="address-level1" placeholder="जैसे Uttar Pradesh"></div>
-      <div class="field"><label for="adLiveDeliveryPincode">6-digit PIN Code</label><input id="adLiveDeliveryPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="जैसे 226001"></div>
+      <div class="field"><label for="adLiveDeliveryPincode">6-digit PIN Code</label><input id="adLiveDeliveryPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="जैसे 226001"><small id="adLiveZonePincodeStatus" class="small muted">PIN डालकर शहर/राज्य अपने-आप भरवाएँ।</small></div>
       <div class="field"><label for="adLiveZoneApply">आपके इलाके के sellers</label><button id="adLiveUseCheckoutZone" type="button" class="btn outline" onclick="adLiveUseCheckoutZone()">Checkout address इस्तेमाल करें</button><button id="adLiveZoneApply" type="button" class="btn outline" onclick="adLiveLoadCatalog()">मेरे इलाके के सामान दिखाएँ</button></div>
     </div>
     <p class="small muted">पहले अपना City, State और 6-digit PIN Code भरें। AD Brand Market दूसरे शहर के sellers नहीं दिखाएगा। Food, चाय और snacks केवल उन्हीं local Food Sellers से दिखेंगे जिनकी active delivery PIN zone में आपका PIN शामिल है। कपड़े और बाकी सामान आपके local city/state के verified sellers से दिखेंगे।</p>
@@ -668,7 +668,7 @@ img{max-width:100%}
           <div class="field"><label for="adCheckoutAddress">पूरा delivery address — मकान/Flat, Floor, गली, Area/Locality, Landmark</label><textarea id="adCheckoutAddress" autocomplete="street-address" maxlength="500" rows="3" placeholder="मकान/Flat no., मंज़िल, सड़क/गली, मोहल्ला/Area, पास की पहचान/दुकान/मंदिर आदि"></textarea></div>
           <div class="field"><label for="adCheckoutCity">शहर</label><input id="adCheckoutCity" maxlength="80"></div>
           <div class="field"><label for="adCheckoutState">राज्य</label><input id="adCheckoutState" maxlength="80"></div>
-          <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"></div>
+          <div class="field"><label for="adCheckoutPincode">PIN Code</label><input id="adCheckoutPincode" inputmode="numeric" maxlength="6" autocomplete="postal-code"><small id="adCheckoutPincodeStatus" class="small muted">PIN डालने पर उपलब्ध postal record से शहर/राज्य भरने की कोशिश होगी।</small></div>
           <div class="field"><label>Map pin (optional)</label><button class="btn outline" type="button" onclick="adLiveUseCustomerLocation()">📍 Use current location</button><small id="adCheckoutLocationStatus" class="muted">Optional map pin helps the rider find your gate. Full house, area and landmark address is still required.</small><input id="adCheckoutLatitude" type="hidden"><input id="adCheckoutLongitude" type="hidden"></div>
           <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
           <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
@@ -19586,6 +19586,45 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     if($("adLiveDeliveryPincode"))$("adLiveDeliveryPincode").value=String(a.pincode||"");
     if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
   };
+  window.adResolveIndianPincode = async function(pinId,cityId,stateId,statusId){
+    const pinField=document.getElementById(pinId),cityField=document.getElementById(cityId),stateField=document.getElementById(stateId);
+    if(!pinField||!cityField||!stateField)return;
+    const pin=String(pinField.value||"").replace(/\\D/g,"").slice(0,6),status=document.getElementById(statusId);
+    if(!/^[1-9][0-9]{5}$/.test(pin)){if(status)status.textContent="6 अंकों का सही PIN डालें।";return;}
+    if(pinField.dataset.resolvedPin===pin)return;
+    const previous=pinField.dataset.resolvedPin||"";
+    if(previous&&previous!==pin){
+      if(cityField.dataset.pinAutofilled==="1"){cityField.value="";delete cityField.dataset.pinAutofilled;}
+      if(stateField.dataset.pinAutofilled==="1"){stateField.value="";delete stateField.dataset.pinAutofilled;}
+    }
+    if(status)status.textContent="PIN से शहर और राज्य खोज रहे हैं…";
+    try{
+      const response=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{method:"GET",headers:{Accept:"application/json"}});
+      if(!response.ok)throw new Error("Postal lookup unavailable");
+      const payload=await response.json(),record=Array.isArray(payload)?payload[0]:null;
+      if(!record||record.Status!=="Success"||!Array.isArray(record.PostOffice)||!record.PostOffice.length)throw new Error("इस PIN का postal record नहीं मिला");
+      const offices=record.PostOffice.filter(x=>x&&String(x.DeliveryStatus||"").toLowerCase()==="delivery"),usable=offices.length?offices:record.PostOffice;
+      const states=Array.from(new Set(usable.map(x=>String(x.State||"").trim()).filter(Boolean)));
+      const districts=Array.from(new Set(usable.map(x=>String(x.District||"").trim()).filter(Boolean)));
+      if(states.length!==1)throw new Error("इस PIN में कई राज्य/रिकॉर्ड मिले; शहर और राज्य manually confirm करें");
+      const state=states[0];
+      let city="";
+      if(/^delhi$/i.test(state))city="Delhi";
+      else if(districts.length===1)city=districts[0].replace(/\\s+(City|Urban|Rural|Suburban)$/i,"").trim();
+      if(!stateField.value.trim()||stateField.dataset.pinAutofilled==="1"){stateField.value=state;stateField.dataset.pinAutofilled="1";}
+      if(city&&(!cityField.value.trim()||cityField.dataset.pinAutofilled==="1")){cityField.value=city;cityField.dataset.pinAutofilled="1";}
+      pinField.dataset.resolvedPin=pin;
+      if(status)status.textContent=city?"✅ PIN postal directory से मिला: "+city+", "+state+". पूरा घर/area/landmark address अलग भरें।":"✅ State "+state+" मिला। सही city/locality manually confirm करें।";
+      if(pinId==="adCheckoutPincode"){
+        const zCity=document.getElementById("adLiveDeliveryCity"),zState=document.getElementById("adLiveDeliveryState"),zPin=document.getElementById("adLiveDeliveryPincode");
+        if(zCity)zCity.value=cityField.value;if(zState)zState.value=stateField.value;if(zPin)zPin.value=pin;
+        if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode)window.adLiveLoadCatalog();
+      }else if(typeof window.adLiveLoadCatalog==="function"&&window.__adBrandCustomerMarketMode&&cityField.value.trim()&&stateField.value.trim())window.adLiveLoadCatalog();
+    }catch(error){
+      if(status)status.textContent="PIN lookup अभी उपलब्ध नहीं है। City और State manually भरें; order PIN फिर भी validate होगा।";
+      console.warn("PIN lookup:",error);
+    }
+  };
   window.adLiveUseCheckoutZone = function(){
     const values=[
       ["adLiveDeliveryCity","adCheckoutCity"],
@@ -21894,10 +21933,17 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         try{localStorage.setItem(zoneKey,JSON.stringify({
           city:String(document.getElementById("adLiveDeliveryCity")?.value||"").trim(),
           state:String(document.getElementById("adLiveDeliveryState")?.value||"").trim(),
-          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\D/g,"").slice(0,6)
+          pincode:String(document.getElementById("adLiveDeliveryPincode")?.value||"").replace(/\\D/g,"").slice(0,6)
         }));}catch(e){}
+        if(id==="adLiveDeliveryPincode")window.adResolveIndianPincode("adLiveDeliveryPincode","adLiveDeliveryCity","adLiveDeliveryState","adLiveZonePincodeStatus");
+        else if(window.__adBrandCustomerMarketMode&&document.getElementById("adLiveDeliveryCity")?.value.trim()&&document.getElementById("adLiveDeliveryState")?.value.trim())window.adLiveLoadCatalog();
       });
     });
+    var checkoutPin=document.getElementById("adCheckoutPincode");
+    if(checkoutPin&&!checkoutPin.dataset.adPinLookupBound){
+      checkoutPin.dataset.adPinLookupBound="1";
+      checkoutPin.addEventListener("change",function(){window.adResolveIndianPincode("adCheckoutPincode","adCheckoutCity","adCheckoutState","adCheckoutPincodeStatus");});
+    }
   });
 })();
 </script>
