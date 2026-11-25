@@ -22249,5 +22249,39 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
+<script id="ad-launch-catalog-limited">
+/* First launch: keep the non-food marketplace focused on everyday, affordable goods. */
+(function(){
+  "use strict";
+  var costlyTerms=/\\b(laptop|notebook pc|macbook|smartphone|mobile phone|iphone|ipad|tablet|smart tv|led tv|television)\\b|लैपटॉप|मोबाइल फोन|स्मार्टफोन|आईफोन|टैबलेट|स्मार्ट टीवी|टीवी/i;
+  function removeHighValueOptions(select){
+    if(!select)return;
+    Array.from(select.options||[]).forEach(function(o){
+      if(costlyTerms.test((o.textContent||"")+" "+(o.value||"")))o.remove();
+    });
+  }
+  function hideHighValueProducts(){
+    document.querySelectorAll(".ad-live-product").forEach(function(card){
+      if(costlyTerms.test(card.textContent||""))card.remove();
+    });
+    ["adLiveCategory","adNonFoodCategory","productCategory"].forEach(function(id){
+      removeHighValueOptions(document.getElementById(id));
+    });
+    var search=document.getElementById("adLiveSearch");
+    if(search)search.placeholder="कपड़े, साड़ी, जूते, चप्पल और रोज़मर्रा का सामान खोजें…";
+  }
+  var load=window.adLiveLoadCatalog;
+  if(typeof load==="function"){
+    window.adLiveLoadCatalog=async function(){
+      var result=await load.apply(this,arguments);
+      hideHighValueProducts();
+      return result;
+    };
+  }
+  hideHighValueProducts();
+  document.addEventListener("DOMContentLoaded",hideHighValueProducts);
+})();
+</script>
+
 </body>
 </html>
