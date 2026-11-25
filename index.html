@@ -1141,6 +1141,75 @@ window.adLoadSellerPayoutOverview = async function () {
   } catch (e) { box.textContent = e?.message || "Earnings overview could not be loaded."; }
 };
 </script>
+
+<script id="ad-products-only-mode-v1">
+/* AD Brand Market: food marketplace removed; keep the existing non-food marketplace. */
+(function(){
+  "use strict";
+  var foodSlugs=["food","veg-food","non-veg-food","tea","snacks","pizza-burgers","sweets-bakery","beverages","groceries"];
+  function removeFoodOptions(select){
+    if(!select)return;
+    Array.from(select.options||[]).forEach(function(option){
+      var value=String(option.value||"").toLowerCase();
+      var label=String(option.textContent||"").toLowerCase();
+      if(foodSlugs.includes(value)||/food|veg|non.?veg|tea|snack|pizza|burger|sweets|bakery|beverage|grocery|खाना|चाय|नाश्ता|मिठाई/.test(label))option.remove();
+    });
+  }
+  function applyProductsOnly(){
+    var foodButton=document.getElementById("adMarketFoodButton");if(foodButton)foodButton.remove();
+    var switcher=document.querySelector(".ad-customer-market-switch");if(switcher)switcher.remove();
+    ["adFoodCategoryBar","adLiveFoodHoursPanel","adLiveFoodSellerTools","adFoodPayoutTerms","roleFoodComplianceFields"].forEach(function(id){var node=document.getElementById(id);if(node)node.remove();});
+    document.querySelectorAll(".ad-home-food-photo").forEach(function(node){var parent=node.closest("button,a,.ad-home-market-button");if(parent)parent.remove();else node.remove();});
+    document.querySelectorAll("[data-cat='food'],[data-category='food'],[data-food-category]").forEach(function(node){node.remove();});
+    removeFoodOptions(document.getElementById("adLiveCategory"));
+    removeFoodOptions(document.getElementById("adNonFoodCategory"));
+    var sellerType=document.getElementById("roleSellerType");
+    if(sellerType){
+      Array.from(sellerType.options).forEach(function(option){if(String(option.value).toLowerCase()==="food")option.remove();});
+      sellerType.value="non_food";
+      sellerType.disabled=true;
+    }
+    var foodZoneText=document.querySelector("#adLiveFoodZoneFilter");
+    if(foodZoneText){
+      var p=foodZoneText.nextElementSibling;
+      if(p&&/Food, चाय और snacks/.test(p.textContent))p.textContent="अपना City, State और 6-digit PIN Code भरें। AD Brand Market आपके इलाके के verified कपड़े, जूते, चप्पल और अन्य सामान के sellers दिखाएगा।";
+    }
+    var search=document.getElementById("adLiveSearch");
+    if(search)search.placeholder="कपड़े, साड़ी, जूते, मोबाइल या कोई भी सामान खोजें…";
+    var catalog=document.getElementById("adLiveCatalog");
+    if(catalog)catalog.querySelectorAll(".ad-live-product").forEach(function(card){if(card.dataset.food==="true")card.remove();});
+    var policy=document.getElementById("adCustomerPolicy");
+    if(policy){
+      policy.querySelectorAll("li").forEach(function(li){if(/Food, drinks|Food safety/i.test(li.textContent))li.remove();});
+      policy.querySelectorAll("a").forEach(function(a){if(/fssai/i.test(a.href+" "+a.textContent))a.closest("p")?.remove();});
+    }
+    document.querySelectorAll(".ad-role-entry,.ad-home-market-button").forEach(function(node){
+      if(/food|खाना|चाय|snack|pizza|restaurant/i.test(node.textContent||""))node.remove();
+    });
+    window.__adBrandCustomerMarketMode="products";
+    var market=document.getElementById("adLiveCustomerMarket");if(market){market.hidden=false;market.dataset.marketMode="products";}
+    if(typeof window.applyCustomerAuthGate==="function")window.applyCustomerAuthGate();
+  }
+  var originalMode=window.adCustomerSetMarketMode;
+  window.adCustomerSetMarketMode=function(){window.__adBrandCustomerMarketMode="products";if(typeof originalMode==="function")return originalMode("products");};
+  window.adCustomerSetFoodCategory=function(){return;};
+  window.adCustomerCategoryChanged=function(){
+    var category=document.getElementById("adLiveCategory");
+    if(category&&foodSlugs.includes(String(category.value||"").toLowerCase()))category.value="";
+    window.__adBrandCustomerMarketMode="products";
+    if(typeof window.adLiveLoadCatalog==="function")return window.adLiveLoadCatalog();
+  };
+  window.adChooseSellerType=function(){var s=document.getElementById("roleSellerType");if(s)s.value="non_food";if(typeof window.openAccountAccess==="function")window.openAccountAccess("seller");};
+  window.adLiveAddFoodProduct=async function(){throw new Error("Food marketplace is disabled.");};
+  document.addEventListener("DOMContentLoaded",function(){
+    applyProductsOnly();
+    if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+  });
+  applyProductsOnly();
+  if(typeof window.adLiveLoadCatalog==="function")window.adLiveLoadCatalog();
+})();
+</script>
+
 </body> or </html> until the final page.
 -->
 
