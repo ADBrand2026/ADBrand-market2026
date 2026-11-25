@@ -9364,8 +9364,7 @@ body {
     getProfile: function () {
       return {
         role: state.role,
-        name: state.name,
-        email: state.email
+        name: state.name
       };
     }
   };
@@ -9413,7 +9412,6 @@ body {
       "ऊपर से Customer, Seller या Delivery Boy चुनें।";
 
     byId("p5-display-name").value = state.name || "";
-    byId("p5-display-email").value = state.email || "";
   }
 
   function readDemoProfile() {
@@ -9432,37 +9430,22 @@ body {
         ? data.name.slice(0, 80)
         : "";
 
-      state.email = typeof data.email === "string"
-        ? data.email.slice(0, 254)
-        : "";
+
     } catch (error) {
       state.role = "";
       state.name = "";
-      state.email = "";
+
     }
   }
 
   function saveDemoProfile() {
     var name = byId("p5-display-name").value.trim();
-    var email = byId("p5-display-email").value.trim();
-
     if (name.length > 80) {
       showMessage("नाम 80 अक्षरों से छोटा रखें।");
       return;
     }
 
-    if (email.length > 254) {
-      showMessage("ईमेल बहुत लंबा है।");
-      return;
-    }
-
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showMessage("कृपया सही ईमेल लिखें।");
-      return;
-    }
-
     state.name = name;
-    state.email = email;
 
     try {
       localStorage.setItem(KEY, JSON.stringify({
@@ -16319,22 +16302,9 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const city=clean($("a9City").value,70);
     const area=clean($("a9Area").value,100);
     const pin=clean($("a9Pin").value,6);
-    const email=clean($("a9Email").value,160);
-    const password=$("a9Password").value;
-
     if(!name || !validMobile(mobile) || !city || !area || !validPin(pin)){
       show("a9AccountResult",
         "नाम, सही मोबाइल नंबर, शहर, एरिया और 6 अंकों का PIN code भरें।");
-      return;
-    }
-
-    if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      show("a9AccountResult","ईमेल का प्रारूप सही नहीं है।");
-      return;
-    }
-
-    if(password.length<8){
-      show("a9AccountResult","पासवर्ड कम-से-कम 8 अक्षरों का रखें।");
       return;
     }
 
@@ -16352,13 +16322,13 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       "और पासवर्ड सेव नहीं हुआ। वास्तविक Registration के लिए Supabase Auth " +
       "और server-side profile creation जोड़ना होगा।");
 
-    $("a9Password").value="";
+
   });
 
   $("a9LoginInfo").addEventListener("click",function(){
     show("a9AccountResult",
-      "Login के लिए Supabase Auth signInWithPassword / OTP flow जोड़ें। " +
-      "इस demo में login नहीं होता और कोई password collect नहीं किया जाता।");
+      "Login के लिए ऊपर दिया गया मोबाइल OTP विकल्प इस्तेमाल करें। " +
+      "यह पुराना demo account नहीं बनाता।");
   });
 
   $("a9VerificationDemo").addEventListener("click",function(){
