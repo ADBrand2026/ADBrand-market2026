@@ -3094,6 +3094,22 @@ async function adLiveAdminShipments(c){
  readyButton.disabled=!currentReady&&!providerHealthy;
  box.appendChild(readyButton);
  box.appendChild(liveEl("p","small muted",currentReady?"Live courier checkout is enabled. New orders still require seller pickup mapping and actual serviceable quotes.":"Checkout stays closed until API health, account KYC, wallet funding, bank/COD setup and seller pickup mappings are verified."));
+ box.appendChild(liveEl("h3","","🏬 Seller pickup locations"));
+ var sellers=await c.from("seller_profiles").select("id,shop_name,full_name,pincode,is_active,is_verified,shiprocket_pickup_location").eq("seller_type","non_food").order("created_at",{ascending:false}).limit(100);
+ if(sellers.error)box.appendChild(liveEl("p","small muted","Seller pickup list load नहीं हुई: "+sellers.error.message));
+ else if(!sellers.data?.length)box.appendChild(liveEl("p","small muted","अभी कोई non-food seller registered नहीं है।"));
+ else sellers.data.forEach(function(sp){
+  var sc=liveEl("div","card");
+  sc.append(liveEl("strong",""," "+(sp.shop_name||sp.full_name||"Seller")),liveEl("p","small","Pickup PIN: "+(sp.pincode||"missing")+" · Active: "+(sp.is_active?"yes":"no")+" · Verified: "+(sp.is_verified?"yes":"no")),liveEl("p","small muted","Shiprocket pickup location: "+(sp.shiprocket_pickup_location||"not mapped")));
+  sc.appendChild(actionButton("Map / update Shiprocket pickup location",async function(){
+   var loc=prompt("Shiprocket dashboard में पहले से registered exact pickup-location name लिखें:",sp.shiprocket_pickup_location||"");
+   if(loc===null||!loc.trim())return;
+   var z=await c.rpc("admin_set_seller_shiprocket_pickup_location",{p_seller_id:sp.id,p_pickup_location:loc.trim()});
+   if(z.error){liveError("Seller pickup mapping save नहीं हुई",z.error);return;}
+   toast("Seller pickup location mapped.");await adLiveAdminShipments(c);
+  },"outline"));
+  box.appendChild(sc);
+ });
  var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id,handoff_verified_at,manifest_url").order("created_at",{ascending:false}).limit(100);
  if(r.error){box.appendChild(liveEl("div","empty","Shipment queue load नहीं हुई: "+r.error.message));return;}
  if(!r.data?.length){box.appendChild(liveEl("div","empty","अभी कोई external courier shipment नहीं है।"));return;}
