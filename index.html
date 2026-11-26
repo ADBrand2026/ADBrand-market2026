@@ -22717,7 +22717,7 @@ section[id^="adbm"]{display:none!important}
   document.querySelectorAll(".ad-live-product").forEach(function(n){if(/food|veg.?food|non.?veg|pizza|burger|restaurant|grocery/i.test(n.textContent||"")||n.dataset.food==="true")n.remove();});
   document.querySelectorAll("p,small,.notice").forEach(function(n){if(/Customer, Seller और Delivery Boy|तीनों मोबाइल OTP|Food orders केवल|Food, चाय और snacks केवल|Food Seller dashboard/i.test(n.textContent||""))n.textContent="केवल Customer और Seller अकाउंट उपलब्ध हैं। AD Brand Market पर अभी Non-Food सामान ही मिलेगा।";});
   var note=document.getElementById("adCourierHomeDeliveryNote");
-  if(note)note.textContent="Non-Food सामान की home delivery external courier partner (Valmo जैसे provider) से होगी। Courier booking, tracking, COD settlement और return/RTO का live integration verify होने तक Home Delivery बंद है; Self Pickup उपलब्ध नहीं है। Courier integration verify होने तक checkout बंद रहेगा।";
+  if(note)note.textContent="पहले launch में केवल Non-Food सामान उपलब्ध है। Home delivery external courier provider से होगी; AD Brand Market का अपना Delivery Boy और Self Pickup नहीं होगा। Courier provider finalization, live booking, tracking, COD settlement और return/RTO testing पूरी होने तक checkout बंद रहेगा।";
   var search=document.getElementById("adLiveSearch");if(search)search.placeholder="कपड़े, साड़ी, जूते, चप्पल और रोज़मर्रा का सामान खोजें…";
  }
  var originalOpen=window.adOpenAuthEntry;
