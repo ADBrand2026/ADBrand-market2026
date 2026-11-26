@@ -3077,7 +3077,7 @@ async function adLiveAdminShipments(c){
  health.onclick=async function(){health.disabled=true;try{var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"health"}});if(z.error)throw z.error;if(!z.data?.ok)throw new Error(z.data?.message||z.data?.code||"Shiprocket connection failed");toast("Shiprocket API verified. Provider enabled for controlled testing.");await adLiveAdminShipments(c);}catch(e){liveError("Shiprocket connection test failed",e);health.disabled=false;}};
  box.appendChild(liveEl("p","small muted","Courier control: live rate comparison, customer approval, AWB booking, pickup and tracking. Secrets stay in Supabase; never paste API keys into website code."));
  box.appendChild(health);
- var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id,handoff_verified_at").order("created_at",{ascending:false}).limit(100);
+ var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id,handoff_verified_at,manifest_url").order("created_at",{ascending:false}).limit(100);
  if(r.error){box.appendChild(liveEl("div","empty","Shipment queue load नहीं हुई: "+r.error.message));return;}
  if(!r.data?.length){box.appendChild(liveEl("div","empty","अभी कोई external courier shipment नहीं है।"));return;}
  for(const s of r.data){
@@ -3144,6 +3144,13 @@ async function adLiveAdminShipments(c){
     toast("Barcode match हुआ। अब parcel courier को handover किया जा सकता है।");await adLiveAdminShipments(c);
    },"primary"));
   }
+  if(s.handoff_verified_at&&s.shipment_status==="booked"&&["not_requested","failed"].includes(s.pickup_status||"not_requested")){
+   card.appendChild(actionButton("📦 Schedule courier pickup + manifest",async function(){
+    var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"pickup",order_id:s.order_id}});
+    if(z.error||!z.data?.ok){liveError("Courier pickup schedule नहीं हुआ",z.error||z.data?.message||z.data?.code);return;}
+    toast("Courier pickup requested: "+z.data.pickup_status);await adLiveAdminShipments(c);
+   },"primary"));
+  }
   if(s.awb_code||s.tracking_number){
    card.appendChild(liveEl("p","small","Courier: "+(s.courier_name||"Shiprocket")+" · AWB: "+(s.awb_code||s.tracking_number)+" · Pickup: "+(s.pickup_status||"pending")));
    card.appendChild(actionButton("Refresh actual courier tracking",async function(){
@@ -3153,6 +3160,7 @@ async function adLiveAdminShipments(c){
    },"outline"));
   }
   if(s.label_url){var label=liveEl("a","btn outline small-btn","Open courier label");label.href=s.label_url;label.target="_blank";label.rel="noopener noreferrer";card.appendChild(label);}
+  if(s.manifest_url){var manifest=liveEl("a","btn outline small-btn","Open pickup manifest");manifest.href=s.manifest_url;manifest.target="_blank";manifest.rel="noopener noreferrer";card.appendChild(manifest);}
   card.appendChild(actionButton("Print AD internal parcel slip",function(){adLivePrintSlip({order_code:s.order_id,internal_barcode:s.internal_barcode,total_amount:0},[],{},s.seller_profile_id);},"outline"));
   box.appendChild(card);
  }
