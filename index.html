@@ -714,7 +714,7 @@ body{background:#f7f7fb}
   </div>
 
   <div id="adLiveCustomerMarket" class="section">
-    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Products देखने के लिए Login जरूरी नहीं है। Order place करने के लिए account और पूरा delivery address चाहिए। Home Delivery courier integration चालू होने तक उपलब्ध नहीं है; फिलहाल eligible sellers के लिए Self Pickup ही दिखेगा।</div>
+    <div class="notice">✅ Live catalogue — active और verified local sellers के products. Products देखने के लिए Login जरूरी नहीं है। Order place करने के लिए account और पूरा delivery address चाहिए। सभी products की delivery ग्राहक के पते पर external courier से होगी। Courier booking, tracking और COD/return testing पूरी होने तक Order अस्थायी रूप से बंद है।</div>
     <details class="section card ad-customer-filters">
       <summary>⚙️ Product filters (optional)</summary>
       <p class="small muted">यहाँ से category, price, stock, discount, size, colour और brand जैसे filters लगा सकते हैं। बिना filter लगाए भी सभी उपलब्ध items दिखेंगे।</p>
@@ -22806,6 +22806,69 @@ section[id^="adbm"]{display:none!important}
   var observer=new MutationObserver(function(){cleanPublicRoles();});
   observer.observe(root,{childList:true,subtree:true});
  }
+})();
+</script>
+
+
+<style id="ad-meesho-inner-navigation-v1">
+.ad-customer-jump{position:sticky;top:76px;z-index:24;display:flex;gap:8px;overflow-x:auto;padding:9px;margin:12px 0 16px;border:1px solid #f0e3ed;border-radius:15px;background:#ffffffed;backdrop-filter:blur(12px);box-shadow:0 5px 18px #3921420b;scrollbar-width:thin}
+.ad-customer-jump button{flex:0 0 auto;min-height:42px;padding:9px 14px;border:1px solid #eee1ec;border-radius:999px;background:#fff;color:#4d3651;font-weight:800;white-space:nowrap;cursor:pointer}
+.ad-customer-jump button:hover,.ad-customer-jump button:focus-visible{background:#fff0f7;border-color:#efacd0;color:#b92778;outline:2px solid #efacd055;outline-offset:2px}
+.ad-customer-jump button:active{transform:scale(.98)}
+.ad-customer-jump button[aria-current="location"]{background:#fce8f3;border-color:#e93491;color:#b92778}
+.ad-customer-jump-target{scroll-margin-top:145px}
+.ad-seller-jump button{min-height:42px;white-space:nowrap}
+@media(max-width:640px){.ad-customer-jump{top:110px;margin:9px 0 13px;padding:7px;gap:6px}.ad-customer-jump button{min-height:40px;padding:8px 11px;font-size:.82rem}.ad-customer-jump-target{scroll-margin-top:160px}}
+@media(prefers-reduced-motion:reduce){.ad-customer-jump button{transition:none}}
+</style>
+<script id="ad-meesho-inner-navigation-script-v1">
+(function(){
+ "use strict";
+ function addCustomerNavigation(){
+  var panel=document.getElementById("customer");
+  if(!panel||panel.querySelector(".ad-customer-jump"))return;
+  var search=panel.querySelector(".ad-customer-top-search");
+  if(!search)return;
+  var nav=document.createElement("nav");
+  nav.className="ad-customer-jump";
+  nav.setAttribute("aria-label","Customer shopping shortcuts");
+  var links=[
+   ["🛍️ Products","adLiveCustomerMarket"],
+   ["🛒 My Cart","adCustomerLiveCartSection"],
+   ["📦 My Orders","adCustomerOrdersSection"],
+   ["↩️ Returns & Policy","adCustomerPolicy"],
+   ["🆘 Help","adCustomerSupport"],
+   ["🔐 Account","adCustomerLoginEntry"]
+  ];
+  links.forEach(function(item){
+   var target=document.getElementById(item[1]);
+   if(!target)return;
+   target.classList.add("ad-customer-jump-target");
+   var button=document.createElement("button");
+   button.type="button";
+   button.textContent=item[0];
+   button.addEventListener("click",function(){
+    target.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
+    if(item[1]==="adLiveCustomerMarket"){
+     var input=document.getElementById("adLiveSearch");
+     if(input)setTimeout(function(){input.focus({preventScroll:true});},250);
+    }
+    nav.querySelectorAll("button").forEach(function(b){b.removeAttribute("aria-current");});
+    button.setAttribute("aria-current","location");
+   });
+   nav.appendChild(button);
+  });
+  search.insertAdjacentElement("afterend",nav);
+ }
+ function init(){
+  addCustomerNavigation();
+  var customer=document.getElementById("customer");
+  if(customer&&typeof MutationObserver!=="undefined"){
+   new MutationObserver(addCustomerNavigation).observe(customer,{childList:true,subtree:true});
+  }
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});
+ else init();
 })();
 </script>
 
