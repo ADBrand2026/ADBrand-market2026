@@ -90,6 +90,10 @@ jobs:
               "legacy self-pickup-only checkout gate is absent": 'if(nonFoodInCart&&fulfillment!=="self_pickup")' not in source,
               "checkout delivery option is excluded from role-option cleanup": 'select:not(#adCheckoutFulfillment) option[value="delivery"]' in source,
               "food items are rejected from first launch": 'if(!nonFoodInCart)' in source,
+              "food department button is removed for first launch": 'id="ad-first-launch-nonfood-only-ui"' in source and '#adMarketFoodButton' in source,
+              "food seller workspace is hidden for first launch": '#adLiveFoodHoursPanel' in source and '#adLiveFoodSellerTools' in source,
+              "public Delivery Boy panel is hidden for first launch": '#delivery,' in source,
+              "self-pickup is explicitly unavailable in customer notice": 'Self Pickup और अपना Delivery Boy उपलब्ध नहीं हैं।' in source,
               "legacy local demo modules are hidden": '#adbm3-root,#adbm4-root,#adbm5-root{display:none!important}' in source,
           }
           for name, ok in checks.items():
