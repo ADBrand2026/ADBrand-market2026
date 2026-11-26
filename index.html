@@ -22930,7 +22930,12 @@ section[id^="adbm"]{display:none!important}
    label.textContent=item.label;
    button.append(icon,label);
    button.addEventListener("click",function(){
-    item.node.scrollIntoView({
+    var destination=item.node;
+    if(item.label==="Account"&&(!destination||destination.hidden||!destination.isConnected)){
+     destination=document.getElementById("adCustomerAccountCenter")||destination;
+    }
+    if(!destination)return;
+    destination.scrollIntoView({
      behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",
      block:"start"
     });
