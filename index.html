@@ -808,7 +808,7 @@ body{background:#f7f7fb}
           <div class="notice" id="adCourierHomeDeliveryNote">🚚 AD Brand Market में सभी parcels external courier से घर पहुँचेंगे। Self Pickup और अपना Delivery Boy नहीं होगा। Shiprocket/NimbusPost की live booking, customer-approved courier charge और tracking पूरी तरह test होने तक checkout अस्थायी रूप से बंद है।</div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, floor, landmark, delivery instructions…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">AD Brand Market के सभी parcels external courier से घर पहुँचेंगे। अपना Delivery Boy और Self Pickup नहीं होगा। Courier account KYC, wallet, seller pickup locations, API booking और tracking test पूरे होने तक checkout बंद रहेगा।</p>
+        <p class="small muted">AD Brand Market के सभी parcels external courier से घर पहुँचेंगे। अपना Delivery Boy और Self Pickup नहीं होगा। Courier account KYC, wallet, seller pickup locations, API booking और tracking test पूरे होने तक checkout बंद रहेगा।</p>
         <button id="adCheckoutSubmit" class="btn primary" type="button" disabled aria-disabled="true" onclick="adLiveCheckout()">Courier setup complete होने तक Order बंद है</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
@@ -1280,7 +1280,7 @@ window.adLoadSellerPayoutOverview = async function () {
 
 
 
-<script id="ad-marketplace-experience-v2">
+<script id="ad-marketplace-seller-navigation-v2">
 (function(){
  "use strict";
  function addSellerWorkspaceNavigation(){
@@ -22696,7 +22696,7 @@ section[id^="adbm"]{display:none!important}
 <style id="ad-final-public-scope-2026">
 #delivery,#adLiveDeliveryDashboard,#roleDeliveryIdentityFields,#roleVehicleFields,#adLiveFoodHoursPanel,#adLiveFoodSellerTools,#adFoodPayoutTerms,#adFoodCategoryBar,#roleFoodComplianceFields{display:none!important}
 </style>
-<script id="ad-final-public-scope-2026">
+<script id="ad-final-public-scope-script-2026">
 (function(){
  "use strict";
  function clean(){
@@ -22729,8 +22729,6 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
-</body>
-</html>
 
 <script id="ad-courier-readiness-gate">
 (function(){
@@ -22810,3 +22808,6 @@ section[id^="adbm"]{display:none!important}
  }
 })();
 </script>
+
+</body>
+</html>
