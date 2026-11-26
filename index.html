@@ -3191,6 +3191,41 @@ async function adLiveAdminShipments(c){
   });
  }
 
+ var ndrBox=liveEl("div","section");
+ ndrBox.appendChild(liveEl("h3","","📍 Non-Delivery Reports (NDR)"));
+ ndrBox.appendChild(liveEl("p","small muted","Customer unavailable, wrong address or failed delivery attempt cases. Contact customer and confirm address before re-attempt; RTO sends parcel back to seller."));
+ ndrBox.appendChild(actionButton("Load live NDR cases",async function(){
+  var btn=this;btn.disabled=true;
+  try{
+   var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"ndr_list"}});
+   if(z.error||!z.data?.ok)throw z.error||new Error(z.data?.code||"NDR fetch failed");
+   ndrBox.querySelectorAll(".ad-ndr-case").forEach(function(n){n.remove();});
+   var cases=z.data.cases||[];
+   if(!cases.length){ndrBox.appendChild(liveEl("p","small muted","No current NDR cases reported by Shiprocket."));return;}
+   cases.forEach(function(item){
+    var nc=liveEl("div","card ad-ndr-case");
+    nc.append(liveEl("strong","","AWB "+item.awb),liveEl("p","small",(item.courier_name||"Courier")+" · "+(item.status||"NDR")+" · "+(item.reason||"Reason not supplied")));
+    nc.appendChild(actionButton("Request re-attempt",async function(){
+     var note=prompt("Customer से बात करके confirmed delivery instruction लिखें:","");
+     if(!note||note.trim().length<4)return;
+     var done=await c.functions.invoke("courier-shiprocket-control",{body:{action:"ndr_action",awb:item.awb,ndr_action:"re-attempt",comments:note.trim()}});
+     if(done.error||!done.data?.ok){liveError("Re-attempt request नहीं भेजा गया",done.error||done.data?.code);return;}
+     toast("Re-attempt request courier को भेजी गई।");await adLiveAdminShipments(c);
+    },"outline"));
+    nc.appendChild(actionButton("Return to seller (RTO)",async function(){
+     if(!confirm("क्या customer से पुष्टि हो चुकी है और आप इस parcel को seller के पास वापस भेजना चाहते हैं?"))return;
+     var note=prompt("RTO का कारण लिखें:","");
+     if(!note||note.trim().length<4)return;
+     var done=await c.functions.invoke("courier-shiprocket-control",{body:{action:"ndr_action",awb:item.awb,ndr_action:"return",comments:note.trim()}});
+     if(done.error||!done.data?.ok){liveError("RTO request नहीं भेजी गई",done.error||done.data?.code);return;}
+     toast("RTO request courier को भेजी गई।");await adLiveAdminShipments(c);
+    },"danger"));
+    ndrBox.appendChild(nc);
+   });
+  }catch(e){liveError("NDR cases load नहीं हुए",e);}finally{btn.disabled=false;}
+ },"outline"));
+ box.appendChild(ndrBox);
+
 }
 async function adLiveAdminIssues(c){
  var box=$("adminDeliveryIssues");if(!box)return;box.replaceChildren();var r=await c.from("delivery_issue_cases").select("id,order_id,actor_role,reason,details,customer_promised_until,status,decision_note,created_at").order("created_at",{ascending:false}).limit(100);
