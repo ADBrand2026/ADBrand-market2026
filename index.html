@@ -3079,6 +3079,21 @@ async function adLiveAdminShipments(c){
  health.onclick=async function(){health.disabled=true;try{var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"health"}});if(z.error)throw z.error;if(!z.data?.ok)throw new Error(z.data?.message||z.data?.code||"Shiprocket connection failed");toast("Shiprocket API verified. Provider enabled for controlled testing.");await adLiveAdminShipments(c);}catch(e){liveError("Shiprocket connection test failed",e);health.disabled=false;}};
  box.appendChild(liveEl("p","small muted","Courier control: live rate comparison, customer approval, AWB booking, pickup and tracking. Secrets stay in Supabase; never paste API keys into website code."));
  box.appendChild(health);
+ var readiness=await c.rpc("get_courier_checkout_readiness");
+ var providerState=await c.from("courier_provider_configs").select("enabled,last_health_status,last_health_checked_at,checkout_ready").eq("provider_code","shiprocket").maybeSingle();
+ var currentReady=Boolean(readiness.data?.ready);
+ var providerHealthy=Boolean(providerState.data?.enabled&&providerState.data?.last_health_status==="healthy"&&providerState.data?.last_health_checked_at);
+ var readyButton=actionButton(currentReady?"Disable customer checkout":"Enable customer checkout (after wallet + pickup checks)",async function(){
+  if(!currentReady&&!confirm("Confirm only if Shiprocket KYC is approved, API test passed, wallet has enough balance, COD/bank settlement is configured, and every active seller pickup location is registered and mapped. Enable customer orders now?"))return;
+  if(currentReady&&!confirm("Temporarily stop new customer orders? Existing shipments will continue tracking."))return;
+  var saved=await c.rpc("admin_set_courier_checkout_ready",{p_ready:!currentReady});
+  if(saved.error){liveError("Courier checkout readiness update नहीं हुआ",saved.error);return;}
+  toast(!currentReady?"External courier checkout enabled.":"New courier orders paused.");
+  await adLiveAdminShipments(c);
+ },currentReady?"outline":"primary");
+ readyButton.disabled=!currentReady&&!providerHealthy;
+ box.appendChild(readyButton);
+ box.appendChild(liveEl("p","small muted",currentReady?"Live courier checkout is enabled. New orders still require seller pickup mapping and actual serviceable quotes.":"Checkout stays closed until API health, account KYC, wallet funding, bank/COD setup and seller pickup mappings are verified."));
  var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id,handoff_verified_at,manifest_url").order("created_at",{ascending:false}).limit(100);
  if(r.error){box.appendChild(liveEl("div","empty","Shipment queue load नहीं हुई: "+r.error.message));return;}
  if(!r.data?.length){box.appendChild(liveEl("div","empty","अभी कोई external courier shipment नहीं है।"));return;}
