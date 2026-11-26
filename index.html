@@ -22780,7 +22780,7 @@ section[id^="adbm"]{display:none!important}
    if(deliveryOption){deliveryOption.disabled=false;deliveryOption.textContent="Home Delivery — External Courier";}
    fulfillmentSelect.value="delivery";
   }
-  document.querySelectorAll('option[value="delivery"],option[value="delivery_boy"],option[value="food"],option[value="self_pickup"]').forEach(function(n){n.remove();});
+  document.querySelectorAll('select:not(#adCheckoutFulfillment) option[value="delivery"],select:not(#adCheckoutFulfillment) option[value="delivery_boy"],select:not(#adCheckoutFulfillment) option[value="food"],select:not(#adCheckoutFulfillment) option[value="self_pickup"]').forEach(function(n){n.remove();});
   document.querySelectorAll('select option').forEach(function(n){
    if(/delivery boy|food seller|self pickup|food delivery/i.test(n.textContent||""))n.remove();
   });
