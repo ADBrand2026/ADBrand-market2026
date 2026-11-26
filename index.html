@@ -2333,7 +2333,7 @@ window.adLiveCheckout=async function(){
   toast("Order बनाया गया। Payment अभी verified नहीं है।");
   await adLiveLoadCustomerOrders();await adLiveLoadCatalog();
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
- finally{if(btn)btn.disabled=false;}
+ finally{if(window.adLiveRefreshCourierReadiness)window.adLiveRefreshCourierReadiness();else if(btn)btn.disabled=true;}
 };
 window.applyCustomerAuthGate=function(){
  var panel=$("customer");
