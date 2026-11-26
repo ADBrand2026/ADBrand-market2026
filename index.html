@@ -3076,7 +3076,7 @@ async function adLiveAdminShipments(c){
  health.onclick=async function(){health.disabled=true;try{var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"health"}});if(z.error)throw z.error;if(!z.data?.ok)throw new Error(z.data?.message||z.data?.code||"Shiprocket connection failed");toast("Shiprocket API verified. Provider enabled for controlled testing.");await adLiveAdminShipments(c);}catch(e){liveError("Shiprocket connection test failed",e);health.disabled=false;}};
  box.appendChild(liveEl("p","small muted","Courier control: live rate comparison, customer approval, AWB booking, pickup and tracking. Secrets stay in Supabase; never paste API keys into website code."));
  box.appendChild(health);
- var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id").order("created_at",{ascending:false}).limit(100);
+ var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id,handoff_verified_at").order("created_at",{ascending:false}).limit(100);
  if(r.error){box.appendChild(liveEl("div","empty","Shipment queue load नहीं हुई: "+r.error.message));return;}
  if(!r.data?.length){box.appendChild(liveEl("div","empty","अभी कोई external courier shipment नहीं है।"));return;}
  for(const s of r.data){
@@ -3133,6 +3133,15 @@ async function adLiveAdminShipments(c){
      toast("AWB "+z.data.awb+" बनाया गया।");await adLiveAdminShipments(c);
     },"outline"));
    }
+  }
+  if((s.awb_code||s.tracking_number)&&!s.handoff_verified_at&&s.shipment_status==="booked"){
+   card.appendChild(actionButton("🔎 Verify AD parcel barcode before handover",async function(){
+    var scanned=prompt("Courier pickup से पहले parcel पर छपा AD internal barcode scan करें:", "");
+    if(scanned===null||!scanned.trim())return;
+    var verified=await c.rpc("admin_verify_external_handoff_barcode",{p_shipment_id:s.id,p_scanned_barcode:scanned.trim(),p_note:"Admin verified parcel barcode before external courier handover"});
+    if(verified.error){liveError("Barcode verification failed — parcel handover रोकें",verified.error);return;}
+    toast("Barcode match हुआ। अब parcel courier को handover किया जा सकता है।");await adLiveAdminShipments(c);
+   },"primary"));
   }
   if(s.awb_code||s.tracking_number){
    card.appendChild(liveEl("p","small","Courier: "+(s.courier_name||"Shiprocket")+" · AWB: "+(s.awb_code||s.tracking_number)+" · Pickup: "+(s.pickup_status||"pending")));
