@@ -1266,6 +1266,8 @@ window.adLoadSellerPayoutOverview = async function () {
       ["Delivered item gross (before order-level adjustments)", money(d.delivered_item_gross)],
       ["Illustrative 5% commission only", money(d.illustrative_commission_amount)],
       ["Illustrative amount after commission", money(d.illustrative_after_commission)],
+      ["Quoted courier freight (seller cost estimate)", money(d.quoted_seller_courier_cost)],
+      ["Illustrative amount after commission and courier estimate", money(d.illustrative_after_commission_and_courier)],
       ["Existing pending settlement records", money(d.existing_pending_settlement_total)],
       ["Existing paid settlement records", money(d.existing_paid_settlement_total)]
     ];
