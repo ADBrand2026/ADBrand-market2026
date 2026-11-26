@@ -804,11 +804,11 @@ body{background:#f7f7fb}
           <div class="field"><label>Map pin (optional)</label><button class="btn outline" type="button" onclick="adLiveUseCustomerLocation()">📍 Use current location</button><small id="adCheckoutLocationStatus" class="muted">Optional map pin helps the rider find your gate. Full house, area and landmark address is still required.</small><input id="adCheckoutLatitude" type="hidden"><input id="adCheckoutLongitude" type="hidden"></div>
           <div class="field"><label for="adCheckoutAddressLabel">Address label</label><select id="adCheckoutAddressLabel"><option value="Home">🏠 Home / घर</option><option value="Work">🏢 Work / काम</option><option value="Other">📍 Other / दूसरा</option></select></div>
           <div class="field"><label for="adCheckoutPayment">भुगतान विकल्प</label><select id="adCheckoutPayment"><option value="cod">Cash on Delivery (COD)</option><option value="upi" disabled>UPI — setup pending (not available yet)</option></select></div>
-          <div class="field"><label for="adCheckoutFulfillment">घर पर सामान कैसे मिलेगा?</label><select id="adCheckoutFulfillment" aria-describedby="adCourierHomeDeliveryNote"><option value="delivery" disabled>Valmo Home Delivery — merchant approval/API connection pending</option><option value="self_pickup" selected>Self Pickup — दुकान से खुद लें</option></select></div>
+          <div class="notice" id="adCourierHomeDeliveryNote">🚚 AD Brand Market में सभी parcels external courier से घर पहुँचेंगे। Self Pickup और अपना Delivery Boy नहीं होगा। Shiprocket/NimbusPost की live booking, customer-approved courier charge और tracking पूरी तरह test होने तक checkout अस्थायी रूप से बंद है।</div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, floor, landmark, delivery instructions…"></div>
         </div>
         <p id="adCourierHomeDeliveryNote" class="small muted">AD Brand Market अपना Delivery Boy नहीं रखेगा। Valmo merchant approval और official booking/API access मिलने के बाद ही घर पर delivery खुलेगी। अभी Home Delivery बंद है; Self Pickup उपलब्ध है। COD उपलब्ध है; UPI gateway अभी live नहीं है।</p>
-        <button class="btn primary" type="button" onclick="adLiveCheckout()">✅ Place Order</button>
+        <button class="btn primary" type="button" disabled aria-disabled="true">Courier connection complete होने तक Order बंद है</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
     </div>
