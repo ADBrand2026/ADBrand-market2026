@@ -3155,6 +3155,33 @@ async function adLiveAdminShipments(c){
   card.appendChild(actionButton("Print AD internal parcel slip",function(){adLivePrintSlip({order_code:s.order_id,internal_barcode:s.internal_barcode,total_amount:0},[],{},s.seller_profile_id);},"outline"));
   box.appendChild(card);
  }
+ var claimRes=await c.from("courier_claims").select("id,order_id,provider_code,claim_type,claim_status,claimed_amount,approved_amount,provider_claim_reference,notes,evidence,created_at").in("claim_status",["draft","submitted","under_review","approved","partially_approved"]).order("created_at",{ascending:false}).limit(50);
+ box.appendChild(liveEl("h3","","🛡️ Courier loss / damage claims"));
+ if(claimRes.error){box.appendChild(liveEl("p","small muted","Claims load नहीं हुए: "+claimRes.error.message));}
+ else if(!claimRes.data?.length){box.appendChild(liveEl("p","small muted","कोई open courier claim नहीं है।"));}
+ else{
+  claimRes.data.forEach(function(cl){
+   var cc=liveEl("div","card");
+   cc.append(liveEl("strong","","Order "+cl.order_id+" · "+cl.claim_type),
+    liveEl("p","small","Provider: "+cl.provider_code+" · Status: "+cl.claim_status+" · Claim: ₹"+Number(cl.claimed_amount||0).toFixed(2)),
+    liveEl("p","small muted","Evidence references: "+(Array.isArray(cl.evidence)?cl.evidence.length:0)+" · "+(cl.notes||"No notes")));
+   var state=document.createElement("select");
+   ["draft","submitted","under_review","approved","partially_approved","rejected","paid","closed"].forEach(function(v){var op=document.createElement("option");op.value=v;op.textContent=v.replace(/_/g," ");op.selected=v===cl.claim_status;state.appendChild(op);});
+   var ref=document.createElement("input");ref.placeholder="Courier claim reference";ref.value=cl.provider_claim_reference||"";
+   var amount=document.createElement("input");amount.type="number";amount.min="0";amount.step=".01";amount.placeholder="Approved amount ₹";amount.value=cl.approved_amount==null?"":String(cl.approved_amount);
+   var note=document.createElement("textarea");note.placeholder="Evidence / admin review notes";note.value=cl.notes||"";
+   cc.append(state,ref,amount,note);
+   cc.appendChild(actionButton("Save claim review",async function(){
+    var approved=amount.value.trim()===""?null:Number(amount.value);
+    if(approved!==null&&(!Number.isFinite(approved)||approved<0||approved>Number(cl.claimed_amount))){toast("Approved amount valid नहीं है।");return;}
+    var saved=await c.rpc("admin_update_courier_claim",{p_claim_id:cl.id,p_status:state.value,p_provider_reference:ref.value.trim()||null,p_approved_amount:approved,p_notes:note.value.trim()||null,p_evidence:null});
+    if(saved.error){liveError("Courier claim update नहीं हुआ",saved.error);return;}
+    toast("Courier claim review save हुई।");await adLiveAdminShipments(c);
+   },"primary"));
+   box.appendChild(cc);
+  });
+ }
+
 }
 async function adLiveAdminIssues(c){
  var box=$("adminDeliveryIssues");if(!box)return;box.replaceChildren();var r=await c.from("delivery_issue_cases").select("id,order_id,actor_role,reason,details,customer_promised_until,status,decision_note,created_at").order("created_at",{ascending:false}).limit(100);
