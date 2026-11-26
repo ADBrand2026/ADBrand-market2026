@@ -19892,7 +19892,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const chosen=String(select?.value||"");
     const addresses=asList(window.__adBrandSavedAddresses);
     if(!chosen){
-      ["adCheckoutAddress","adCheckoutCity","adCheckoutState","adCheckoutPincode"].forEach(id=>{const n=$(id);if(n)n.value="";});
+      ["adCheckoutAddress","adCheckoutCity","adCheckoutState","adCheckoutPincode","adCheckoutEmail"].forEach(id=>{const n=$(id);if(n)n.value="";});
       if($("adCheckoutAddressLabel"))$("adCheckoutAddressLabel").value="Home";
       if($("adCheckoutLatitude"))$("adCheckoutLatitude").value="";
       if($("adCheckoutLongitude"))$("adCheckoutLongitude").value="";
@@ -19902,7 +19902,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const a=addresses.find(x=>String(x.id)===chosen);
     if(!a)return;
     const fields={
-      adCheckoutName:a.full_name,adCheckoutMobile:a.mobile,adCheckoutAddress:a.address_line,
+      adCheckoutName:a.full_name,adCheckoutMobile:a.mobile,adCheckoutEmail:a.email,adCheckoutAddress:a.address_line,
       adCheckoutCity:a.city,adCheckoutState:a.state,adCheckoutPincode:a.pincode
     };
     Object.entries(fields).forEach(([id,value])=>{const n=$(id);if(n)n.value=String(value||"");});
