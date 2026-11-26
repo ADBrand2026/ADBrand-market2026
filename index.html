@@ -2857,7 +2857,40 @@ function adLiveRenderSellerOrders(orders,box){
    };card.appendChild(pickupCash);
   }
   if(o.fulfillment_mode==="self_pickup"&&!["ready_for_pickup","delivered","cancelled","returned"].includes(o.status)){var nextPickup=o.status==="pending"?"accepted":o.status==="accepted"?"preparing":"ready_for_pickup";var pb=liveEl("button","btn primary","Move pickup order to "+nextPickup.replace(/_/g," "));pb.onclick=async function(){try{var z=await liveClient().rpc("seller_update_self_pickup_order_stage",{p_order_id:o.id,p_next_status:nextPickup});if(z.error)throw z.error;toast("Self-pickup status update हुआ।");await adLiveLoadSellerWorkspace();}catch(e){liveError("Pickup order update नहीं हुआ",e);}};card.appendChild(pb);}
-  if(o.fulfillment_mode==="external_courier"&&!["delivered","cancelled","returned"].includes(o.status)){var pack=liveEl("button","btn primary","📦 Mark packed + prepare parcel slip");pack.onclick=async function(){try{var z=await liveClient().rpc("seller_mark_nonfood_packed",{p_order_id:o.id});if(z.error)throw z.error;toast("Parcel packed status save हुआ। Actual courier pickup अलग confirm होगा।");await adLiveLoadSellerWorkspace();adLivePrintParcelSlip(o); }catch(e){liveError("Packing status update नहीं हुआ",e);}};card.appendChild(pack);}
+  if(o.fulfillment_mode==="external_courier"&&![ "delivered","cancelled","returned"].includes(o.status)){
+   var measure=liveEl("div","card");
+   measure.appendChild(liveEl("strong","","📦 Parcel measurements — courier rate के लिए जरूरी"));
+   measure.appendChild(liveEl("p","small muted","Packing के बाद वास्तविक वजन और parcel का size भरें। अनुमान न डालें; गलत measurement से अतिरिक्त charge या courier dispute हो सकता है।"));
+   var grid=liveEl("div","form-grid");
+   function measureField(label,id,step,min,max,placeholder){
+    var wrap=liveEl("div","field");var lab=liveEl("label","",label);lab.htmlFor=id;
+    var inp=document.createElement("input");inp.id=id;inp.type="number";inp.step=step;inp.min=min;inp.max=max;inp.placeholder=placeholder;inp.required=true;
+    wrap.append(lab,inp);grid.appendChild(wrap);return inp;
+   }
+   var key=String(o.id).replace(/[^a-zA-Z0-9]/g,"").slice(0,18);
+   var weight=measureField("Actual weight (kg)","adPackWeight"+key,"0.01","0.05","50","e.g. 0.75");
+   var length=measureField("Length (cm)","adPackLength"+key,"0.1","1","200","e.g. 30");
+   var width=measureField("Width (cm)","adPackWidth"+key,"0.1","1","200","e.g. 20");
+   var height=measureField("Height (cm)","adPackHeight"+key,"0.1","1","200","e.g. 10");
+   var count=measureField("Number of parcels","adPackCount"+key,"1","1","20","1");count.value="1";
+   var value=measureField("Declared product value (₹)","adPackValue"+key,"0.01","0","500000","Order item value");value.value=String(Number(o.subtotal||0));
+   measure.appendChild(grid);
+   var pack=liveEl("button","btn primary","Save measurements + mark packed");
+   pack.onclick=async function(){
+    var vals=[weight.value,length.value,width.value,height.value,count.value,value.value].map(Number);
+    if(vals.some(function(x){return !Number.isFinite(x);})||vals[0]<0.05||vals[0]>50||vals.slice(1,4).some(function(x){return x<1||x>200;})||!Number.isInteger(vals[4])||vals[4]<1||vals[4]>20||vals[5]<0||vals[5]>500000){toast("वास्तविक वजन, dimensions, parcel count और value सही भरें।");return;}
+    pack.disabled=true;
+    try{
+     var saved=await liveClient().rpc("seller_set_courier_package",{p_order_id:o.id,p_weight_kg:vals[0],p_length_cm:vals[1],p_width_cm:vals[2],p_height_cm:vals[3],p_package_count:vals[4],p_declared_value:vals[5],p_packaging_type:"parcel",p_package_note:null});
+     if(saved.error)throw saved.error;
+     var marked=await liveClient().rpc("seller_mark_nonfood_packed",{p_order_id:o.id});
+     if(marked.error)throw marked.error;
+     toast("Parcel measurements और packing save हो गई। अब admin courier rate मँगवा सकता है।");
+     await adLiveLoadSellerWorkspace();adLivePrintParcelSlip(o);
+    }catch(e){liveError("Parcel details save नहीं हुईं",e);pack.disabled=false;}
+   };
+   measure.appendChild(pack);card.appendChild(measure);
+  }
   if(o.shipment){card.appendChild(liveEl("p","small","Courier "+(o.shipment.provider||"pending")+" · "+(o.shipment.status||"pending")+" · Tracking "+(o.shipment.tracking_number||"pending")));}
   var pr=liveEl("button","btn outline small-btn","Print packing slip");pr.onclick=function(){adLivePrintParcelSlip(o);};card.appendChild(pr);
   box.appendChild(card);
