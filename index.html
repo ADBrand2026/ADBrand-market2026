@@ -3055,13 +3055,81 @@ async function adLiveAdminVerifyQueue(c){
  });
 }
 async function adLiveAdminShipments(c){
- var box=$("adminCourierShipments");if(!box)return;box.replaceChildren();var r=await c.from("external_shipments").select("id,order_id,courier_provider,courier_order_reference,tracking_number,shipment_status,internal_barcode,label_reference").order("created_at",{ascending:false}).limit(100);
- if(r.error){box.textContent="Shipment queue load नहीं हुई: "+r.error.message;return;}if(!r.data.length){box.appendChild(liveEl("div","empty","अभी कोई non-food courier shipment नहीं है।"));return;}
- r.data.forEach(function(s){var card=liveEl("div","card");card.append(liveEl("strong","", "Order "+s.order_id),liveEl("p","small","Provider: "+s.courier_provider+" · Status: "+s.shipment_status),liveEl("p","small","Tracking: "+(s.tracking_number||"pending")+" · Parcel code: "+(s.internal_barcode||"—")));
-  var config=liveEl("button","btn primary small-btn","Save real courier booking details");config.onclick=async function(){var provider=prompt("Real courier provider (only after actual booking)",s.courier_provider==="valmo_pending_onboarding"?"":s.courier_provider||"");if(!provider)return;var track=prompt("Provider's actual tracking/AWB number (blank if not booked yet)",s.tracking_number||"");if(track===null)return;var ref=prompt("Courier order/reference ID (optional)",s.courier_order_reference||"");if(ref===null)return;var charge=Number(prompt("Confirmed shipping charge in ₹","0"));if(!Number.isFinite(charge)||charge<0){toast("Shipping charge गलत है।");return;}try{var z=await c.rpc("admin_configure_external_shipment",{p_shipment_id:s.id,p_courier_provider:provider,p_tracking_number:track,p_courier_reference:ref,p_shipping_charge:charge});if(z.error)throw z.error;toast("Courier details saved. API booking का दावा नहीं किया गया।");await adLiveLoadAdminOperations();}catch(e){liveError("Courier data save नहीं हुआ",e);}};
-  var state=liveEl("button","btn outline small-btn","Update shipment status");state.onclick=async function(){var val=prompt("Status: pending_quote, pending_booking, booked, picked_up, in_transit, delivered, returned, cancelled, failed",s.shipment_status);if(!val)return;var track=prompt("Actual tracking number (optional)",s.tracking_number||"");if(track===null)return;try{var z=await c.rpc("admin_update_shipment_status",{p_shipment_id:s.id,p_status:val,p_tracking_number:track||null});if(z.error)throw z.error;toast("Shipment status saved; only actual provider status डालें।");await adLiveLoadAdminOperations();}catch(e){liveError("Shipment status नहीं बदला",e);}};
-  card.append(config,state);box.appendChild(card);
- });
+ var box=$("adminCourierShipments");if(!box)return;box.replaceChildren();
+ var health=liveEl("button","btn outline small-btn","🔌 Test Shiprocket API + enable");
+ health.onclick=async function(){health.disabled=true;try{var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"health"}});if(z.error)throw z.error;if(!z.data?.ok)throw new Error(z.data?.message||z.data?.code||"Shiprocket connection failed");toast("Shiprocket API verified. Provider enabled for controlled testing.");await adLiveAdminShipments(c);}catch(e){liveError("Shiprocket connection test failed",e);health.disabled=false;}};
+ box.appendChild(liveEl("p","small muted","Courier control: live rate comparison, customer approval, AWB booking, pickup and tracking. Secrets stay in Supabase; never paste API keys into website code."));
+ box.appendChild(health);
+ var r=await c.from("external_shipments").select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,tracking_number,awb_code,courier_name,label_url,pickup_status,seller_packed_at,quote_accepted_at,selected_quote_id,last_error_code,last_error_message,provider_order_id,provider_shipment_id").order("created_at",{ascending:false}).limit(100);
+ if(r.error){box.appendChild(liveEl("div","empty","Shipment queue load नहीं हुई: "+r.error.message));return;}
+ if(!r.data?.length){box.appendChild(liveEl("div","empty","अभी कोई external courier shipment नहीं है।"));return;}
+ for(const s of r.data){
+  var card=liveEl("div","card");
+  card.append(liveEl("strong","","Order "+s.order_id),
+   liveEl("p","small","Provider: "+(s.courier_provider||"not selected")+" · Status: "+s.shipment_status),
+   liveEl("p","small","Parcel code: "+(s.internal_barcode||"—")+" · AWB: "+(s.awb_code||s.tracking_number||"not booked")));
+  if(!s.seller_packed_at){
+   card.appendChild(liveEl("p","small muted","Seller package measurements and packed confirmation are still required."));
+  }else if(["pending_quote","booking_failed"].includes(s.shipment_status)){
+   var pickup=liveEl("button","btn outline small-btn","Set seller Shiprocket pickup location");
+   pickup.onclick=async function(){
+    var loc=prompt("Exact pickup-location name already registered in Shiprocket (letters/numbers/spaces only):","");
+    if(loc===null||!loc.trim())return;
+    try{var z=await c.rpc("admin_set_seller_shiprocket_pickup_location",{p_seller_id:s.seller_profile_id,p_pickup_location:loc.trim()});if(z.error)throw z.error;toast("Seller pickup location mapped.");await adLiveAdminShipments(c);}catch(e){liveError("Pickup location save नहीं हुआ",e);}
+   };
+   card.appendChild(pickup);
+  }
+  var qr=await c.from("courier_rate_quotes").select("id,courier_code,courier_name,freight_charge,cod_charge,insurance_charge,total_charge,estimated_days,expires_at,quote_payload_safe,selected_at").eq("order_id",s.order_id).eq("provider_code","shiprocket").eq("serviceable",true).gt("expires_at",new Date().toISOString()).is("rejected_at",null).order("total_charge",{ascending:true}).limit(12);
+  if(qr.data?.length&&["pending_quote","booking_failed"].includes(s.shipment_status)){
+   var choose=document.createElement("select");choose.setAttribute("aria-label","Choose Shiprocket courier quote");
+   qr.data.forEach(function(q){var op=document.createElement("option");op.value=q.id;op.textContent=q.courier_name+" · ₹"+Number(q.total_charge||0).toFixed(2)+" · "+(q.estimated_days||"—")+" days · "+(q.quote_payload_safe?.rating?"★ "+q.quote_payload_safe.rating:"rating n/a");choose.appendChild(op);});
+   card.appendChild(choose);
+   card.appendChild(liveButton("Send selected courier option to customer",async function(){
+    var z=await c.rpc("admin_select_courier_quote",{p_order_id:s.order_id,p_quote_id:choose.value});
+    if(z.error){liveError("Courier option customer को नहीं भेजा गया",z.error);return;}
+    toast("Courier option customer approval के लिए भेज दिया गया। Actual booking अभी नहीं हुई।");
+    await adLiveAdminShipments(c);
+   },"primary"));
+  }
+  if(s.shipment_status==="pending_quote"&&s.seller_packed_at){
+   card.appendChild(liveButton("Get live Shiprocket courier rates",async function(){
+    var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"quote",order_id:s.order_id}});
+    if(z.error||!z.data?.ok){liveError("Live courier rates नहीं मिले",z.error||z.data?.message||z.data?.code);return;}
+    toast((z.data.quotes||[]).length+" serviceable courier quotes मिल गए।");await adLiveAdminShipments(c);
+   },"primary"));
+  }
+  if(s.shipment_status==="quote_awaiting_customer"){
+   card.appendChild(liveEl("p","small muted","Customer से courier option की approval pending है। Approval से पहले कोई AWB या pickup booking नहीं होगी।"));
+  }
+  if(s.shipment_status==="pending_booking"&&s.quote_accepted_at){
+   card.appendChild(liveButton("Book selected Shiprocket courier + AWB",async function(){
+    var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"book",order_id:s.order_id}});
+    if(z.error||!z.data?.ok){liveError("Courier booking पूरा नहीं हुआ",z.error||z.data?.message||z.data?.code);return;}
+    toast("AWB "+z.data.awb+" बन गया। Pickup status: "+z.data.pickup_status);await adLiveAdminShipments(c);
+   },"primary"));
+  }
+  if(s.shipment_status==="booking_failed"){
+   card.appendChild(liveEl("p","small muted","Booking error: "+(s.last_error_code||"check provider dashboard")+". Retry तभी करें जब Shiprocket में पिछली booking verify हो जाए।"));
+   if(s.provider_order_id&&s.provider_shipment_id){
+    card.appendChild(liveButton("Resume saved partial booking",async function(){
+     var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"book",order_id:s.order_id}});
+     if(z.error||!z.data?.ok){liveError("Booking resume नहीं हुआ",z.error||z.data?.message||z.data?.code);return;}
+     toast("AWB "+z.data.awb+" बनाया गया।");await adLiveAdminShipments(c);
+    },"outline"));
+   }
+  }
+  if(s.awb_code||s.tracking_number){
+   card.appendChild(liveEl("p","small","Courier: "+(s.courier_name||"Shiprocket")+" · AWB: "+(s.awb_code||s.tracking_number)+" · Pickup: "+(s.pickup_status||"pending")));
+   card.appendChild(liveButton("Refresh actual courier tracking",async function(){
+    var z=await c.functions.invoke("courier-shiprocket-control",{body:{action:"track",order_id:s.order_id}});
+    if(z.error||!z.data?.ok){liveError("Tracking refresh नहीं हुआ",z.error||z.data?.code);return;}
+    toast("Courier tracking refreshed.");await adLiveAdminShipments(c);
+   },"outline"));
+  }
+  if(s.label_url){var label=liveEl("a","btn outline small-btn","Open courier label");label.href=s.label_url;label.target="_blank";label.rel="noopener noreferrer";card.appendChild(label);}
+  card.appendChild(liveButton("Print AD internal parcel slip",function(){adLivePrintSlip({order_code:s.order_id,internal_barcode:s.internal_barcode,total_amount:0},[],{},s.seller_profile_id);},"outline"));
+  box.appendChild(card);
+ }
 }
 async function adLiveAdminIssues(c){
  var box=$("adminDeliveryIssues");if(!box)return;box.replaceChildren();var r=await c.from("delivery_issue_cases").select("id,order_id,actor_role,reason,details,customer_promised_until,status,decision_note,created_at").order("created_at",{ascending:false}).limit(100);
@@ -21297,41 +21365,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       if(!verifyBox.childNodes.length)liveEmpty(verifyBox,"कोई unverified seller/rider नहीं है।");
     }
     const shipBox=$("adminCourierShipments");
-    if(shipBox){
-      const res=await client.from("external_shipments")
-       .select("id,order_id,seller_profile_id,courier_provider,shipment_status,internal_barcode,label_reference,tracking_number,courier_order_reference")
-       .in("shipment_status",["pending_quote","pending_booking","booked"]).order("created_at",{ascending:false}).limit(100);
-      if(res.error)liveEmpty(shipBox,"Courier queue load नहीं हुई: "+liveErr(res.error));
-      else if(!res.data?.length)liveEmpty(shipBox,"कोई pending external shipment नहीं है।");
-      else{
-        shipBox.replaceChildren();
-        res.data.forEach((sh,i)=>{
-          const card=liveNode("div","card");
-          card.appendChild(liveNode("h4","", "Order: "+sh.order_id));
-          card.appendChild(liveNode("p","small muted","Barcode: "+sh.internal_barcode+" • "+sh.shipment_status+" • "+(sh.tracking_number||"tracking not set")));
-          const prefix="adShip"+i;
-          const provider=document.createElement("input");provider.id=prefix+"Provider";provider.value=sh.courier_provider==="valmo_pending_onboarding"?"":(sh.courier_provider||"");provider.placeholder="Actual courier name — only after quote/account is confirmed";
-          const tracking=document.createElement("input");tracking.id=prefix+"Tracking";tracking.value=sh.tracking_number||"";tracking.placeholder="Confirmed courier tracking / AWB";
-          const reference=document.createElement("input");reference.id=prefix+"Reference";reference.value=sh.courier_order_reference||"";reference.placeholder="Courier booking reference (optional)";
-          const charge=document.createElement("input");charge.id=prefix+"Charge";charge.type="number";charge.min="0";charge.step=".01";charge.value="0";charge.placeholder="Shipping charge ₹";
-          card.appendChild(provider);card.appendChild(tracking);card.appendChild(reference);card.appendChild(charge);
-          card.appendChild(liveButton("Save confirmed courier booking",()=>adLiveConfigureShipment(sh.id,prefix),"primary"));
-          const stateSelect=document.createElement("select");
-          stateSelect.setAttribute("aria-label","External shipment status");
-          [["booked","Booked"],["picked_up","Picked up"],["in_transit","In transit"],["delivered","Delivered"],["returned","Returned"],["failed","Failed"],["cancelled","Cancelled"]]
-            .forEach(([v,label])=>{const opt=document.createElement("option");opt.value=v;opt.textContent=label;opt.selected=v===sh.shipment_status;stateSelect.appendChild(opt);});
-          card.appendChild(stateSelect);
-          card.appendChild(liveButton("Update courier tracking status",async()=>{
-            const tracking=String($(prefix+"Tracking")?.value||"").trim();
-            const {data,error}=await client.rpc("admin_update_shipment_status",{p_shipment_id:sh.id,p_status:stateSelect.value,p_tracking_number:tracking||null});
-            if(error){alert("Courier status update नहीं हुआ: "+liveErr(error));return;}
-            toast("External shipment status updated.");await adLiveLoadAdminQueues();await renderAdminDashboard();
-          },"outline"));
-          card.appendChild(liveButton("Print internal parcel slip",()=>adLivePrintSlip({order_code:sh.order_id,internal_barcode:sh.internal_barcode,total_amount:0},[],{},sh.seller_profile_id),"outline"));
-          shipBox.appendChild(card);
-        });
-      }
-    }
+    if(shipBox) await adLiveAdminShipments(client);
     const issuesBox=$("adminDeliveryIssues");
     if(issuesBox){
       const res=await client.from("delivery_issue_cases")
