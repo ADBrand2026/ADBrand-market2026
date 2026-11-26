@@ -22955,5 +22955,46 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
+<style id="ad-first-launch-nonfood-only-ui">
+/* First launch is non-food only: remove the food department and rider workspace from the public UI. */
+#adMarketFoodButton,
+#adLiveFoodHoursPanel,
+#adLiveFoodSellerTools,
+#adFoodCategoryBar,
+#roleFoodComplianceFields,
+#roleSellerFoodLicenseDoc,
+#delivery,
+[id^="adFood"] {
+  display: none !important;
+}
+.ad-customer-market-switch {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+</style>
+<script id="ad-first-launch-nonfood-only-guard">
+(function () {
+  "use strict";
+  function enforceNonFoodOnly() {
+    ["adMarketFoodButton", "adLiveFoodHoursPanel", "adLiveFoodSellerTools",
+     "adFoodCategoryBar", "roleFoodComplianceFields", "roleSellerFoodLicenseDoc"].forEach(function (id) {
+      var node = document.getElementById(id);
+      if (node) node.remove();
+    });
+    var sellerType = document.getElementById("roleSellerType");
+    if (sellerType) Array.from(sellerType.options || []).forEach(function (option) {
+      if (/food|खाना|restaurant/i.test((option.value || "") + " " + (option.textContent || ""))) option.remove();
+    });
+    document.querySelectorAll("#customer .notice").forEach(function (node) {
+      if (/Food marketplace|Food orders|Self Pickup उपलब्ध है/i.test(node.textContent || "")) {
+        node.textContent = "अभी केवल Non-Food सामान उपलब्ध है। सभी parcels घर के पते पर external courier से पहुँचेंगे। Self Pickup और अपना Delivery Boy उपलब्ध नहीं हैं। Courier booking और tracking पूरी तरह verify होने तक checkout बंद रहेगा।";
+      }
+    });
+    window.__adBrandCustomerMarketMode = "products";
+  }
+  enforceNonFoodOnly();
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", enforceNonFoodOnly, { once: true });
+})();
+</script>
+
 </body>
 </html>
