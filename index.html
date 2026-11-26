@@ -695,7 +695,7 @@ body{background:#f7f7fb}
   <div id="adCustomerOtpPanel" class="section card adCustomerOtpPanel" hidden>
     <h3>🔐 Account Register / Login</h3>
     <p class="small muted">Customer या Seller account चुनें। Seller account को products बेचने से पहले Admin approval चाहिए।</p>
-    <div class="field"><label for="adCustomerOtpRole">किसका अकाउंट?</label><select id="adCustomerOtpRole"><option value="customer">Customer — सामान खरीदें</option><option value="seller">Seller — सामान बेचें (Admin approval)</option><option value="delivery">Delivery Boy — ऑर्डर पहुँचाएँ (Admin approval)</option></select></div>
+    <div class="field"><label for="adCustomerOtpRole">किसका अकाउंट?</label><select id="adCustomerOtpRole"><option value="customer">Customer — सामान खरीदें</option><option value="seller">Seller — सामान बेचें (Admin approval)</option></select></div>
     <div class="ad-auth-tabs" role="tablist" aria-label="Customer account options">
       <button id="adCustomerRegisterTab" class="btn primary" type="button" role="tab" aria-selected="true" onclick="adCustomerSetOtpMode('register')">नया Register</button>
       <button id="adCustomerLoginTab" class="btn outline" type="button" role="tab" aria-selected="false" onclick="adCustomerSetOtpMode('login')">पहले से Login</button>
@@ -2921,7 +2921,7 @@ window.adLivePrintParcelSlip=function(o){
  var lines=["AD BRAND MARKET — INTERNAL PACKING SLIP","NOT a courier airway bill","Order: "+(o.order_code||o.id),"AD internal barcode: "+barcodeValue,"Seller: "+(sellerProfile.shop_name||o.seller_name||"Local Seller"),"Seller address: "+sellerAddress,"Customer: "+(o.address?.full_name||""),"Mobile: "+(o.address?.mobile||""),"Address: "+[o.address?.address_line,o.address?.city,o.address?.state,o.address?.pincode].filter(Boolean).join(", "),"Items: "+liveOptions(o.items).map(function(x){return (x.name||"Item")+" x"+x.quantity+(x.variant_name?" "+x.variant_name:"");}).join("; "),"Amount: "+liveMoney(o.total_amount),"Courier tracking: "+(o.shipment?.tracking_number||"NOT BOOKED")];
  var w=window.open("","_blank","width=760,height=700");if(!w){toast("Print window block हुई। Browser pop-up allow करें।");return;}
  w.document.open();
- w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:15px Arial;padding:24px}h2{margin-bottom:4px}.code{font:17px monospace;letter-spacing:1px;border:1px dashed #444;padding:10px;display:inline-block;overflow-wrap:anywhere}li{margin:8px 0}.note{padding:9px;border:1px solid #b36b00;background:#fff8e7}</style></head><body><h2>AD Brand Market</h2><p><b>Internal packing slip — NOT a Valmo/courier airway bill</b></p><svg id='adbmBarcode'></svg><p class='code'>"+liveEsc(barcodeValue)+"</p><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><p class='note'>Non-food parcel: book the courier and attach its official carrier-generated label. This AD barcode is for internal order lookup only. Do not use it as a carrier AWB.</p><button onclick='window.print()'>Print</button>"+
+ w.document.write("<!doctype html><html><head><meta charset='utf-8'><title>Packing Slip</title><style>body{font:15px Arial;padding:24px}h2{margin-bottom:4px}.code{font:17px monospace;letter-spacing:1px;border:1px dashed #444;padding:10px;display:inline-block;overflow-wrap:anywhere}li{margin:8px 0}.note{padding:9px;border:1px solid #b36b00;background:#fff8e7}</style></head><body><h2>AD Brand Market</h2><p><b>Internal packing slip — NOT a external courier airway bill</b></p><svg id='adbmBarcode'></svg><p class='code'>"+liveEsc(barcodeValue)+"</p><ol>"+lines.slice(2).map(function(x){return "<li>"+liveEsc(x)+"</li>";}).join("")+"</ol><p class='note'>Non-food parcel: book the courier and attach its official carrier-generated label. This AD barcode is for internal order lookup only. Do not use it as a carrier AWB.</p><button onclick='window.print()'>Print</button>"+
  "<script src='https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js'><\/script>"+
  "<script>try{if(window.JsBarcode){JsBarcode('#adbmBarcode','"+barcodeValue+"',{format:'CODE128',displayValue:true,height:48,margin:12});}else{document.getElementById('adbmBarcode').style.display='none';}}catch(e){document.getElementById('adbmBarcode').style.display='none';}<\/script>"+
  "</body></html>");
@@ -20175,7 +20175,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         (product.category_name || product.category_slug || "Product") + " • " + (product.seller_name || "Local seller")));
       card.appendChild(liveNode("p","small muted",
         product.seller_type === "food" ? ("🍕 Food Seller • " + (product.seller_city || "Local city") + " • AD rider delivery")
-        : ("📦 Non-food seller • " + (product.seller_city || "Seller city") + " • Valmo/approved external courier (when connected) or Self Pickup")));
+        : ("📦 Non-food seller • " + (product.seller_city || "Seller city") + " • External courier home delivery only; booking opens after provider verification")));
       if (product.description) card.appendChild(liveNode("p","",product.description));
       const variants = asList(product.variants);
       const attrSources = [product.attributes || {}, ...variants.map(v => v.attributes || {})];
@@ -20744,7 +20744,7 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
     const {data,error}=await client.rpc(getter);
     if(error){container.appendChild(liveNode("div","notice","Service-zone settings load नहीं हुईं: "+liveErr(error)));return;}
     if(isSeller&&data?.base?.seller_type!=="food"){
-      container.appendChild(liveNode("div","notice","Non-Food orders केवल Valmo/approved external courier की वास्तविक booking या same-city Self Pickup से पूरे होंगे; इन्हें कभी भी AD Food Delivery Riders को assign नहीं किया जाएगा."));
+      container.appendChild(liveNode("div","notice","Non-food orders केवल external courier से home delivery होंगे। Self Pickup और in-house Delivery Boy नहीं होगा."));
       return;
     }
     let areas=asList(data?.areas).map(a=>({pincode:a.pincode||"",city:a.city,state:a.state}));
@@ -22749,6 +22749,41 @@ section[id^="adbm"]{display:none!important}
  var previous=window.adLiveRenderCart;
  if(typeof previous==="function"){
   window.adLiveRenderCart=function(){var out=previous.apply(this,arguments);window.adLiveRefreshCourierReadiness();return out;};
+ }
+})();
+</script>
+<style id="ad-public-scope-courier-only">
+#delivery,#deliveryBoy,#deliveryPanel,#deliveryDashboard,#foodSeller,#foodSellerPanel,#foodDelivery,#foodDeliveryPanel{display:none!important}
+</style>
+<script id="ad-public-scope-courier-only-js">
+(function(){
+ "use strict";
+ function cleanPublicRoles(){
+  document.querySelectorAll('option[value="delivery"],option[value="delivery_boy"],option[value="food"],option[value="self_pickup"]').forEach(function(n){n.remove();});
+  document.querySelectorAll('select option').forEach(function(n){
+   if(/delivery boy|food seller|self pickup|food delivery/i.test(n.textContent||""))n.remove();
+  });
+  document.querySelectorAll('.p5-grid section,.p5-grid article,.role-card,.role-card-item,.home-role-card').forEach(function(n){
+   var heading=n.querySelector("h2,h3,h4,strong");
+   var label=(heading?.textContent||n.textContent||"").trim();
+   if(/^(delivery boy|food seller|food delivery)$/i.test(label)||/Delivery Boy account|Food Seller account/i.test(label))n.remove();
+  });
+  document.querySelectorAll('button,a,[role="button"]').forEach(function(n){
+   var label=(n.textContent||"").trim();
+   if(/^(Delivery Boy|Food Seller|Food Delivery)$/i.test(label))n.remove();
+  });
+  document.querySelectorAll('[id*="foodSeller" i],[id*="foodDelivery" i],[id*="deliveryBoy" i]').forEach(function(n){n.remove();});
+  document.querySelectorAll('p,small,li,div.notice').forEach(function(n){
+   if(n.id==="adCourierHomeDeliveryNote")return;
+   var t=(n.textContent||"").trim();
+   if(t.length<700&&(/Valmo|AD Food Delivery Rider|Food Delivery OTP|same-city Self Pickup|Self Pickup उपलब्ध/i.test(t)))n.remove();
+  });
+ }
+ cleanPublicRoles();
+ var root=document.body;
+ if(root&&typeof MutationObserver!=="undefined"){
+  var observer=new MutationObserver(function(){cleanPublicRoles();});
+  observer.observe(root,{childList:true,subtree:true});
  }
 })();
 </script>
