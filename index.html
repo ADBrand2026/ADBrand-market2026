@@ -22872,5 +22872,83 @@ section[id^="adbm"]{display:none!important}
 })();
 </script>
 
+
+
+<style id="ad-meesho-mobile-bottom-nav-v2">
+.ad-mobile-bottom-nav{display:none}
+@media(max-width:700px){
+ #customer.active{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+ #customer.active .ad-mobile-bottom-nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:90;
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:2px;padding:7px 5px calc(7px + env(safe-area-inset-bottom));
+  background:#fff;border-top:1px solid #eadfe8;
+  box-shadow:0 -7px 24px rgba(48,24,45,.12);
+ }
+ .ad-mobile-bottom-nav button{
+  min-width:0;min-height:54px;border:0;border-radius:12px;
+  background:transparent;color:#514451;font-size:.7rem;font-weight:800;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;padding:4px 2px;
+ }
+ .ad-mobile-bottom-nav button .ad-nav-icon{font-size:1.25rem;line-height:1.2}
+ .ad-mobile-bottom-nav button[aria-current="page"]{background:#fff0f7;color:#b92778}
+ .ad-mobile-bottom-nav button:focus-visible{outline:3px solid #e93491;outline-offset:1px}
+}
+@media(prefers-reduced-motion:reduce){.ad-mobile-bottom-nav button{scroll-behavior:auto}}
+</style>
+<script id="ad-meesho-mobile-bottom-nav-script-v2">
+(function(){
+ "use strict";
+ function install(){
+  var panel=document.getElementById("customer");
+  if(!panel||panel.querySelector(".ad-mobile-bottom-nav"))return;
+  var wishlist=document.getElementById("customerWishlist");
+  var wishlistSection=wishlist&&wishlist.closest(".section");
+  var categories=panel.querySelector(".ad-customer-quick-categories");
+  var targets=[
+   {label:"होम",icon:"⌂",node:panel.querySelector(".panel-header")},
+   {label:"Categories",icon:"▦",node:categories},
+   {label:"Wishlist",icon:"♡",node:wishlistSection},
+   {label:"Cart",icon:"🛒",node:document.getElementById("adCustomerLiveCartSection")},
+   {label:"Account",icon:"♙",node:document.getElementById("adCustomerLoginEntry")}
+  ];
+  var nav=document.createElement("nav");
+  nav.className="ad-mobile-bottom-nav";
+  nav.setAttribute("aria-label","Shopping navigation");
+  targets.forEach(function(item,index){
+   if(!item.node)return;
+   var button=document.createElement("button");
+   button.type="button";
+   button.setAttribute("aria-label",item.label);
+   if(index===0)button.setAttribute("aria-current","page");
+   var icon=document.createElement("span");
+   icon.className="ad-nav-icon";
+   icon.setAttribute("aria-hidden","true");
+   icon.textContent=item.icon;
+   var label=document.createElement("span");
+   label.textContent=item.label;
+   button.append(icon,label);
+   button.addEventListener("click",function(){
+    item.node.scrollIntoView({
+     behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",
+     block:"start"
+    });
+    nav.querySelectorAll("button").forEach(function(other){other.removeAttribute("aria-current");});
+    button.setAttribute("aria-current","page");
+   });
+   nav.appendChild(button);
+  });
+  if(nav.children.length)panel.appendChild(nav);
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",install,{once:true});
+ else install();
+ var panel=document.getElementById("customer");
+ if(panel&&typeof MutationObserver!=="undefined"){
+  new MutationObserver(install).observe(panel,{childList:true,subtree:true});
+ }
+})();
+</script>
+
 </body>
 </html>
