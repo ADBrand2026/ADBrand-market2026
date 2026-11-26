@@ -808,8 +808,8 @@ body{background:#f7f7fb}
           <div class="notice" id="adCourierHomeDeliveryNote">🚚 AD Brand Market में सभी parcels external courier से घर पहुँचेंगे। Self Pickup और अपना Delivery Boy नहीं होगा। Shiprocket/NimbusPost की live booking, customer-approved courier charge और tracking पूरी तरह test होने तक checkout अस्थायी रूप से बंद है।</div>
           <div class="field"><label for="adCheckoutNotes">Order instructions (optional)</label><input id="adCheckoutNotes" maxlength="500" placeholder="Gate, floor, landmark, delivery instructions…"></div>
         </div>
-        <p id="adCourierHomeDeliveryNote" class="small muted">AD Brand Market अपना Delivery Boy नहीं रखेगा। Valmo merchant approval और official booking/API access मिलने के बाद ही घर पर delivery खुलेगी। अभी Home Delivery बंद है; Self Pickup उपलब्ध है। COD उपलब्ध है; UPI gateway अभी live नहीं है।</p>
-        <button class="btn primary" type="button" disabled aria-disabled="true">Courier connection complete होने तक Order बंद है</button>
+        <p id="adCourierHomeDeliveryNote" class="small muted">AD Brand Market के सभी parcels external courier से घर पहुँचेंगे। अपना Delivery Boy और Self Pickup नहीं होगा। Courier account KYC, wallet, seller pickup locations, API booking और tracking test पूरे होने तक checkout बंद रहेगा।</p>
+        <button id="adCheckoutSubmit" class="btn primary" type="button" disabled aria-disabled="true" onclick="adLiveCheckout()">Courier setup complete होने तक Order बंद है</button>
         <div id="adLiveCheckoutResult" class="notice" role="status"></div>
       </div>
     </div>
@@ -22721,3 +22721,34 @@ section[id^="adbm"]{display:none!important}
 
 </body>
 </html>
+
+<script id="ad-courier-readiness-gate">
+(function(){
+ "use strict";
+ window.adLiveRefreshCourierReadiness=async function(){
+  var btn=document.getElementById("adCheckoutSubmit"),note=document.getElementById("adCourierHomeDeliveryNote");
+  if(!btn)return;
+  btn.disabled=true;btn.setAttribute("aria-disabled","true");
+  try{
+   var client=typeof liveClient==="function"?liveClient():null;
+   if(!client){if(note)note.textContent="Customer sign-in और courier service readiness जाँचने के बाद checkout खुलेगा।";return;}
+   var result=await client.rpc("get_courier_checkout_readiness");
+   var ready=!!(result.data&&result.data.ready&&!result.error);
+   btn.disabled=!ready;btn.setAttribute("aria-disabled",String(!ready));
+   btn.textContent=ready?"Place Order — external courier":"Courier setup complete होने तक Order बंद है";
+   if(note)note.textContent=ready
+    ?"Courier checkout enabled है। Seller pickup PIN की serviceability, customer email, parcel measurements और live booking फिर भी server पर validate होंगे।"
+    :(result.data&&result.data.message)||"External courier account, wallet, pickup locations और API test complete नहीं हैं; checkout बंद है।";
+  }catch(e){
+   btn.disabled=true;btn.setAttribute("aria-disabled","true");
+   if(note)note.textContent="Courier readiness verify नहीं हो पाई। Safety के लिए checkout बंद रखा गया है।";
+  }
+ };
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){window.adLiveRefreshCourierReadiness();},{once:true});
+ else window.adLiveRefreshCourierReadiness();
+ var previous=window.adLiveRenderCart;
+ if(typeof previous==="function"){
+  window.adLiveRenderCart=function(){var out=previous.apply(this,arguments);window.adLiveRefreshCourierReadiness();return out;};
+ }
+})();
+</script>
