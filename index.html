@@ -2309,16 +2309,14 @@ window.adLiveCheckout=async function(){
  if(!cart.length){toast("पहले Cart में product जोड़ें।");return;}
  var address={full_name:String($("adCheckoutName")?.value||"").trim(),mobile:String($("adCheckoutMobile")?.value||"").replace(/\D/g,""),address_line:String($("adCheckoutAddress")?.value||"").trim(),city:String($("adCheckoutCity")?.value||"").trim(),state:String($("adCheckoutState")?.value||"").trim(),pincode:String($("adCheckoutPincode")?.value||"").trim(),label:String($("adCheckoutAddressLabel")?.value||"Home"),latitude:String($("adCheckoutLatitude")?.value||""),longitude:String($("adCheckoutLongitude")?.value||"")};
  if(address.full_name.length<2||!/^\d{10}$/.test(address.mobile)||address.address_line.length<5||address.city.length<2||address.state.length<2||!/^[1-9]\d{5}$/.test(address.pincode)){toast("नाम, 10-digit मोबाइल, पूरा पता, शहर, राज्य और valid 6-digit PIN भरें।");return;}
- var zoneMismatch=cart.find(function(item){return item.seller_city&&item.seller_state&&(String(item.seller_city).trim().toLowerCase()!==address.city.toLowerCase()||String(item.seller_state).trim().toLowerCase()!==address.state.toLowerCase());});
- if(zoneMismatch){if(resultBox)resultBox.textContent="यह सामान केवल seller के local city/state zone में deliver हो सकता है। अपने delivery address का शहर/राज्य सही करें या उसी इलाके के seller से सामान चुनें।";toast("Local seller zone और delivery address match नहीं करते।");return;}
  var payment=String($("adCheckoutPayment")?.value||"cod"),notes=String($("adCheckoutNotes")?.value||"").trim().slice(0,500);
- var fulfillment=String($("adCheckoutFulfillment")?.value||"delivery");
- var nonFoodInCart=cart.some(function(item){
+ var fulfillment="delivery";
+ var unsupportedItem=cart.find(function(item){
   var sellerType=String(item.seller_type||item.product?.seller_type||"").toLowerCase();
-  return sellerType!=="food";
+  return sellerType!=="non_food";
  });
- if(nonFoodInCart&&fulfillment!=="self_pickup"){
-  var gateMessage="Non-food Home Delivery अभी रुकी है: live courier booking और shipping/RTO settlement connected नहीं हैं. Self Pickup चुनें या cart से non-food items हटाकर Food order करें. इस प्रयास में कोई order/payment नहीं बना.";
+ if(unsupportedItem){
+  var gateMessage="AD Brand Market फिलहाल केवल non-food products स्वीकार करता है। Food या अन्य unsupported item को cart से हटाएँ।";
   if(resultBox)resultBox.textContent=gateMessage;
   toast(gateMessage);
   return;
@@ -2328,7 +2326,7 @@ window.adLiveCheckout=async function(){
   var res=await client.rpc("checkout_marketplace_order_v2",{p_items:cart.map(function(x){return {product_id:x.product_id,variant_id:x.variant_id,quantity:x.quantity};}),p_address:address,p_payment_method:payment,p_notes:notes||null,p_nonfood_fulfillment:fulfillment});
   if(res.error)throw res.error;
   window.__adBrandLiveCart=[];adLiveRenderCart();
-  if(resultBox){resultBox.textContent="Order database में बन गया। Payment status pending है। Food order local AD rider queue में जाएगा; non-food order बाहरी courier की real booking confirm होने तक pending रहेगा. "+JSON.stringify(res.data?.orders?.map(function(o){return o.order_code+" ("+o.status+")";})||[]);}
+  if(resultBox){resultBox.textContent="Order request database में बन गया। External courier की actual booking और AWB confirm होने तक parcel shipped नहीं माना जाएगा। "+JSON.stringify(res.data?.orders?.map(function(o){return o.order_code+" ("+o.status+")";})||[]);}
   toast("Order बनाया गया। Payment अभी verified नहीं है।");
   await adLiveLoadCustomerOrders();await adLiveLoadCatalog();
  }catch(e){liveError("Order place नहीं हुआ",e);if(resultBox)resultBox.textContent=e?.message||"Order save नहीं हुआ; दोबारा प्रयास करें।";}
