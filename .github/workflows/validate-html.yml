@@ -90,6 +90,7 @@ jobs:
               "legacy self-pickup-only checkout gate is absent": 'if(nonFoodInCart&&fulfillment!=="self_pickup")' not in source,
               "checkout delivery option is excluded from role-option cleanup": 'select:not(#adCheckoutFulfillment) option[value="delivery"]' in source,
               "food items are rejected from first launch": 'if(!nonFoodInCart)' in source,
+              "legacy local demo modules are hidden": '#adbm3-root,#adbm4-root,#adbm5-root{display:none!important}' in source,
           }
           for name, ok in checks.items():
               print(("PASS" if ok else "FAIL") + ": " + name)
