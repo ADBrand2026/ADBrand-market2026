@@ -20432,32 +20432,32 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
       }
       if(o.fulfillment_mode==="external_courier"){
         const sh=o.shipment||{};
-        const fee=sh.quoted_shipping_charge==null?null:Number(sh.quoted_shipping_charge);
-        if(sh.status==="quote_awaiting_customer"&&fee!==null&&!sh.quote_accepted_at&&!sh.quote_rejected_at){
-          card.appendChild(liveNode("p","", "🚚 Courier shipping quote: "+liveMoney(fee)));
-          card.appendChild(liveNode("p","", "Product subtotal: "+liveMoney(o.subtotal)+" • Final total after accepting the quoted fee: "+liveMoney(Number(o.subtotal||0)+fee)));
-          card.appendChild(liveNode("p","small muted","यह quote courier की बताई fee है। आपके स्वीकार करने से पहले parcel book नहीं होगा; reject करने पर order cancel होगा और stock वापस होगा।"));
-          card.appendChild(liveButton("✅ Accept courier fee & continue",async()=>{
-            // Clicking this clearly labelled button is the customer's explicit acceptance; avoid a second confirmation popup.
-            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:true,p_note:"Customer accepted courier fee in order page"});
-            if(err){alert("Courier fee acceptance save नहीं हुई: "+liveErr(err));return;}
-            toast(res?.message||"Courier fee accepted; actual booking अभी pending है.");
+        const quote=sh.selected_quote||{};
+        if(sh.status==="quote_awaiting_customer"&&quote.id&&!sh.quote_accepted_at&&!sh.quote_rejected_at){
+          card.appendChild(liveNode("p","", "🚚 Courier option: "+(quote.courier_name||"Shiprocket partner")));
+          card.appendChild(liveNode("p","", "Estimated delivery: "+(quote.estimated_days||"Provider estimate unavailable")+" days"));
+          card.appendChild(liveNode("p","small muted","Courier freight "+liveMoney(quote.total_charge||sh.quoted_shipping_charge||0)+" seller देगा। यह राशि आपके order total में नहीं जोड़ी जाएगी।"));
+          card.appendChild(liveNode("p","small muted","आपकी मंज़ूरी courier चुनने के लिए है। मंज़ूरी से पहले AWB या pickup booking नहीं होगी; reject करने पर order cancel और stock restore होगा।"));
+          card.appendChild(liveButton("✅ Accept courier option & continue",async()=>{
+            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:true,p_note:"Customer accepted courier option in order page"});
+            if(err){alert("Courier option acceptance save नहीं हुई: "+liveErr(err));return;}
+            toast(res?.message||"Courier option accepted; actual booking अभी pending है.");
             await adLiveLoadCustomerOrders();
           },"primary"));
-          card.appendChild(liveButton("❌ Reject fee & cancel order",async()=>{
-            // Rejection button itself is explicit; use a standard note instead of prompting the customer again.
-            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:false,p_note:"Customer declined courier fee"});
-            if(err){alert("Quote rejection/cancellation save नहीं हुई: "+liveErr(err));return;}
-            toast(res?.message||"Courier fee declined; order cancelled.");
+          card.appendChild(liveButton("❌ Reject courier option & cancel order",async()=>{
+            const {data:res,error:err}=await client.rpc("customer_respond_to_external_shipping_quote",{p_order_id:o.id,p_accept:false,p_note:"Customer declined courier option"});
+            if(err){alert("Courier option rejection/cancellation save नहीं हुई: "+liveErr(err));return;}
+            toast(res?.message||"Courier option declined; order cancelled.");
             await adLiveLoadCustomerOrders();
           },"outline"));
         }else if(sh.quote_accepted_at){
-          card.appendChild(liveNode("p","", "✅ Accepted courier fee: "+liveMoney(fee==null?o.delivery_charge:fee)+" • Order total: "+liveMoney(o.total_amount)));
-          card.appendChild(liveNode("p","small muted",sh.tracking_number
-            ?("Courier: "+(sh.provider||"External courier")+" • Actual tracking/AWB: "+sh.tracking_number+" • "+(sh.status||"status pending"))
-            :"Courier fee accepted. The parcel is not booked yet; actual provider tracking/AWB is still pending."));
+          card.appendChild(liveNode("p","", "✅ Courier option accepted: "+(quote.courier_name||sh.provider||"External courier")+" · Order total: "+liveMoney(o.total_amount)));
+          card.appendChild(liveNode("p","small muted","Courier freight seller के हिसाब में जाएगा; आपके order total में courier cost अलग से नहीं जोड़ी गई।"));
+          card.appendChild(liveNode("p","small muted",sh.awb_code||sh.tracking_number
+            ?("AWB: "+(sh.awb_code||sh.tracking_number)+" · "+(sh.status||"status pending"))
+            :"Courier option accepted. Actual AWB और pickup scan अभी pending हैं."));
         }else{
-          card.appendChild(liveNode("p","small muted","Courier shipping fee अभी quoted नहीं है। अभी दिख रहा total product subtotal है; courier fee मिलने पर पहले आपको amount दिखाकर acceptance लिया जाएगा। Actual booking/tracking आने तक parcel shipped नहीं माना जाएगा."));
+          card.appendChild(liveNode("p","small muted","Courier option अभी तैयार नहीं है। Provider की वास्तविक serviceability और seller packing के बाद option यहाँ दिखेगा।"));
         }
       }
       if(o.fulfillment_mode==="self_pickup"){
