@@ -77,6 +77,26 @@ jobs:
             echo "Checking $js"
             node --check "$js"
           done
+      - name: Check first-launch courier-only storefront rules
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path("index.html").read_text(encoding="utf-8")
+          checks = {
+              "food storefront entry is removed by the public-scope guard": 'if(foodButton)foodButton.remove();' in source,
+              "self-pickup is removed from checkout": 'if(option.value==="self_pickup")option.remove();' in source,
+              "checkout always submits external delivery": 'const fulfillment="delivery";' in source,
+              "legacy self-pickup-only checkout gate is absent": 'if(nonFoodInCart&&fulfillment!=="self_pickup")' not in source,
+              "checkout delivery option is excluded from role-option cleanup": 'select:not(#adCheckoutFulfillment) option[value="delivery"]' in source,
+              "food items are rejected from first launch": 'if(!nonFoodInCart)' in source,
+          }
+          for name, ok in checks.items():
+              print(("PASS" if ok else "FAIL") + ": " + name)
+          failed = [name for name, ok in checks.items() if not ok]
+          if failed:
+              raise SystemExit("Storefront scope validation failed: " + "; ".join(failed))
+          PY
       - name: Check private Admin remains absent from the storefront navigation
         shell: bash
         run: |
