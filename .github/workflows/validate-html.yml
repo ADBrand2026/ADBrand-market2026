@@ -98,6 +98,39 @@ jobs:
           if failed:
               raise SystemExit("Storefront scope validation failed: " + "; ".join(failed))
           PY
+
+      - name: Check document structure and unique storefront IDs
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          source = Path("index.html").read_text(encoding="utf-8")
+          if source.lower().rstrip().endswith("</html>") is False:
+              raise SystemExit("FAIL: document must end with </html>")
+          if source[source.lower().rfind("</html>") + len("</html>"):].strip():
+              raise SystemExit("FAIL: content found after </html>")
+
+          class IdChecker(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.ids = {}
+              def handle_starttag(self, tag, attrs):
+                  for key, value in attrs:
+                      if key.lower() == "id" and value:
+                          self.ids.setdefault(value, []).append(tag)
+
+          parser = IdChecker()
+          parser.feed(source)
+          duplicates = {key: tags for key, tags in parser.ids.items() if len(tags) > 1}
+          if duplicates:
+              for key, tags in duplicates.items():
+                  print(f"Duplicate id {key!r}: {tags}")
+              raise SystemExit("FAIL: duplicate IDs in storefront DOM")
+          print(f"PASS: valid document ending; {len(parser.ids)} unique DOM IDs.")
+          PY
+
       - name: Check private Admin remains absent from the storefront navigation
         shell: bash
         run: |
