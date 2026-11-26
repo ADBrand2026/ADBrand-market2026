@@ -23,6 +23,8 @@ This is a point-in-time audit of the connected Supabase project and GitHub repos
 - Food entry is removed from the public storefront until a suitable external food-courier integration is confirmed.
 - Self Pickup is removed from public checkout.
 - Public Delivery Boy / Food Seller entry points are removed by the storefront scope guard.
+- Legacy browser-only demo modules (Pages 3, 4 and 5) are hidden from the public storefront so fake localStorage orders, pickup and demo account screens cannot be mistaken for live marketplace features.
+- The checkout cleanup guard preserves the real external-delivery option while removing role-selection options for the retired Delivery/Food/Self Pickup flows.
 - Non-Food checkout uses external delivery only and remains blocked until courier readiness is genuinely confirmed.
 - Fixed the checkout role-cleanup selector so it does not accidentally remove the external-delivery option from the checkout select.
 - Added indexes for the three previously unindexed courier foreign keys:
