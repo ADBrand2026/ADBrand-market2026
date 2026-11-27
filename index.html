@@ -1322,6 +1322,41 @@ window.adLoadSellerPayoutOverview = async function () {
  if(document.getElementById("seller"))observer.observe(document.getElementById("seller"),{childList:true,subtree:true});
 })();
 </script>
+
+<!-- Legacy button safety bridge: keep old cards clickable without creating fake orders. -->
+<script id="ad-legacy-button-safety-bridge">
+(function () {
+  "use strict";
+  window.buyNow = function (productID) {
+    if (typeof window.addToCart !== "function" || typeof window.openCartModal !== "function") {
+      alert("Shopping cart अभी उपलब्ध नहीं है। कृपया Live Catalogue से सामान चुनें।");
+      return;
+    }
+    window.addToCart(String(productID || ""));
+    window.openCartModal();
+  };
+  window.checkoutCart = function () {
+    var legacyCart = window.db && Array.isArray(window.db.cart) ? window.db.cart : [];
+    if (!legacyCart.length) {
+      if (typeof window.toast === "function") window.toast("Cart खाली है।");
+      return;
+    }
+    var liveCartSection = document.getElementById("adCustomerLiveCartSection");
+    if (liveCartSection) {
+      liveCartSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    var message = "यह पुराना local/demo cart सुरक्षित Live Order System से जुड़ा नहीं है। कोई Order या Payment नहीं बनाया गया। कृपया Live Catalogue में product दोबारा जोड़ें। Courier verification पूरा होने तक असली checkout बंद रहेगा।";
+    if (typeof window.toast === "function") window.toast(message);
+    else alert(message);
+  };
+  window.toggleDeliveryOnline = function () {
+    var message = "अपना Delivery Boy इस launch में बंद है। सभी Non-Food parcels external courier से ही भेजे जाएँगे।";
+    if (typeof window.toast === "function") window.toast(message);
+    else alert(message);
+  };
+})();
+</script>
+
 </body> or </html> until the final page.
 -->
 
