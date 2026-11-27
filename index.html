@@ -2182,7 +2182,7 @@ function updateRoleApplicationFields() {
   const intro=fields?.querySelector("h3 + p");
   if(intro)intro.textContent=isSeller
     ? (customerSessionVerified ? "Seller details भरें और आवेदन भेजें। Admin approval के बाद Seller Dashboard खुलेगा।" : "पहले दुकान की जानकारी भरें। Submit करने पर mobile OTP verification खुलेगा; उसके बाद आवेदन जमा होगा।")
-    : "पहले Customer login करें। आवेदन Admin approval तक pending रहेगा।
+    : "पहले Customer login करें। आवेदन Admin approval तक pending रहेगा।";
   const submitButton=fields?.querySelector(".ad-rider-submit");
   if(submitButton)submitButton.textContent=isSeller?"📨 Seller आवेदन भेजें":"📨 Delivery Partner आवेदन भेजें";
   const intent = $("accountIntentLabel");
