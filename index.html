@@ -1336,7 +1336,7 @@ window.adLoadSellerPayoutOverview = async function () {
     window.openCartModal();
   };
   window.checkoutCart = function () {
-    var legacyCart = window.db && Array.isArray(window.db.cart) ? window.db.cart : [];
+    var legacyCart = (typeof db !== "undefined" && db && Array.isArray(db.cart)) ? db.cart : [];
     if (!legacyCart.length) {
       if (typeof window.toast === "function") window.toast("Cart खाली है।");
       return;
