@@ -1139,7 +1139,7 @@ body{background:#f7f7fb}
       <div id="roleShopFields">
         <div class="field"><label for="roleShopName">दुकान का नाम</label><input id="roleShopName" maxlength="120"></div>
         <div class="field"><label for="roleSellerType">किस तरह की दुकान?</label>
-          <select id="roleSellerType"><option value="food">Food Seller — खाना, पिज़्ज़ा, Veg/Non-Veg, चाय, Snacks</option><option value="non_food">Non-food Seller — कपड़े, जूते, चप्पल</option></select>
+          <select id="roleSellerType"><option value="non_food" selected>Non-food Seller — कपड़े, जूते, चप्पल</option></select>
         </div>
         <div class="field"><label for="roleSellerRegistrationNumber">Business registration / Udyam number (optional)</label><input id="roleSellerRegistrationNumber" maxlength="100" autocomplete="off"></div>
         <div class="field"><label for="roleSellerGSTIN">GSTIN (optional; enter only if registered)</label><input id="roleSellerGSTIN" maxlength="15" autocapitalize="characters" autocomplete="off" placeholder="15-character GSTIN"></div>
@@ -1753,22 +1753,7 @@ async function submitRoleApplication() {
     toast("आपके account का verified mobile और आवेदन का mobile अलग है। सही verified नंबर भरें।");
     return;
   }
-  if (!client || !user || window.__adBrandAuthRole !== "customer") {
-    if(requestedRole==="seller"){
-      closeModal("accountModal");
-      window.__adBrandPendingRole="seller";
-      window.__adCustomerAuthPanelOpen=true;
-      if(typeof window.openPanel==="function")window.openPanel("customer");
-      const otpRole=$("adCustomerOtpRole");if(otpRole)otpRole.value="seller";
-      if(typeof window.adCustomerSetOtpMode==="function")window.adCustomerSetOtpMode("register");
-      updateCustomerOtpVisibility();
-      const otpPanel=$("adCustomerOtpPanel");if(otpPanel){otpPanel.hidden=false;otpPanel.scrollIntoView({behavior:"smooth",block:"center"});}
-      toast("Seller form भर लिया है। अब mobile OTP verify करें; फिर यही form submit होगा।");
-      return;
-    }
-    toast("पहले secure Customer login करें, फिर आवेदन भेजें।");
-    return;
-  }
+  
   if (!["seller","delivery"].includes(requestedRole)) {
     toast("पहले Seller या Delivery Partner चुनें।");
     return;
@@ -1877,6 +1862,22 @@ async function submitRoleApplication() {
     if (doc.file.size > 10 * 1024 * 1024) {
       toast("हर private document 10 MB या उससे छोटा होना चाहिए।"); return;
     }
+  }
+  if (!client || !user || window.__adBrandAuthRole !== "customer") {
+    if(requestedRole==="seller"){
+      closeModal("accountModal");
+      window.__adBrandPendingRole="seller";
+      window.__adCustomerAuthPanelOpen=true;
+      if(typeof window.openPanel==="function")window.openPanel("customer");
+      const otpRole=$("adCustomerOtpRole");if(otpRole)otpRole.value="seller";
+      if(typeof window.adCustomerSetOtpMode==="function")window.adCustomerSetOtpMode("register");
+      updateCustomerOtpVisibility();
+      const otpPanel=$("adCustomerOtpPanel");if(otpPanel){otpPanel.hidden=false;otpPanel.scrollIntoView({behavior:"smooth",block:"center"});}
+      toast("दुकान की जानकारी भर गई। अब mobile OTP verify करें; फिर Seller आवेदन जमा होगा।");
+      return;
+    }
+    toast("पहले secure Customer login करें, फिर आवेदन भेजें।");
+    return;
   }
   const profile = await client.from("profiles").select("id,role,is_active").eq("user_id",user.id).maybeSingle();
   if (profile.error || !profile.data || profile.data.role !== "customer" || profile.data.is_active !== true) {
