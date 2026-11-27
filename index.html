@@ -576,6 +576,7 @@ body{background:#f7f7fb}
       <button class="btn outline" onclick="goHome()">🏠 Home</button>
       <button id="adHeaderRegister" class="btn outline" type="button" onclick="adOpenAuthEntry('register')">Register</button>
       <button id="adHeaderLogin" class="btn outline" type="button" onclick="adOpenAuthEntry('login')">Login</button>
+      <button id="adHeaderAccount" class="btn primary" type="button" hidden onclick="adOpenMyAccount()">My Account</button>
       <button class="btn outline" onclick="openCartModal()">🛒 Cart <span id="cartCount">0</span></button>
     </div>
   </div>
@@ -589,7 +590,7 @@ body{background:#f7f7fb}
       <p>Fashion, sarees, footwear और रोज़मर्रा के products — अपने पसंदीदा सामान को खोजें, compare करें और order करें।</p>
       <div class="ad-store-hero-actions">
         <button class="btn primary" type="button" onclick="openPanel('customer')">🛍️ अभी खरीदारी करें</button>
-        <button class="btn outline" type="button" onclick="adOpenAuthEntry('register','seller')">🏪 अपना सामान बेचें</button>
+        <button class="btn outline" type="button" onclick="openAccountAccess('seller')">🏪 Seller Registration / सामान बेचें</button>
       </div>
       <div class="ad-store-trust"><span>✓ आसान shopping</span><span>✓ Seller से सीधे products</span><span>✓ Order updates</span></div>
     </div>
@@ -604,7 +605,7 @@ body{background:#f7f7fb}
     <button type="button" onclick="openPanel('customer');setTimeout(()=>{const e=document.getElementById('adLiveCategory');if(e){e.value='home-kitchen';e.dispatchEvent(new Event('change',{bubbles:true}));}},250)"><span>🏠</span><b>Home & Kitchen</b></button>
   </section>
   <section class="ad-store-benefits"><div><b>🛒</b><span><strong>Shop with ease</strong><small>एक जगह कई sellers के products</small></span></div><div><b>♡</b><span><strong>Save your favourites</strong><small>Wishlist और cart की सुविधा</small></span></div><div><b>📦</b><span><strong>Track your orders</strong><small>अपने orders और updates देखें</small></span></div></section>
-  <section class="ad-store-seller-cta"><div><strong>क्या आप Seller हैं?</strong><small>अपनी दुकान के products online दिखाएँ और orders manage करें।</small></div><button class="btn primary" onclick="adOpenAuthEntry('register','seller')">Seller बनें →</button></section>
+  <section class="ad-store-seller-cta"><div><strong>क्या आप Seller हैं?</strong><small>अपनी दुकान के products online दिखाएँ और orders manage करें।</small></div><button class="btn primary" onclick="openAccountAccess('seller')">Seller Registration →</button></section>
   <div class="ad-home-auth-actions ad-store-auth-actions"><button class="btn outline" onclick="adOpenAuthEntry('login')">Login</button><button class="btn primary" onclick="adOpenAuthEntry('register')">Register</button></div>
 </main>
 
@@ -1673,10 +1674,22 @@ function closeModal(id) {
 }
 
 function adUpdateAuthEntryVisibility(){
- const loggedIn=!!window.__adBrandAuthUser&&["customer","seller","delivery","admin"].includes(window.__adBrandAuthRole);
+ const role=String(window.__adBrandAuthRole||"");
+ const loggedIn=!!window.__adBrandAuthUser&&["customer","seller","delivery","admin"].includes(role);
  ["adHeaderRegister","adHeaderLogin"].forEach(function(id){var el=$(id);if(el)el.hidden=loggedIn;});
  document.querySelectorAll(".ad-home-auth-actions").forEach(function(el){el.hidden=loggedIn;});
+ const account=$("adHeaderAccount");
+ if(account){account.hidden=!(loggedIn&&["customer","seller"].includes(role));account.textContent=role==="seller"?"Seller Dashboard":"My Account";}
 }
+window.adOpenMyAccount=function(){
+ const role=String(window.__adBrandAuthRole||"");
+ if(!window.__adBrandAuthUser||!["customer","seller"].includes(role)){toast("अपना account खोलने के लिए पहले Login करें।");adOpenAuthEntry("login","customer");return;}
+ if(typeof window.openPanel==="function")window.openPanel(role);
+ if(role==="customer"){
+  const center=$("adCustomerAccountCenter");
+  if(center)setTimeout(function(){center.scrollIntoView({behavior:"smooth",block:"start"});},120);
+ }
+};
 window.adOpenAuthEntry=function(mode,role){
  mode=mode==="register"?"register":"login";
  role=["customer","seller","delivery"].includes(role)?role:"customer";
@@ -1690,7 +1703,13 @@ function openAccountAccess(role) {
  if(!allowed.includes(role)){toast("Invalid account type.");return;}
  currentAccountRole=role;
  const select=$("accountRole");if(select)select.value=role;
- if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"&&(role==="seller"||role==="delivery")){
+ if(role==="seller"){
+  const modal=$("accountModal");if(modal)modal.classList.add("show");
+  updateRoleApplicationFields();
+  const title=$("accountModalTitle");if(title)title.textContent="🏪 Seller Registration / Login";
+  return;
+ }
+ if(window.__adBrandAuthUser&&window.__adBrandAuthRole==="customer"&&role==="delivery"){
   const modal=$("accountModal");if(modal)modal.classList.add("show");
   updateRoleApplicationFields();
   return;
@@ -1735,7 +1754,19 @@ async function submitRoleApplication() {
     return;
   }
   if (!client || !user || window.__adBrandAuthRole !== "customer") {
-    toast("पहले Customer account बनाकर login करें, फिर आवेदन भेजें।");
+    if(requestedRole==="seller"){
+      closeModal("accountModal");
+      window.__adBrandPendingRole="seller";
+      window.__adCustomerAuthPanelOpen=true;
+      if(typeof window.openPanel==="function")window.openPanel("customer");
+      const otpRole=$("adCustomerOtpRole");if(otpRole)otpRole.value="seller";
+      if(typeof window.adCustomerSetOtpMode==="function")window.adCustomerSetOtpMode("register");
+      updateCustomerOtpVisibility();
+      const otpPanel=$("adCustomerOtpPanel");if(otpPanel){otpPanel.hidden=false;otpPanel.scrollIntoView({behavior:"smooth",block:"center"});}
+      toast("Seller form भर लिया है। अब mobile OTP verify करें; फिर यही form submit होगा।");
+      return;
+    }
+    toast("पहले secure Customer login करें, फिर आवेदन भेजें।");
     return;
   }
   if (!["seller","delivery"].includes(requestedRole)) {
@@ -2085,7 +2116,7 @@ function updateRoleApplicationFields() {
     node.setAttribute("aria-hidden", visible ? "false" : "true");
   }
   // Delivery identity documents must stay hidden until the applicant has verified their phone and signed in as Customer.
-  setSection(fields, (isSeller || isDelivery) && (isSeller ? customerSessionVerified : customerSessionVerified));
+  setSection(fields, isSeller || (isDelivery && customerSessionVerified));
   setSection(shop, isSeller);
   setSection(vehicle, isDelivery);
   const pincodeField = $("roleApplicantPincodeField");
@@ -2146,7 +2177,11 @@ function updateRoleApplicationFields() {
       : "📱 मोबाइल OTP से Delivery Registration शुरू करें";
   }
   const title = $("roleApplicationTitle");
-  if (title) title.textContent = isSeller ? "🏪 Seller Registration" : "🛵 Delivery Partner Registration";
+  if (title) title.textContent = isSeller ? "🏪 Seller Registration — दुकान का account" : "🛵 Delivery Partner Registration";
+  const intro=fields?.querySelector("h3 + p");
+  if(intro)intro.textContent=isSeller
+    ? (customerSessionVerified ? "Seller details भरें और आवेदन भेजें। Admin approval के बाद Seller Dashboard खुलेगा।" : "पहले दुकान की जानकारी भरें। Submit करने पर mobile OTP verification खुलेगा; उसके बाद आवेदन जमा होगा।")
+    : "पहले Customer login करें। आवेदन Admin approval तक pending रहेगा।
   const submitButton=fields?.querySelector(".ad-rider-submit");
   if(submitButton)submitButton.textContent=isSeller?"📨 Seller आवेदन भेजें":"📨 Delivery Partner आवेदन भेजें";
   const intent = $("accountIntentLabel");
