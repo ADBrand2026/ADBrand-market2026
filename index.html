@@ -21634,7 +21634,10 @@ Customer, Seller और Delivery Partner के लिए एक ही ऑर�
         "<h3>❤️ My Wishlist</h3><div id='adCustomerWishlist'><div class='empty'>Wishlist load हो रही है…</div></div>"+
       "</div>"+
     "</section>";
-    if(header)header.insertAdjacentHTML("afterend",markup);
+    /* Keep account details below the shopping/search area so they cannot push the search box down the page. */
+    const market=el("adLiveCustomerMarket");
+    if(market)market.insertAdjacentHTML("afterend",markup);
+    else if(header)header.insertAdjacentHTML("afterend",markup);
     const extras=node("div","product-actions");
     extras.style.cssText="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px";
     extras.append(btn("मोबाइल OTP से Login करें",function(){adOpenAuthEntry("login","customer");},"outline"));
